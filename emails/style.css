@@ -1,0 +1,46 @@
+body,
+html,
+h1,
+p,
+a,
+button, * {
+  font-family: 'Manrope', sans-serif;
+}
+
+.div-flex-column {
+  display: flex;
+  max-width: 960px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
+h1 {
+  color: #502048;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+.button {
+  text-decoration: none !important;
+  padding: 10px 20px;
+  background-color: #970b80;
+  color: white !important;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #502048; /* Darker shade when hovered */
+}
+
+.button:active {
+  background-color: #502048; /* Even darker shade when clicked */
+  transform: scale(0.98); /* Slightly scale down the button */
+}

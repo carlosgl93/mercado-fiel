@@ -1,0 +1,103 @@
+/* Mercado Fiel Custom Color Variables */
+:root {
+  /* Primary Colors */
+  --c-primary: #4caf4f;
+  --c-primary-hover: #449a46;
+  --c-primary-light: #e8f5e8;
+  --c-primary-gradient: linear-gradient(135deg, #4caf4f 0%, #b5e61d 100%);
+
+  /* Secondary Colors */
+  --c-secondary: #ff8a00;
+  --c-secondary-hover: #e67800;
+  --c-secondary-light: #fff0e6;
+
+  /* Accent Colors */
+  --c-accent-red: #e94040;
+  --c-accent-red-hover: #d93636;
+  --c-accent-green-lime: #b5e61d;
+  --c-accent-green-lime-hover: #a3d01a;
+
+  /* Neutral Colors */
+  --c-neutral-light: #f6f6f4;
+  --c-neutral-dark: #3a3a3a;
+  --c-neutral-dark-hover: #2a2a2a;
+
+  /* Background Colors */
+  --c-bg-primary: #f6f6f4;
+  --c-bg-paper: #ffffff;
+
+  /* Shadows for depth */
+  --shadow-sm: 0 1px 3px rgba(58, 58, 58, 0.12);
+  --shadow-md: 0 4px 6px rgba(58, 58, 58, 0.12);
+  --shadow-lg: 0 10px 15px rgba(58, 58, 58, 0.12);
+}
+
+/* Gradient Button Styles */
+.btn-primary-gradient {
+  background: var(--c-primary-gradient);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-gradient:hover {
+  background: linear-gradient(135deg, #449a46 0%, #a3d01a 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Fresh Product Badge */
+.badge-fresh {
+  background-color: var(--c-accent-green-lime);
+  color: var(--c-neutral-dark);
+  font-weight: 600;
+}
+
+/* Alert/Discount Badge */
+.badge-alert {
+  background-color: var(--c-accent-red);
+  color: white;
+  font-weight: 600;
+}
+
+/* CTA Elements */
+.cta-primary {
+  background-color: var(--c-secondary);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.cta-primary:hover {
+  background-color: var(--c-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Accessibility - High Contrast Text */
+.text-high-contrast {
+  color: var(--c-neutral-dark);
+  font-weight: 500;
+}
+
+/* Micro-interaction animations */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Card with Mercado Fiel styling */
+.card-mercado-fiel {
+  background: var(--c-bg-paper);
+  border: 1px solid rgba(76, 175, 79, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card-mercado-fiel:hover {
+  border-color: var(--c-primary);
+  box-shadow: var(--shadow-md);
+}

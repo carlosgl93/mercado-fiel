@@ -1,0 +1,5 @@
+[aria-disabled='true'] {
+  pointer-events: none; /* Disables click and hover events */
+  opacity: 0.5; /* Makes the element semi-transparent */
+  position: relative; /* Needed for ::before and ::after to work */
+}

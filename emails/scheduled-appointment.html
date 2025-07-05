@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mercado Fiel: Cuenta creada exitosamente.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body,
+      *,
+      html,
+      p,
+      h1,
+      button,
+      a {
+        font-family: 'Manrope', sans-serif;
+      }
+      .div-flex-column {
+        display: flex;
+        max-width: 960px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+      }
+
+      h1 {
+        color: #502048;
+      }
+
+      a {
+        text-decoration: none;
+        color: white;
+      }
+
+      .button {
+        text-decoration: none !important;
+        padding: 10px 20px;
+        background-color: #970b80;
+        color: white !important;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .button:hover {
+        background-color: #502048; /* Darker shade when hovered */
+      }
+
+      .button:active {
+        background-color: #502048; /* Even darker shade when clicked */
+        transform: scale(0.98); /* Slightly scale down the button */
+      }
+    </style>
+  </head>
+  <body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="center">
+          <!-- Centered content -->
+          <table border="0" cellspacing="0" cellpadding="0" style="max-width: 960px; margin: auto">
+            <tr>
+              <td align="center">
+                <img
+                  style="max-width: 200px; height: auto"
+                  src="https://firebasestorage.googleapis.com/v0/b/blui-6ec33.appspot.com/o/emails-blui-logo.png?alt=media&token=d66f9486-ea3a-494c-a838-b49e5b2586d3"
+                  alt="Mercado Fiel logo"
+                />
+                <h1 style="color: #502048">¡Han agendado una sesión contigo!</h1>
+              </td>
+            </tr>
+            <tr>
+              <td align="center">
+                <p>
+                  Felicitaciones {{providerName}}, {{customerName}} ha agendado una sesión de
+                  {{serviceName}} el dia {{scheduledDate}} a las {{scheduledTime}}.
+                </p>
+                <p>
+                  Asegurate de tener tus datos bancarios actualizados para recibir el pago de la
+                  sesión, el cual sucede 3 días habiles después de la sesión.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 20px">
+                <a href="{{env redirect}}" target="_blank" class="button">Tus sesiones</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

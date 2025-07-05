@@ -1,0 +1,6 @@
+/* Import Mercado Fiel Color Palette */
+@import './theme/mercado-fiel-colors.css';
+
+.firebase-emulator-warning {
+  display: none;
+}

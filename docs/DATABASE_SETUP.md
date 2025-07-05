@@ -10,6 +10,8 @@ Mercado Fiel uses a hybrid approach for backend services:
 
 ## Database Configuration
 
+> **⚠️ SECURITY WARNING**: Never commit real API keys, database URLs, or secrets to version control. Always use placeholder values in documentation and store real credentials in environment variables or secure secret management systems.
+
 ### 1. Supabase PostgreSQL
 
 - **Provider**: Supabase (hosted PostgreSQL)
@@ -22,22 +24,24 @@ Mercado Fiel uses a hybrid approach for backend services:
 
 ```bash
 # Supabase (for client-side operations)
-VITE_SUPABASE_URL=https://xnehuzmpesnelhdboijy.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Firebase (for auth, functions, storage)
-VITE_FIREBASE_API_KEY=AIzaSyDD1grq2vgccgSGb9tniIBXCUV7VNp2R5g
-VITE_FIREBASE_AUTH_DOMAIN=mercado-fiel.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=mercado-fiel
-# ... other Firebase config
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 #### Server-side (Cloud Functions)
 
 ```bash
 # Database (for Prisma ORM)
-DATABASE_URL="postgresql://postgres.xnehuzmpesnelhdboijy:[PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.xnehuzmpesnelhdboijy:[PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL="postgresql://postgres.your_ref:[PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.your_ref:[PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
 ```
 
 ## Database Schema
@@ -152,7 +156,7 @@ Supabase RLS should be configured for:
 
 ### Supabase Project
 
-- **URL**: <https://xnehuzmpesnelhdboijy.supabase.co>
+- **URL**: `https://your_ref.supabase.co`
 - **Region**: AWS South America (São Paulo)
 - **Database**: PostgreSQL 15
 

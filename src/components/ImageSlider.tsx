@@ -115,10 +115,8 @@ function ImageSlider({ interval = 5000 }: ImageSliderProps) {
             color: 'white',
           }}
         >
-          Más clientes para tus productos, mejores precios para tus compras
-          {/* : */}
-          {/* juntos somos más */}
-          {/* fuertes. */}
+          Más clientes para tus productos, mejores precios para tus compras: juntos somos más
+          fuertes.
         </ImageSliderText>
         <SearchBar />
       </Box>

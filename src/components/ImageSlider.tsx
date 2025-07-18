@@ -1,7 +1,7 @@
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
-import SearchBar from './SearchBar/SearchBar';
+import { UserSearchesForCTAs } from './UserSearchesForCTAs';
 
 interface ImageSliderProps {
   interval?: number;
@@ -47,9 +47,16 @@ function ImageSlider({ interval = 5000 }: ImageSliderProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // const navigate = useNavigate();
 
   // Use responsive images based on screen size
   const images = isMobile ? mobileImages : desktopImages;
+
+  // const handleSelectCategory = () => {
+  //   if (navigate) {
+  //     navigate('/resultados');
+  //   }
+  // };
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -118,7 +125,20 @@ function ImageSlider({ interval = 5000 }: ImageSliderProps) {
           Más clientes para tus productos, mejores precios para tus compras: juntos somos más
           fuertes.
         </ImageSliderText>
-        <SearchBar />
+        <Typography
+          sx={{
+            mt: '1rem',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            zIndex: 1000,
+          }}
+        >
+          ¿Qué buscas?
+        </Typography>
+        <UserSearchesForCTAs />
+        {/* <CategoriesDropdown onCategorySelect={handleSelectCategory} /> */}
+        {/* <ComunasSearchBar /> */}
       </Box>
     </Box>
   );

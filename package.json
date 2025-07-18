@@ -30,11 +30,8 @@
     "https-preview": "serve dist",
     "prepare": "husky install",
     "deploy": "pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app",
-    "emulators": "firebase emulators:start",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "emulators": "firebase emulators:start --only functions,hosting",
+    "supabaseEmulators": "supabase start emulators && cd ./functions && npm run seed-db"
   },
   "dependencies": {
     "@emotion/react": "^11.10.4",

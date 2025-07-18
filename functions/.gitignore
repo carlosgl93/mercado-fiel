@@ -11,3 +11,4 @@ node_modules/
 firebase-adminsdk.json
 .env.dev
 .env.prod
+./lib

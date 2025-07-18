@@ -10,6 +10,7 @@ import { interactedPrestadorState } from '@/store/resultados/interactedPrestador
 import useSidebar from '@/store/sidebar';
 import { Box, styled } from '@mui/material';
 import { useRecoilValue } from 'recoil';
+import { SubTitle } from '../../components/StyledComponents';
 
 const MobileHeaderContent = () => {
   const [, sidebarActions] = useSidebar();
@@ -46,26 +47,29 @@ const MobileHeaderContent = () => {
   }
 
   return (
-    <FlexBox sx={{ alignItems: 'center' }}>
-      <IconButton
-        onClick={sidebarActions.toggle}
-        size="large"
-        edge="start"
-        color="primary"
-        aria-label="menu"
-        sx={{ mr: 1 }}
-      >
-        <MenuIcon />
-      </IconButton>
-      <Link
-        to="/"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <HeaderIconImage src={`/images/mercadofiel.png`} alt="Mercado Fiel logo" />
-      </Link>
+    <FlexBox sx={{ alignItems: 'center', justifyContent: 'start', gap: '1rem', width: '100%' }}>
+      <FlexBox>
+        <IconButton
+          onClick={sidebarActions.toggle}
+          size="large"
+          edge="start"
+          color="primary"
+          aria-label="menu"
+          sx={{ mr: 1 }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Link
+          to="/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <HeaderIconImage src={`/images/mercadofiel.png`} alt="Mercado Fiel logo" />
+        </Link>
+      </FlexBox>
+      <SubTitle variant="body1">Mercado Fiel</SubTitle>
     </FlexBox>
   );
 };

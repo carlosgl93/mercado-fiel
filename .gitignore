@@ -59,3 +59,5 @@ firebase-adminsdk.json
 ./lib/
 .env.*
 key.json
+
+./functions/lib

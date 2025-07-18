@@ -1,7 +1,7 @@
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 
 export const usuarioDrawerOptions = [
@@ -49,7 +49,7 @@ export const usuarioDrawerOptions = [
 ];
 
 export const generalOptionsDrawerList = [
-  { title: 'Ayuda', path: '/ayuda' },
+  { title: 'Contacto', path: '/contacto' },
   { title: 'Acerca de nosotros', path: '/nosotros' },
   { title: 'Buscar prestadores', path: '/resultados' },
 ];

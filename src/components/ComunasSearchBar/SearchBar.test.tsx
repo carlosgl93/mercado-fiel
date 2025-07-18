@@ -1,8 +1,8 @@
-import { render, fireEvent, screen } from '@testing-library/react';
-import { RecoilRoot } from 'recoil';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import SearchBar from './SearchBar';
+import { RecoilRoot } from 'recoil';
 import { vi } from 'vitest';
+import ComunasSearchBar from './ComunasSearchBar';
 
 vi.mock('@/hooks/useComunas', () => ({
   useComunas: () => ({
@@ -32,7 +32,7 @@ describe('SearchBar', () => {
     render(
       <RecoilRoot>
         <BrowserRouter>
-          <SearchBar />
+          <ComunasSearchBar />
         </BrowserRouter>
       </RecoilRoot>,
     );
@@ -45,7 +45,7 @@ describe('SearchBar', () => {
     render(
       <RecoilRoot>
         <BrowserRouter>
-          <SearchBar />
+          <ComunasSearchBar />
         </BrowserRouter>
       </RecoilRoot>,
     );

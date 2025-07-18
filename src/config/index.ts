@@ -2,11 +2,11 @@ import isMobile from '@/utils/is-mobile';
 import type { Notifications } from './types';
 const title = 'Mercado Fiel';
 // TODO change this email
-const email = 'contacto@mercadofiel.cl';
+const email = 'cgumucio93@gmail.cl'; // TODO: change the email
 // TODO change the repository
-const repository = 'https://github.com/TODO';
+const repository = 'https://github.com/carlosgl93/mercado-fiel';
 
-const customerSupportPhone = '+569 8974 2613';
+const customerSupportPhone = '+569 3320 4480';
 
 const messages = {
   app: {

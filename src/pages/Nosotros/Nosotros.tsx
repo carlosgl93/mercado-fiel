@@ -1,28 +1,24 @@
 import { styled } from '@mui/material/styles';
 
 import Meta from '@/components/Meta';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
+import { Store, TrendingUp } from '@mui/icons-material';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
-import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { Avatar, Box, Container, Link, Typography, useTheme } from '@mui/material';
+import { Avatar, Box, Container, Link, Typography, useMediaQuery, useTheme } from '@mui/material';
+
+const whyWeareHereImages = {
+  mobile: '/images/why-we-are-here-960p.jpg',
+  tablet: '/images/why-we-are-here-960p.jpg',
+  desktop: '/images/why-we-are-here-2880p.jpg',
+};
 
 const lideres = [
   {
-    profileImg: '/images/_francisco.jpg',
-    name: 'Francisco Durney',
-    linkedinUrl: 'https://www.linkedin.com/in/franciscodurney/',
-  },
-  {
-    profileImg: '/images/_cano.png',
-    name: 'Carlos Gumucio',
-    linkedinUrl: 'https://www.linkedin.com/in/carlos-gumucio-labb%C3%A9-30b01b70/',
-  },
-  {
-    profileImg: '/images/_nicolas.jpeg',
-    name: 'Nicolás Boetto',
-    linkedinUrl: 'https://www.linkedin.com/in/nicol%C3%A1s-boetto-415b0a161/',
+    profileImg: '/images/_benjamin.svg',
+    name: 'Benjamín Sepúlveda',
+    linkedinUrl: 'https://www.linkedin.com/in/benjamin-sepulveda/',
+    description: 'Estudiante UOH - Fundador',
   },
 ];
 
@@ -43,7 +39,7 @@ const TextContainer = styled(Container)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
-  gap: '3rem',
+  gap: '1.6rem',
   [theme.breakpoints.down('sm')]: {
     paddingBottom: theme.spacing(4),
   },
@@ -100,6 +96,15 @@ const LinkedInLogo = styled(LinkedInIcon)(({ theme }) => ({
 
 function Nosotros() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
+  // Select appropriate image based on screen size
+  const getResponsiveImage = () => {
+    if (isMobile) return whyWeareHereImages.mobile;
+    if (isTablet) return whyWeareHereImages.tablet;
+    return whyWeareHereImages.desktop;
+  };
 
   return (
     <>
@@ -121,12 +126,10 @@ function Nosotros() {
         <TextContainer>
           <Typography
             variant="h1"
-            gutterBottom
             sx={{
               fontWeight: 700,
               fontSize: {
                 xs: '2.5rem',
-                sm: '3.5rem',
               },
             }}
             color="primary.dark"
@@ -135,24 +138,25 @@ function Nosotros() {
           </Typography>
           <Box>
             <Text gutterBottom>
-              Nuestra historia comienza el año 2020 en las lejanas tierras de Australia, lugar donde
-              nuestro socio fundador Francisco Durney se encontraba realizando sus estudios de
-              postgrado. Allí, pudo observar la gran calidad de vida que llevan adultos mayores y
-              personas con discapacidad, al tener la posibilidad de acceder con facilidad a
-              distintos servicios de salud y de cuidado a domicilio.
+              Mercado Fiel nace como un proyecto académico de Benjamín Sepúlveda, estudiante de la
+              Universidad de O'Higgins (UOH), con la visión de crear una plataforma digital que
+              transforme la manera en que los proveedores locales se conectan con los consumidores
+              en Chile.
             </Text>
             <Text gutterBottom>
-              A partir de esto, y teniendo en mente la difícil experiencia que vivió en Chile junto
-              a sus hermanos para conformar un equipo de cuidado de confianza y de calidad para su
-              madre durante sus últimos años, Francisco se motivó con desarrollar una solución
-              innovadora para resolver este gran problema que aqueja a miles de chilenos y personas
-              en el mundo, de manera de poder ofrecerles a nuestros adultos mayores y personas con
-              discapacidad una mejor calidad de vida.
+              La idea surgió al observar las dificultades que enfrentan tanto los pequeños
+              productores y comerciantes locales para llegar a más clientes, como los consumidores
+              para acceder a productos de calidad a precios justos. Benjamín identificó una
+              oportunidad única para crear un marketplace que no solo facilitara estas conexiones,
+              sino que también promoviera el comercio local y redujera el desperdicio a través de
+              compras colaborativas.
             </Text>
             <Text gutterBottom>
-              Es así como Francisco contacta a Nicolás Boetto y Carlos Gumucio para poder darle
-              forma a este innovador y desafiante proyecto que es lo que se conoce hoy en día como
-              Mercado Fiel.
+              Con el apoyo de la Universidad de O'Higgins y enfocándose en las necesidades reales
+              del mercado chileno, Mercado Fiel se desarrolló como una solución innovadora que
+              permite a los vendedores mostrar sus productos con precios diferenciados según
+              cantidades de compra, incentivando así las compras grupales y beneficiando tanto a
+              compradores como vendedores.
             </Text>
           </Box>
         </TextContainer>
@@ -199,21 +203,21 @@ function Nosotros() {
               fontWeight: 700,
               fontSize: {
                 xs: '2.5rem',
-                sm: '3.5rem',
               },
             }}
             color="primary.dark"
           >
-            Nuestros líderes
+            Nuestro fundador
           </Typography>
         </TextContainer>
         <AvatarContainer>
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'row',
-              gap: theme.spacing(8),
+              flexDirection: 'column',
+              gap: theme.spacing(2),
               justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             {lideres.map((lider) => (
@@ -231,6 +235,9 @@ function Nosotros() {
                     alt={lider.name}
                   />
                   <PersonName variant="h6">{lider.name}</PersonName>
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    {lider.description}
+                  </Typography>
                   <LinkedInLogo />
                 </PersonContainer>
               </Link>
@@ -265,7 +272,6 @@ function Nosotros() {
                 fontWeight: 700,
                 fontSize: {
                   xs: '2.5rem',
-                  sm: '3.5rem',
                 },
               }}
               color="primary.dark"
@@ -273,6 +279,20 @@ function Nosotros() {
               Por qué estamos aquí
             </Typography>
           </TextContainer>
+
+          <Typography
+            variant="body1"
+            sx={{
+              textAlign: 'center',
+              color: 'text.secondary',
+              mb: 4,
+              maxWidth: 600,
+              mx: 'auto',
+            }}
+          >
+            Descubre la motivación detrás de Mercado Fiel y cómo estamos transformando el comercio
+            local en Chile.
+          </Typography>
 
           {/* flex container that on md and up it displays and image in the left and in the right there is a text container. in sm and lower it changes to flex direction column and displays the text container first and then the image*/}
           <Box
@@ -299,13 +319,20 @@ function Nosotros() {
                 },
               }}
             >
-              <Image
-                src="/images/porque-estamos-aqui.png"
+              <img
+                src={getResponsiveImage()}
+                srcSet={`
+                  ${whyWeareHereImages.mobile} 426w,
+                  ${whyWeareHereImages.tablet} 960w,
+                  ${whyWeareHereImages.desktop} 1080w
+                `}
+                sizes="(max-width: 600px) 426px, (max-width: 960px) 960px, 1080px"
                 alt="2 personas mirando el horizonte en un atardecer en el sur de Chile"
-                sx={{
+                style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
+                  height: 'auto',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
                 }}
               />
             </Box>
@@ -318,26 +345,23 @@ function Nosotros() {
               }}
             >
               <Text gutterBottom>
-                Mercado Fiel se creó con el objetivo de romper los paradigmas actuales en el apoyo a
-                adultos mayores y personas en situación de discapacidad con algún grado de
-                dependencia, poniendo a disposición de la comunidad una plataforma en línea que
-                permita conectar de forma fácil y segura a personas que buscan apoyo con aquellas
-                que puedan proporcionarlo.
+                Mercado Fiel se creó con el objetivo de revolucionar la forma en que compradores y
+                vendedores se conectan en el mercado chileno. Nuestra plataforma digital permite a
+                los productores locales y comerciantes llegar directamente a más clientes, mientras
+                los consumidores acceden a productos de calidad a precios justos.
               </Text>
               <Text gutterBottom>
-                El problema que existe actualmente es la dificultad de encontrar a personas que
-                ofrezcan servicios de cuidado y/o servicios profesionales y técnicos de salud a
-                domicilio según las necesidades del paciente. Además, las alternativas que pueden
-                encontrarse en Chile son muy caras, siendo inasequibles para muchas personas que lo
-                requieren.
+                El problema que identificamos es la brecha entre oferta y demanda en el comercio
+                local. Muchos pequeños productores y comerciantes tienen dificultades para expandir
+                su alcance y encontrar suficientes clientes, mientras que los consumidores a menudo
+                pagan precios elevados por productos que podrían obtener directamente del productor.
               </Text>
               <Text gutterBottom>
-                En ese sentido, Mercado Fiel nace como una solución a estos problemas, permitiendo
-                que la comunidad pueda tener acceso a una gran red de personas que ofrezcan
-                servicios de asistencia y cuidado a adultos mayores y personas en situación de
-                discapacidad con algún grado de dependencia, dando la posibilidad de encontrar el
-                perfil de ayuda que mejor se adapta a las propias necesidades, requerimientos y
-                presupuesto de los pacientes.
+                Mercado Fiel resuelve estos problemas creando un marketplace transparente donde los
+                vendedores pueden mostrar sus productos con precios diferenciados según cantidades
+                de compra, incentivando las compras colaborativas. Esto permite mejores precios para
+                los compradores y mayores volúmenes de venta para los productores, beneficiando a
+                toda la comunidad comercial.
               </Text>
             </Box>
           </Box>
@@ -352,15 +376,12 @@ function Nosotros() {
             px: {
               xs: 2,
               sm: 4,
-              md: 8,
-              lg: 12,
             },
             py: {
               xs: 2,
               sm: 4,
-              md: 8,
-              lg: 12,
             },
+            gap: 4,
           }}
         >
           <Box
@@ -381,7 +402,6 @@ function Nosotros() {
                   fontWeight: 700,
                   fontSize: {
                     xs: '2.5rem',
-                    sm: '3.5rem',
                   },
                 }}
                 color="primary.dark"
@@ -389,11 +409,11 @@ function Nosotros() {
                 Nuestra misión
               </Typography>
               <Text gutterBottom>
-                Somos una plataforma en línea que busca generar un medio para que la comunidad pueda
-                conectarse entre sí, permitiéndoles acceder a una mejor calidad de vida, más
-                inclusiva y con mayores oportunidades, todo ello con un enfoque directo a la
-                realidad de nuestros adultos mayores y personas en situación de discapacidad con
-                algún grado de dependencia que requieran apoyo viviendo en sus casas.
+                Somos una plataforma digital que conecta a proveedores locales con consumidores,
+                facilitando el comercio directo y las compras colaborativas. Buscamos democratizar
+                el acceso a productos de calidad a precios justos, mientras impulsamos el
+                crecimiento de los negocios locales y promovemos una economía más sostenible y
+                colaborativa en Chile.
               </Text>
             </TextContainer>
           </Box>
@@ -415,7 +435,6 @@ function Nosotros() {
                   fontWeight: 700,
                   fontSize: {
                     xs: '2.5rem',
-                    sm: '3.5rem',
                   },
                 }}
                 color="primary.dark"
@@ -423,10 +442,10 @@ function Nosotros() {
                 Nuestra visión
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Crear una gran comunidad de apoyo para adultos mayores y personas en situación de
-                discapacidad con algún grado de dependencia, permitiendo de esta manera dar las
-                herramientas para desarrollar una sociedad más inclusiva y con mayores oportunidades
-                para estas personas.
+                Convertirnos en la plataforma líder de comercio colaborativo en Chile, empoderando a
+                productores locales y consumidores para crear una economía más justa, sostenible e
+                inclusiva. Aspiramos a ser el puente que fortalezca las comunidades comerciales
+                locales y reduzca las brechas en el acceso a productos de calidad en todo el país.
               </Typography>
             </TextContainer>
           </Box>
@@ -443,7 +462,6 @@ function Nosotros() {
                 fontWeight: 700,
                 fontSize: {
                   xs: '2.5rem',
-                  sm: '3.5rem',
                 },
               }}
               color="primary.dark"
@@ -474,19 +492,19 @@ function Nosotros() {
               />
               <Text variant="subtitle1">Transparencia</Text>
 
-              <ShieldOutlinedIcon
+              <TrendingUp
                 sx={{
                   fontSize: '4rem',
                 }}
               />
-              <Text variant="subtitle1">Seguridad</Text>
+              <Text variant="subtitle1">Calidad</Text>
 
-              <FavoriteBorderOutlinedIcon
+              <Store
                 sx={{
                   fontSize: '4rem',
                 }}
               />
-              <Text variant="subtitle1">Confianza</Text>
+              <Text variant="subtitle1">Comercio Justo</Text>
             </Box>
           </TextContainer>
         </Box>

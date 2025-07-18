@@ -127,11 +127,11 @@ const themes: Record<Themes, ThemeOptions> = {
         // Verde Lima para badges y micro-interacciones
         main: '#B5E61D',
       },
-      text: {
-        // Neutro oscuro - Grafito
-        primary: '#3A3A3A',
-        secondary: '#3A3A3A',
-      },
+      // text: {
+      //   // Neutro oscuro - Grafito
+      //   primary: '#3A3A3A',
+      //   secondary: '#3A3A3A',
+      // },
     },
   }),
 };

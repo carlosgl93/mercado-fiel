@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,135 +8,219 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// User/Customer table
+// User table
 model usuarios {
   id_usuario          Int      @id @default(autoincrement())
   nombre              String   @db.VarChar(100)
   email               String   @unique @db.VarChar(100)
   contrasena_hash     String   @db.Text
-  tipo_usuario        String   @db.VarChar // 'comprador', 'admin', etc.
   fecha_registro      DateTime @default(now()) @db.Timestamp
   activo              Boolean  @default(true)
+  profile_picture_url String?  @db.Text
+  id_plan             Int?
+  plan                planes?  @relation(fields: [id_plan], references: [id_plan])
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 
   // Relations
+  roles               UsuarioRol[]
+  proveedor           proveedores?
+  cliente             clientes?
   comentarios         comentarios[]
   solicitudescontacto solicitudescontacto[]
   pagos               pagos[]
+  participaciones     ParticipanteColectivo[]
+  pedidos             pedidos[]
+  notificaciones      notificaciones[]
+  lista_deseos        lista_deseos[]
 
   @@map("usuarios")
 }
 
+model roles {
+  id_rol      Int     @id @default(autoincrement())
+  nombre      String  @unique @db.VarChar(50) // e.g. 'comprador', 'proveedor', 'admin'
+  descripcion String? @db.Text
+
+  // Relations
+  usuarios UsuarioRol[]
+
+  @@map("roles")
+}
+
+model UsuarioRol {
+  id_usuario Int
+  id_rol     Int
+
+  usuario usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  rol     roles    @relation(fields: [id_rol], references: [id_rol])
+
+  @@id([id_usuario, id_rol])
+  @@map("usuario_rol")
+}
+
 // Provider/Seller table
 model proveedores {
-  id_proveedor      Int       @id @default(autoincrement())
-  nombre_negocio    String    @db.VarChar(100)
-  descripcion       String?   @db.Text
-  telefono_contacto String?   @db.VarChar(20)
-  direccion         String?   @db.VarChar(150)
-  latitud           Decimal?  @db.Decimal(9, 6)
-  longitud          Decimal?  @db.Decimal(9, 6)
-  plan_actual       String?   @db.VarChar(50)
-  destacado         Boolean   @default(false)
+  id_proveedor      Int      @id @default(autoincrement())
+  id_usuario        Int      @unique
+  usuario           usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  nombre_negocio    String   @db.VarChar(100)
+  descripcion       String?  @db.Text
+  telefono_contacto String?  @db.VarChar(20)
+  direccion         String?  @db.VarChar(150)
+  latitud           Decimal? @db.Decimal(9, 6)
+  longitud          Decimal? @db.Decimal(9, 6)
+  destacado         Boolean  @default(false)
+  email             String?  @unique @db.VarChar(100)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
 
   // Relations
   productos           productos[]
   solicitudescontacto solicitudescontacto[]
   suscripciones       suscripciones[]
   publicidad          publicidad[]
+  campanas_colectivas compras_colectivas[]
 
   @@map("proveedores")
 }
 
-// Products table
-model productos {
-  id_producto        Int       @id @default(autoincrement())
-  id_proveedor       Int
-  nombre_producto    String    @db.VarChar(100)
-  descripcion        String?   @db.Text
-  precio_unitario    Decimal   @db.Decimal(10, 2)
-  imagen_url         String?   @db.Text
-  disponible         Boolean   @default(true)
-  fecha_publicacion  DateTime  @default(now()) @db.Timestamp
+model clientes {
+  id_cliente     Int      @id @default(autoincrement())
+  id_usuario     Int      @unique
+  usuario        usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  direccion      String?  @db.VarChar(150)
+  telefono       String?  @db.VarChar(20)
+  fecha_registro DateTime @default(now()) @db.Timestamp
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@map("clientes")
+}
+
+// Categories table
+model categorias {
+  id_categoria Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(100)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
   // Relations
-  proveedor          proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
-  comentarios        comentarios[]
+  productos productos[]
+
+  @@map("categorias")
+}
+
+// Products table
+model productos {
+  id_producto       Int      @id @default(autoincrement())
+  id_proveedor      Int
+  id_categoria      Int
+  nombre_producto   String   @db.VarChar(100)
+  descripcion       String?  @db.Text
+  precio_unitario   Decimal  @db.Decimal(10, 2)
+  imagen_url        String?  @db.Text
+  disponible        Boolean  @default(true)
+  fecha_publicacion DateTime @default(now()) @db.Timestamp
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  proveedor           proveedores          @relation(fields: [id_proveedor], references: [id_proveedor])
+  categoria           categorias           @relation(fields: [id_categoria], references: [id_categoria])
+  comentarios         comentarios[]
+  campanas_colectivas compras_colectivas[]
+  items_pedido        ItemPedido[]
+  lista_deseos        lista_deseos[]
 
   @@map("productos")
 }
 
 // Comments/Reviews table
 model comentarios {
-  id_comentario  Int      @id @default(autoincrement())
-  id_cliente     Int
-  id_producto    Int
-  texto          String   @db.Text
-  calificacion   Int      // 1-5 stars
-  fecha          DateTime @default(now()) @db.Timestamp
+  id_comentario Int      @id @default(autoincrement())
+  id_cliente    Int
+  id_producto   Int
+  texto         String   @db.Text
+  calificacion  Int // 1-5 stars
+  fecha         DateTime @default(now()) @db.Timestamp
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   // Relations
-  cliente        usuarios @relation(fields: [id_cliente], references: [id_usuario])
-  producto       productos @relation(fields: [id_producto], references: [id_producto])
+  cliente  usuarios  @relation(fields: [id_cliente], references: [id_usuario])
+  producto productos @relation(fields: [id_producto], references: [id_producto])
 
   @@map("comentarios")
 }
 
 // Contact requests table
 model solicitudescontacto {
-  id_solicitud  Int      @id @default(autoincrement())
-  id_cliente    Int
-  id_proveedor  Int
-  mensaje       String   @db.Text
+  id_solicitud    Int      @id @default(autoincrement())
+  id_cliente      Int
+  id_proveedor    Int
+  mensaje         String   @db.Text
   fecha_solicitud DateTime @default(now()) @db.Timestamp
-  estado        String   @default("pendiente") // 'pendiente', 'respondida', 'cerrada'
+  estado          String   @default("pendiente") // 'pendiente', 'respondida', 'cerrada'
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   // Relations
-  cliente       usuarios @relation(fields: [id_cliente], references: [id_usuario])
-  proveedor     proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  cliente   usuarios    @relation(fields: [id_cliente], references: [id_usuario])
+  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("solicitudescontacto")
 }
 
 // Subscription plans table
 model planes {
-  id_plan         Int      @id @default(autoincrement())
-  nombre          String   @db.VarChar(50)
-  precio_mensual  Decimal  @db.Decimal(10, 2)
-  descripcion     String?  @db.Text
+  id_plan        Int      @id @default(autoincrement())
+  nombre         String   @db.VarChar(50)
+  precio_mensual Decimal  @db.Decimal(10, 2)
+  descripcion    String?  @db.Text
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   // Relations
-  suscripciones   suscripciones[]
+  usuarios      usuarios[]
+  suscripciones suscripciones[]
 
   @@map("planes")
 }
 
 // Subscriptions table
 model suscripciones {
-  id_suscripcion  Int       @id @default(autoincrement())
-  id_proveedor    Int
-  id_plan         Int
-  fecha_inicio    DateTime  @db.Timestamp
-  fecha_fin       DateTime? @db.Timestamp
-  activa          Boolean   @default(true)
+  id_suscripcion Int       @id @default(autoincrement())
+  id_proveedor   Int
+  id_plan        Int
+  fecha_inicio   DateTime  @db.Timestamp
+  fecha_fin      DateTime? @db.Timestamp
+  activa         Boolean   @default(true)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
 
   // Relations
-  proveedor       proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
-  plan            planes @relation(fields: [id_plan], references: [id_plan])
+  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  plan      planes      @relation(fields: [id_plan], references: [id_plan])
 
   @@map("suscripciones")
 }
 
 // Payments table
 model pagos {
-  id_pago         Int      @id @default(autoincrement())
-  id_usuario      Int
-  monto           Decimal  @db.Decimal(10, 2)
-  metodo_pago     String   @db.VarChar(50)
-  fecha_pago      DateTime @default(now()) @db.Timestamp
-  estado          String   @default("pendiente") // 'pendiente', 'completado', 'fallido'
+  id_pago     Int      @id @default(autoincrement())
+  id_usuario  Int
+  monto       Decimal  @db.Decimal(10, 2)
+  metodo_pago String   @db.VarChar(50)
+  fecha_pago  DateTime @default(now()) @db.Timestamp
+  estado      String   @default("pendiente") // 'pendiente', 'completado', 'fallido'
+  id_pedido   Int? // Link to order if applicable
+  pedido      pedidos? @relation(fields: [id_pedido], references: [id_pedido])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   // Relations
-  usuario         usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  usuario usuarios @relation(fields: [id_usuario], references: [id_usuario])
 
   @@map("pagos")
 }
@@ -151,10 +234,169 @@ model publicidad {
   fecha_inicio     DateTime  @db.Timestamp
   fecha_fin        DateTime? @db.Timestamp
   activa           Boolean   @default(true)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
 
   // Relations
-  proveedor        proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("publicidad")
 }
-        
+
+// Enhanced collective buying campaigns
+model compras_colectivas {
+  id_campana        Int         @id @default(autoincrement())
+  nombre            String      @db.VarChar(100)
+  descripcion       String?     @db.Text
+  id_proveedor      Int
+  proveedor         proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  id_producto       Int
+  producto          productos   @relation(fields: [id_producto], references: [id_producto])
+  precio_objetivo   Decimal     @db.Decimal(10, 2)
+  cantidad_objetivo Int
+
+  // Enhanced campaign rules
+  min_participantes    Int?
+  max_participantes    Int?
+  cantidad_min_usuario Int     @default(1)
+  cantidad_max_usuario Int?
+  requiere_aprobacion  Boolean @default(false)
+
+  fecha_inicio DateTime  @default(now())
+  fecha_fin    DateTime?
+  estado       String    @default("abierta") // abierta, cerrada, completada, cancelada
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  // Relations
+  participantes   ParticipanteColectivo[]
+  escalas_precios escalas_precios[]
+  progreso        progreso_campana?
+  pedidos         pedidos[]
+  notificaciones  notificaciones[]
+
+  @@map("compras_colectivas")
+}
+
+model ParticipanteColectivo {
+  id_participante Int                @id @default(autoincrement())
+  id_campana      Int
+  campana         compras_colectivas @relation(fields: [id_campana], references: [id_campana])
+  id_usuario      Int
+  usuario         usuarios           @relation(fields: [id_usuario], references: [id_usuario])
+  cantidad        Int
+  monto_aportado  Decimal            @db.Decimal(10, 2)
+  fecha_aporte    DateTime           @default(now())
+  estado          String             @default("activo") // activo, retirado, completado
+  created_at      DateTime           @default(now())
+  updated_at      DateTime           @updatedAt
+
+  @@unique([id_campana, id_usuario])
+  @@map("participantes_colectivos")
+}
+
+// Tier-based pricing for collective campaigns
+model escalas_precios {
+  id_escala            Int                @id @default(autoincrement())
+  id_campana           Int
+  campana              compras_colectivas @relation(fields: [id_campana], references: [id_campana])
+  cantidad_minima      Int
+  precio_unitario      Decimal            @db.Decimal(10, 2)
+  descuento_porcentaje Decimal?           @db.Decimal(5, 2)
+  activa               Boolean            @default(true)
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
+
+  @@map("escalas_precios")
+}
+
+// Real-time progress tracking for campaigns
+model progreso_campana {
+  id_progreso            Int                @id @default(autoincrement())
+  id_campana             Int                @unique
+  campana                compras_colectivas @relation(fields: [id_campana], references: [id_campana])
+  participantes_actuales Int                @default(0)
+  cantidad_actual        Int                @default(0)
+  monto_recaudado        Decimal            @default(0) @db.Decimal(15, 2)
+  porcentaje_completado  Decimal            @default(0) @db.Decimal(5, 2)
+  precio_actual          Decimal?           @db.Decimal(10, 2) // Current price based on tier
+  siguiente_tier         Int? // Next quantity milestone
+  created_at             DateTime           @default(now())
+  updated_at             DateTime           @updatedAt
+
+  @@map("progreso_campanas")
+}
+
+// Order management system
+model pedidos {
+  id_pedido         Int                 @id @default(autoincrement())
+  id_usuario        Int
+  usuario           usuarios            @relation(fields: [id_usuario], references: [id_usuario])
+  tipo_pedido       String // 'individual', 'colectivo'
+  id_campana        Int? // nullable for individual orders
+  campana           compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  total             Decimal             @db.Decimal(10, 2)
+  estado            String              @default("pendiente") // pendiente, confirmado, enviado, entregado, cancelado
+  fecha_pedido      DateTime            @default(now())
+  fecha_entrega     DateTime?
+  direccion_entrega String?             @db.VarChar(200)
+  notas             String?             @db.Text
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+
+  // Relations
+  items ItemPedido[]
+  pagos pagos[]
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id_item         Int       @id @default(autoincrement())
+  id_pedido       Int
+  pedido          pedidos   @relation(fields: [id_pedido], references: [id_pedido])
+  id_producto     Int
+  producto        productos @relation(fields: [id_producto], references: [id_producto])
+  cantidad        Int
+  precio_unitario Decimal   @db.Decimal(10, 2)
+  subtotal        Decimal   @db.Decimal(10, 2)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@map("items_pedido")
+}
+
+// Notification system for collective buying
+model notificaciones {
+  id_notificacion Int                 @id @default(autoincrement())
+  id_usuario      Int
+  usuario         usuarios            @relation(fields: [id_usuario], references: [id_usuario])
+  tipo            String // 'campana_iniciada', 'objetivo_alcanzado', 'campana_cerrada', 'nuevo_tier', 'pedido_confirmado'
+  titulo          String              @db.VarChar(200)
+  mensaje         String              @db.Text
+  leida           Boolean             @default(false)
+  id_campana      Int?
+  campana         compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  url_accion      String?             @db.VarChar(255) // URL to redirect user for action
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+
+  @@map("notificaciones")
+}
+
+// Wishlist/Interest tracking
+model lista_deseos {
+  id_lista          Int       @id @default(autoincrement())
+  id_usuario        Int
+  usuario           usuarios  @relation(fields: [id_usuario], references: [id_usuario])
+  id_producto       Int
+  producto          productos @relation(fields: [id_producto], references: [id_producto])
+  notificar_campana Boolean   @default(true)
+  cantidad_deseada  Int? // Desired quantity for collective buying
+  precio_maximo     Decimal?  @db.Decimal(10, 2) // Maximum price willing to pay
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  @@unique([id_usuario, id_producto])
+  @@map("lista_deseos")
+}

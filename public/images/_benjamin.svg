@@ -1,0 +1,14 @@
+<!-- Placeholder for Benjamin Sepulveda profile image -->
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+	<defs>
+		<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+			<stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+			<stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+		</linearGradient>
+	</defs>
+	<rect width="400" height="400" fill="url(#bg)" rx="200"/>
+	<circle cx="200" cy="160" r="60" fill="white" opacity="0.9"/>
+	<path d="M120 280 Q200 240 280 280 L280 400 L120 400 Z" fill="white" opacity="0.9"/>
+	<text x="200" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="white" font-weight="bold">B. Sepúlveda</text>
+	<text x="200" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white" opacity="0.8">Fundador</text>
+</svg>

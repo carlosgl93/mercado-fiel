@@ -1,22 +1,33 @@
-import { Suspense, useState } from 'react';
 import Loading from '@/components/Loading';
-import { MobileFilters } from './MobileFilters';
 import { Text } from '@/components/StyledComponents';
-import { MobileResultList } from './MobileResultList';
-import { useGetPrestadores } from '@/hooks/useGetPrestadores';
-import { Box, Drawer, useTheme, Button } from '@mui/material';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
+import { Box, Button, Drawer, useTheme } from '@mui/material';
+import { Suspense, useState } from 'react';
+import { useCustomers } from '../../hooks';
+import { useSuppliers } from '../../hooks/useSuppliers';
+import { MobileFilters } from './MobileFilters';
+import { MobileResultList } from './MobileResultList';
 
 const MobileResults = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { verifiedPrestadores } = useGetPrestadores();
+
+  const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
+  const { customers } = useCustomers(page, limit);
+
+  console.log('suppliers', suppliers);
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const resultsLength = verifiedPrestadores?.prestadores?.length;
+  // const resultsLength = verifiedPrestadores?.prestadores?.length;
+
+  if (isLoadingSuppliers) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -62,11 +73,11 @@ const MobileResults = () => {
         }}
       >
         <Text>
-          {resultsLength && resultsLength > 0
+          {/* {resultsLength && resultsLength > 0
             ? `${resultsLength} ${
                 resultsLength === 1 ? 'prestador encontrado' : 'prestadores encontrados'
               }`
-            : 'Ningun prestador encontrado para esta combinación de filtros.'}
+            : 'Ningun prestador encontrado para esta combinación de filtros.'} */}
         </Text>
       </Box>
       <Box
@@ -82,7 +93,13 @@ const MobileResults = () => {
         </Drawer>
 
         <Suspense fallback={<Loading />}>
-          <MobileResultList />
+          <MobileResultList
+            customers={customers}
+            suppliers={suppliers}
+            page={page}
+            setPage={setPage}
+            setLimit={setLimit}
+          />
         </Suspense>
       </Box>
     </>

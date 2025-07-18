@@ -1,5 +1,5 @@
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 
 export const prestadorDrawerOptions = [
@@ -46,7 +46,7 @@ export const prestadorDrawerOptions = [
 ];
 
 export const generalOptionsDrawerList = [
-  { title: 'Ayuda', path: '/ayuda' },
+  { title: 'Contacto', path: '/contacto' },
   { title: 'Acerca de nosotros', path: '/nosotros' },
   { title: 'Buscar prestadores', path: '/resultados' },
 ];

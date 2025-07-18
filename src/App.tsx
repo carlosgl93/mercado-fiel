@@ -1,9 +1,9 @@
-import { lazy, Suspense, Fragment } from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import './styles.css';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { esES } from '@mui/x-date-pickers/locales';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { Fragment, lazy, Suspense } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import './styles.css';
 
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -33,7 +33,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <LocalizationProvider
         dateAdapter={AdapterDayjs}
-        adapterLocale="es-mx"
+        adapterLocale="es-cl"
         localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}
       >
         <Fragment>

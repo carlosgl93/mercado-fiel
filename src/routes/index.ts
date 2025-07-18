@@ -12,11 +12,6 @@ const routes: Routes = {
     path: '/nosotros',
     title: 'Nosotros',
   },
-  [Pages.Ayuda]: {
-    component: asyncComponentLoader(() => import('@/pages/Help')),
-    path: '/ayuda',
-    title: 'Ayuda',
-  },
   [Pages.Ingresar]: {
     component: asyncComponentLoader(() => import('@/pages/Ingresar')),
     path: '/ingresar',
@@ -195,6 +190,17 @@ const routes: Routes = {
   [Pages.VerApoyo]: {
     component: asyncComponentLoader(() => import('@/pages/VerApoyo')),
     path: '/ver-apoyo/:id',
+  },
+
+  [Pages.Contacto]: {
+    component: asyncComponentLoader(() => import('@/pages/Contacto')),
+    path: '/contacto',
+    title: 'Contacto',
+  },
+  [Pages.PreguntasFrecuentes]: {
+    component: asyncComponentLoader(() => import('@/pages/PreguntasFrecuentes')),
+    path: '/preguntas-frecuentes',
+    title: 'Preguntas Frecuentes',
   },
 
   [Pages.NotFound]: {

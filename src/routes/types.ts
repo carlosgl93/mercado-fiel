@@ -6,7 +6,6 @@ import type { SvgIconProps } from '@mui/material/SvgIcon';
 enum Pages {
   Welcome,
   Nosotros,
-  Ayuda,
   Ingresar,
   RegistrarUsuario,
   RegistrarPrestador,
@@ -51,6 +50,8 @@ enum Pages {
   MisApoyos,
   CrearApoyo,
   VerApoyo,
+  Contacto,
+  PreguntasFrecuentes,
 }
 
 type PathRouteCustomProps = {

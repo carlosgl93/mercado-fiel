@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Box } from '@mui/system';
-import { useNavigate } from 'react-router-dom';
 import { useComunas } from '@/hooks/useComunas';
 import useRecibeApoyo from '@/store/recibeApoyo';
-import { IconButton, InputAdornment, List, ListItem, OutlinedInput } from '@mui/material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import { IconButton, InputAdornment, List, ListItem, OutlinedInput } from '@mui/material';
+import { Box } from '@mui/system';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type SearchBarProps = {
   routeToResultados?: boolean;
 };
 
-function SearchBar({ routeToResultados = true }: SearchBarProps) {
+function ComunasSearchBar({ routeToResultados = true }: SearchBarProps) {
   const { allComunas } = useComunas();
   const [, { addComuna }] = useRecibeApoyo();
   const [comunasState, setComunasState] = useState(allComunas);
@@ -134,4 +134,4 @@ function SearchBar({ routeToResultados = true }: SearchBarProps) {
   );
 }
 
-export default SearchBar;
+export default ComunasSearchBar;

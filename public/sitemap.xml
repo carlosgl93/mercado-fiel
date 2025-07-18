@@ -10,7 +10,11 @@
 		<changefreq>monthly</changefreq>
 	</url>
 	<url>
-		<loc>https://mercadofiel.web.app/ayuda</loc>
+		<loc>https://mercadofiel.web.app/contacto</loc>
+		<changefreq>monthly</changefreq>
+	</url>
+	<url>
+		<loc>https://mercadofiel.web.app/preguntas-frecuentes</loc>
 		<changefreq>monthly</changefreq>
 	</url>
 	<url>

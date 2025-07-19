@@ -1,5 +1,6 @@
 export type ComoFuncionaContent = {
-  image: string;
+  mdImage: string;
+  smImage: string;
   imgAlt: string;
   title: string;
   text: string;
@@ -7,21 +8,24 @@ export type ComoFuncionaContent = {
 
 export const comoFuncionaCardsContent: ComoFuncionaContent[] = [
   {
-    image: `/images/mercadofiel-icon-1.png`,
-    imgAlt: 'Mercado Fiel busca proveedores',
-    title: 'Busca productos y proveedores',
-    text: 'Explora nuestra amplia selección de productos y servicios. Podrás filtrar tu búsqueda según tus necesidades y encontrar proveedores confiables en nuestra comunidad Mercado Fiel que mejor se adapten a tus requerimientos y presupuesto.',
+    smImage: `/images/como-funciona-sm.jpg`,
+    mdImage: `/images/comofunciona-md-lg.jpg`,
+    imgAlt: 'Mercado Fiel clientes o proveedores',
+    title: 'Encuentra clientes o proveedores',
+    text: 'Descubre nuevos proveedores o clientes en segundos. Filtra por comuna, categoría de producto y cantidad mínima para cerrar acuerdos más rápido y con mejores condiciones.',
   },
   {
-    image: `/images/mercadofiel-icon-2.png`,
-    imgAlt: 'Imagen de una compra segura',
-    title: 'Compra de manera segura',
-    text: 'Una vez que encuentres los productos que buscas, podrás contactar directamente a los proveedores y realizar tu compra de manera segura. Todos los pagos son procesados de forma segura a través de nuestra plataforma Mercado Fiel.',
+    mdImage: `/images/secure-payment-md-lg.jpg`,
+    smImage: `/images/secure-payment-sm.jpg`,
+    imgAlt: 'Compra segura',
+    title: 'Transacción segura',
+    text: 'Cotiza, coordina y paga todo desde un solo lugar. Tus transacciones están protegidas con estándares de seguridad de nivel bancario gracias a Webpay y nuestra integración directa.',
   },
   {
-    image: `/images/mercadofiel-icon-3.png`,
-    imgAlt: 'Imagen de una comunidad colaborativa',
-    title: 'Participa en compras colectivas y co-propiedad',
-    text: 'Únete a compras colectivas para obtener mejores precios o invierte en productos de co-propiedad. Califica a los proveedores y comparte tu experiencia para que toda la comunidad Mercado Fiel pueda beneficiarse de tus opiniones.',
+    mdImage: `/images/win-win-md-lg.jpg`,
+    smImage: `/images/win-win-sm.jpg`,
+    imgAlt: 'Comunidad colaborativa',
+    title: 'Todos ganan',
+    text: 'Mientras tú ahorras comprando en grupo, los proveedores venden más y mejor. Una comunidad donde todos ganan.',
   },
 ];

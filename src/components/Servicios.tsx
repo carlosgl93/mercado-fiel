@@ -1,27 +1,28 @@
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Typography, useMediaQuery } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Title } from './StyledComponents';
 
 const content = [
   {
-    title: 'Soporte terapéutico',
-    image: `/images/terapeutico.jpg`,
+    title: 'Conecta con más clientes y proveedores',
+    smImage: `/images/exposicion-oportunidad-sm.jpg`,
+    mdImage: `/images/exposicion-oportunidad-md-lg.jpg`,
   },
   {
-    title: 'Servicios de enfermería',
-    image: `/images/enfermeria.jpg`,
+    title: 'Ahorra comprando en grupo',
+    smImage: `/images/ahorra-comprando-en-grupo-sm.jpg`,
+    mdImage: `/images/ahorra-comprando-en-grupo-md-lg.jpg`,
   },
   {
-    title: 'Cuidadora',
-    image: `/images/cuidadora.jpg`,
-  },
-  {
-    title: 'Sana compañía',
-    image: `/images/sana-compania.jpg`,
+    title: 'Apoya el comercio local',
+    smImage: `/images/apoya-el-comercio-local-sm.jpg`,
+    mdImage: `/images/apoya-el-comercio-local-md-lg.jpg`,
   },
 ];
 
 function Servicios() {
+  const isMobile = useMediaQuery('(max-width:600px)');
+
   return (
     <Box
       sx={{
@@ -46,7 +47,7 @@ function Servicios() {
       }}
     >
       <Title variant="h2" fontWeight="bold" textAlign="center">
-        Cómo puedes usar Mercado Fiel
+        Porque usar Mercado Fiel
       </Title>
       <Box
         sx={{
@@ -72,19 +73,6 @@ function Servicios() {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            mb: '1rem',
-            textAlign: 'center',
-            width: {
-              xs: '100%',
-              md: 'auto',
-            },
-          }}
-        ></Box>
-        <Box
-          sx={{
-            display: 'flex',
             flexDirection: {
               xs: 'column',
               md: 'row',
@@ -96,7 +84,7 @@ function Servicios() {
               md: 'auto',
             },
             mt: {
-              xs: '2rem',
+              xs: '1rem',
               md: 0,
             },
           }}
@@ -123,7 +111,7 @@ function Servicios() {
                   //   align all items to the start (flex-start)
                   alignItems: 'center',
                   mb: {
-                    xs: '2rem',
+                    xs: '1rem',
                     sm: 0,
                   },
                   width: {
@@ -144,7 +132,7 @@ function Servicios() {
                   }}
                 >
                   <img
-                    src={item.image}
+                    src={isMobile ? item.smImage : item.mdImage}
                     alt={item.title}
                     style={{
                       width: '100%',
@@ -173,9 +161,6 @@ function Servicios() {
             md: '50%',
           },
           textAlign: 'center',
-          mt: {
-            md: 0,
-          },
         }}
       >
         <Link to={'/comienzo'}>

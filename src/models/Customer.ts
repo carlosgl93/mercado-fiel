@@ -1,4 +1,4 @@
-export interface CustomerDB {
+export interface CustomerDB extends UsuarioDB {
   id_cliente: number;
   id_usuario: number;
   direccion?: string | null;

@@ -1,5 +1,5 @@
 import { ComoFuncionaContent } from '@/pages/Welcome/comoFuncionaContent';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Typography, useMediaQuery } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Text, Title } from './StyledComponents';
 
@@ -9,6 +9,8 @@ type ComoFuncionaProps = {
 };
 
 const ComoFunciona = ({ subtitle, steps }: ComoFuncionaProps) => {
+  const isMobile = useMediaQuery('(max-width:600px)');
+
   return (
     <Box
       component="section"
@@ -32,7 +34,7 @@ const ComoFunciona = ({ subtitle, steps }: ComoFuncionaProps) => {
           sx={{
             fontSize: '2.5rem',
             fontWeight: 'bold',
-            mb: 6,
+            mb: 2,
           }}
         >
           ¿Cómo funciona?
@@ -40,26 +42,12 @@ const ComoFunciona = ({ subtitle, steps }: ComoFuncionaProps) => {
         <Text
           variant="subtitle1"
           sx={{
-            fontSize: '1.5rem',
+            fontSize: '1.25rem',
+            px: 2,
           }}
         >
           {subtitle}
         </Text>
-        <ul>
-          <li>
-            <Text>
-              {' '}
-              Servicios Terapéuticos (Terapia Ocupacional, Kinesiología, Fonoaudiología, Podología y
-              más)
-            </Text>
-          </li>
-          <li>
-            <Text>Servicios de Enfermería y Técnico en Enfermería (TENS)</Text>
-          </li>
-          <li>
-            <Text>Servicios de Cuidado o Acompañamiento.</Text>
-          </li>
-        </ul>
       </Box>
       <Box
         sx={{
@@ -103,11 +91,13 @@ const ComoFunciona = ({ subtitle, steps }: ComoFuncionaProps) => {
               }}
             >
               <img
-                src={card.image}
+                src={isMobile ? card.smImage : card.mdImage}
                 alt={card.imgAlt}
                 style={{
-                  maxWidth: '10rem',
-                  maxHeight: '10rem',
+                  width: '100%',
+                  height: '33vh',
+                  borderRadius: '0.5rem',
+                  objectFit: 'cover',
                 }}
                 loading="lazy"
               />

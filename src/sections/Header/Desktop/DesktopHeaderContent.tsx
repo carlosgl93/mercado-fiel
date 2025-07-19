@@ -21,6 +21,7 @@ import { Theme } from '@mui/material/styles';
 import { styled } from '@mui/system';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
+import { SubTitle } from '../../../components/StyledComponents';
 import { routesToExcludeInHeader } from '../routesToExcludeInHeader';
 
 const DesktopHeaderContent = () => {
@@ -105,7 +106,17 @@ const DesktopHeaderContent = () => {
 
   return (
     <FlexBox sx={{ alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-      <BurgerIconWithLogo prestador={prestador} toggle={sidebarActions.toggle} user={user} />
+      <FlexBox
+        alignContent={'center'}
+        sx={{
+          width: '100%',
+          justifyContent: 'start',
+          alignItems: 'center',
+        }}
+      >
+        <BurgerIconWithLogo prestador={prestador} toggle={sidebarActions.toggle} user={user} />
+        <SubTitle>Mercado Fiel</SubTitle>
+      </FlexBox>
       <List
         sx={{
           display: 'flex',
@@ -170,11 +181,7 @@ type BurgerIconWithLogoProps = {
 
 const BurgerIconWithLogo = ({ user, prestador, toggle }: BurgerIconWithLogoProps) => {
   return (
-    <FlexBox
-      sx={{
-        width: '30vw',
-      }}
-    >
+    <FlexBox>
       {(user?.email || prestador?.email) && (
         <IconButton
           onClick={toggle}

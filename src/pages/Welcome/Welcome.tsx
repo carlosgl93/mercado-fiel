@@ -12,7 +12,7 @@ function Welcome() {
       <ImageSlider />
       <ComoFunciona
         subtitle={`
-        Mercado Fiel es una plataforma que te permitirá encontrar proveedores de confianza y productos de calidad para todas tus necesidades. En Mercado Fiel encontrarás:
+        Mercado Fiel busca permitirle a minoristas poder comprar colaborativamente con otros minoristas y a proveedores acceder a más clientes en menos tiempo.
         `}
         steps={comoFuncionaCardsContent}
       />

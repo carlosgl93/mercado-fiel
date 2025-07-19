@@ -1,4 +1,3 @@
-import CommunityAdvantages from '@/components/CommunityAdvantages';
 import ComoFunciona from '@/components/ComoFunciona';
 import ImageSlider from '@/components/ImageSlider';
 import Meta from '@/components/Meta';
@@ -17,7 +16,7 @@ function Welcome() {
         steps={comoFuncionaCardsContent}
       />
       <Servicios />
-      <CommunityAdvantages />
+      {/* <CommunityAdvantages /> */}
       {/* <CommunitySupport /> */}
     </>
   );

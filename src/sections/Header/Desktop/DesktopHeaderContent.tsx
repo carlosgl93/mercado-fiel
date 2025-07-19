@@ -137,7 +137,16 @@ const DesktopHeaderContent = () => {
                   }}
                 >
                   <ListItem>
-                    <ListItemButton component={Link} to={path as string}>
+                    <ListItemButton
+                      component={Link}
+                      to={path as string}
+                      sx={{
+                        backgroundColor: '#FFF',
+                        '&:hover': {
+                          backgroundColor: '#FFF',
+                        },
+                      }}
+                    >
                       {Icon && (
                         <ListItemIcon>
                           <Icon />
@@ -360,10 +369,10 @@ const UnauthenticatedHeaderContent = () => {
           variant="contained"
           sx={{
             backgroundColor: theme.palette.secondary.main,
-            color: theme.palette.primary.main,
+            color: '#FFFFFF',
             '&:hover': {
               backgroundColor: theme.palette.primary.main,
-              color: theme.palette.secondary.main,
+              color: theme.palette.background.paper,
             },
           }}
         >

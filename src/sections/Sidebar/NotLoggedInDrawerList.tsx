@@ -1,11 +1,11 @@
 import routes from '@/routes';
 import {
+  Button,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Button,
   useTheme,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -65,7 +65,7 @@ export const NotLoggedInDrawerList = ({ closeDrawer }: NotLoggedInDrawerListProp
             variant="contained"
             sx={{
               backgroundColor: theme.palette.secondary.main,
-              color: theme.palette.primary.main,
+              color: '#FFFFFF',
             }}
           >
             Ingresar

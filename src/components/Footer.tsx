@@ -1,11 +1,12 @@
 import { Email, LocationOn, Phone } from '@mui/icons-material';
-import { Box, Divider, Grid, Link, Typography } from '@mui/material';
+import { Box, Divider, Grid, Link, Typography, useTheme } from '@mui/material';
 
 function Footer() {
+  const theme = useTheme();
   return (
     <Box
       sx={{
-        backgroundColor: '#2c3e50',
+        backgroundColor: theme.palette.primary.dark,
         color: 'white',
         p: 4,
         mt: 4,

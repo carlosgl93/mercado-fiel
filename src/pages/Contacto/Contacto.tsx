@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { Text, Title } from '../../components/StyledComponents';
 
 const ContactSection = styled(Box)(({ theme }) => ({
   padding: theme.spacing(8, 0),
@@ -163,19 +164,12 @@ function Contacto() {
 
       <ContactSection>
         <Container maxWidth="lg">
-          <Typography
-            variant="h2"
-            component="h1"
-            textAlign="center"
-            gutterBottom
-            fontWeight="bold"
-            color="primary.dark"
-          >
+          <Title variant="h2" textAlign="center" gutterBottom fontWeight="bold">
             Contáctanos
-          </Typography>
-          <Typography variant="h6" textAlign="center" color="text.secondary" sx={{ mb: 6 }}>
+          </Title>
+          <Text variant="h6" textAlign="center" color="text.secondary" sx={{ mb: 6 }}>
             Estamos aquí para ayudarte. Ponte en contacto con nosotros de la forma que prefieras.
-          </Typography>
+          </Text>
 
           {/* Contact Information Cards */}
           <Grid container spacing={4} sx={{ mb: 8 }}>

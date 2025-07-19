@@ -113,9 +113,9 @@ const ComoFunciona = ({ subtitle, steps }: ComoFuncionaProps) => {
             >
               {card.title}
             </Typography>
-            <Typography variant="body1" sx={{}} color="primary.dark">
+            <Text variant="body1" sx={{}} color="primary.dark">
               {card.text}
-            </Typography>
+            </Text>
             <Box
               sx={{
                 position: 'absolute', // Add position absolute to the child Box

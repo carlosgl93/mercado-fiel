@@ -168,12 +168,11 @@ function Servicios() {
             variant="contained"
             sx={{
               p: '1rem',
-              px: '2rem',
               borderRadius: '1000em',
               width: '100%',
             }}
           >
-            Regístrate para recibir apoyo
+            Empieza a vender o comprar mejor
           </Button>
         </Link>
       </Box>

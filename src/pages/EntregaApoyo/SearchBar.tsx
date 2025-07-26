@@ -11,13 +11,13 @@ function SearchBar() {
   const [{ selectedComunas }, { addComuna, removeComuna }] = useEntregaApoyo();
   const { allComunas } = useComunas();
   const [comunaBuscada, setComunaBuscada] = useState('');
-  const [comunasState, setComunasState] = useState(allComunas || []);
+  const [comunasState, setComunasState] = useState(allComunas || [] || []);
 
   const clickComunaHandler = (comuna: Comuna) => {
     if (selectedComunas?.includes(comuna)) {
       removeComuna(comuna);
     } else {
-      setComunasState(allComunas || []);
+      setComunasState(allComunas || [] || []);
       addComuna(comuna);
       setComunaBuscada('');
     }
@@ -25,7 +25,7 @@ function SearchBar() {
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setComunaBuscada(e.target.value);
-    const match = allComunas?.filter((comuna) => {
+    const match = (allComunas || [])?.filter((comuna) => {
       if (comuna.name.toLowerCase().includes(comunaBuscada.toLowerCase())) {
         return comuna;
       }
@@ -35,7 +35,7 @@ function SearchBar() {
     }
   };
 
-  if (allComunas && allComunas.length) {
+  if ((allComunas || []) && (allComunas || []).length) {
     return (
       <>
         <OutlinedInput

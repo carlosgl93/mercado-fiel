@@ -1,9 +1,9 @@
-import { InputAdornment, IconButton, Box, TextField, CircularProgress } from '@mui/material';
-import useRecibeApoyo from '@/store/recibeApoyo';
-import { Search } from '@mui/icons-material';
-import { SearchBarIcon, StyledComunaSearchBar, StyledResults } from './StyledRegistrarUsuario';
 import { useComunas } from '@/hooks/useComunas';
+import useRecibeApoyo from '@/store/recibeApoyo';
 import { Comuna } from '@/types';
+import { Search } from '@mui/icons-material';
+import { Box, CircularProgress, IconButton, InputAdornment, TextField } from '@mui/material';
+import { SearchBarIcon, StyledComunaSearchBar, StyledResults } from './StyledRegistrarUsuario';
 
 type ComunaSearchbarProps = {
   isTablet: boolean;
@@ -23,14 +23,14 @@ export const ComunaSearchbar = ({ isTablet }: ComunaSearchbarProps) => {
     if (comuna === _comuna) {
       removeComuna(comuna);
       setComunasSearched('');
-      setMatchedComunas(allComunas);
+      setMatchedComunas(allComunas || [] || []);
     } else {
       addComuna(_comuna);
-      setMatchedComunas(allComunas);
+      setMatchedComunas(allComunas || [] || []);
     }
   };
 
-  if (!allComunas) return <CircularProgress />;
+  if (!(allComunas || [])) return <CircularProgress />;
 
   if (comuna == null) {
     return (

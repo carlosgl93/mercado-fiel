@@ -1,6 +1,6 @@
-import { ComoFuncionaContent } from '@/pages/Welcome/comoFuncionaContent';
 import { Box, Button, Typography, useMediaQuery } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { ComoFuncionaContent } from '../pages/Welcome/comoFuncionaContent';
 import { Text, Title } from './StyledComponents';
 
 type ComoFuncionaProps = {

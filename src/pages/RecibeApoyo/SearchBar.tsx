@@ -17,12 +17,12 @@ function SearchBar() {
 
   const clickComunaHandler = (c: Comuna) => {
     const textInput = document.getElementById('searchByComuna') as HTMLInputElement;
-    if (selectedComunas.find((co) => co.id === c.id)) {
+    if (selectedComunas.find((co: Comuna) => co.id === c.id)) {
       handleRemoveComuna(c);
     } else {
       handleSelectComuna(c);
       addComuna(c);
-      setComunasState(allComunas);
+      setComunasState(allComunas || []);
       textInput.value = '';
     }
   };
@@ -35,7 +35,7 @@ function SearchBar() {
   };
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    const match = allComunas.filter((comuna: Comuna) => {
+    const match = (allComunas || []).filter((comuna: Comuna) => {
       if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
@@ -43,7 +43,7 @@ function SearchBar() {
     setComunasState(match);
   };
 
-  if (!allComunas) return <Loading />;
+  if (!(allComunas || [])) return <Loading />;
   return (
     <>
       <OutlinedInput

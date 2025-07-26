@@ -25,12 +25,12 @@ function UserComunaSearchBar({ register }: UserComunaSearchBarProps) {
     const textInput = document.getElementById('searchByComuna') as HTMLInputElement;
     register('comuna', c);
     setUser((prev) => ({ ...prev, comuna: c } as User));
-    setComunasState(allComunas);
+    setComunasState(allComunas || []);
     textInput.value = '';
   };
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    const match = allComunas.filter((comuna: Comuna) => {
+    const match = (allComunas || []).filter((comuna: Comuna) => {
       if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
@@ -38,7 +38,7 @@ function UserComunaSearchBar({ register }: UserComunaSearchBarProps) {
     setComunasState(match);
   };
 
-  if (!allComunas) return <Loading />;
+  if (!(allComunas || [])) return <Loading />;
   return (
     <>
       <OutlinedInput

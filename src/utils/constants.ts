@@ -1,12 +1,12 @@
 import { TarifaFront } from '@/types';
-import ElderlyOutlinedIcon from '@mui/icons-material/ElderlyOutlined';
+import AccessibleForwardIcon from '@mui/icons-material/AccessibleForward';
+import AccessibleOutlinedIcon from '@mui/icons-material/AccessibleOutlined';
 import ElderlyIcon from '@mui/icons-material/Elderly';
-import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
+import ElderlyOutlinedIcon from '@mui/icons-material/ElderlyOutlined';
 import HealingIcon from '@mui/icons-material/Healing';
 import HealingOutlinedIcon from '@mui/icons-material/HealingOutlined';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import AccessibleForwardIcon from '@mui/icons-material/AccessibleForward';
-import AccessibleOutlinedIcon from '@mui/icons-material/AccessibleOutlined';
+import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
 import dayjs from 'dayjs';
 
 export const allComunas = [

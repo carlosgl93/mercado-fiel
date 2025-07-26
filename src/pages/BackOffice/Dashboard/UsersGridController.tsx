@@ -1,9 +1,9 @@
-import { GridColDef } from '@mui/x-data-grid';
-import { useRecoilState } from 'recoil';
-import { useMemo } from 'react';
+import { useComunas } from '@/hooks';
 import { useStats } from '@/hooks/useStats';
 import { usersGridPaginationModelState } from '@/store/backoffice/users';
-import { useComunas } from '@/hooks';
+import { GridColDef } from '@mui/x-data-grid';
+import { useMemo } from 'react';
+import { useRecoilState } from 'recoil';
 
 type Row = {
   id: number;
@@ -70,7 +70,7 @@ export const UsersGridController = () => {
 
   const rows = useMemo(
     () =>
-      allComunas?.map((comuna, i) => {
+      (allComunas || [])?.map((comuna, i) => {
         const providersComuna = providersPerComunaCount?.find((p) => p.name === comuna.name);
         const usersComuna = usersPerComunaCount?.find((u) => u.name === comuna.name);
         return {
@@ -89,7 +89,7 @@ export const UsersGridController = () => {
           nPrestadoresSanaCompania: providersComuna?.count['Sana Compañía'] || 0,
         };
       }),
-    [usersPerComunaCount, providersPerComunaCount, allComunas],
+    [usersPerComunaCount, providersPerComunaCount, allComunas || []],
   );
 
   return {

@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
-import Meta from '@/components/Meta';
-import { Avatar, Box, Button } from '@mui/material';
+import ComoFunciona from '@/components/ComoFunciona';
 import { Image, StyledImageContainer } from '@/components/ImageContainer';
+import Meta from '@/components/Meta';
 import {
   AvatarContainer,
   PersonContainer,
@@ -12,8 +12,8 @@ import {
   TextContainer,
   Title,
 } from '@/components/StyledComponents';
-import ComoFunciona from '@/components/ComoFunciona';
-import { comoFuncionaCardsContent } from './comoFuncionaContent';
+import { Avatar, Box, Button } from '@mui/material';
+import { comoFuncionaCardsContent } from '../Welcome/comoFuncionaContent';
 
 const serviciosPrestados = [
   {

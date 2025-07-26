@@ -1,9 +1,9 @@
-import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
-import { Search } from '@mui/icons-material';
-import { Box } from '@mui/system';
 import Loading from '@/components/Loading';
 import { useComunas } from '@/hooks/useComunas';
 import { Comuna } from '@/types';
+import { Search } from '@mui/icons-material';
+import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
+import { Box } from '@mui/system';
 
 type ComunasSearchBarProps = {
   handleSelectComuna: (comuna: Comuna) => void;
@@ -22,7 +22,7 @@ export function ComunasSearchBar({
 }: ComunasSearchBarProps) {
   const { allComunas } = useComunas();
 
-  if (allComunas && allComunas.length) {
+  if ((allComunas || []) && (allComunas || []).length) {
     return (
       <>
         <OutlinedInput

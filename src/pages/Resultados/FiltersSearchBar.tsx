@@ -8,23 +8,23 @@ import { useState } from 'react';
 function FiltersSearchBar() {
   const { allComunas } = useComunas();
   const [{ comuna }, { addComuna, removeComuna }] = useRecibeApoyo();
-  const [comunasState, setComunasState] = useState(allComunas);
+  const [comunasState, setComunasState] = useState(allComunas || []);
   const [comunaInput, setComunaInput] = useState('');
 
   const clickComunaHandler = (_comuna: Comuna) => {
     if (comuna === _comuna) {
       removeComuna(comuna);
-      setComunasState(allComunas);
+      setComunasState(allComunas || []);
     } else {
       addComuna(_comuna);
-      setComunasState(allComunas);
+      setComunasState(allComunas || []);
     }
     setComunaInput('');
   };
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setComunaInput(e.target.value);
-    console.log('all comunas', allComunas);
+    console.log('all comunas', allComunas || []);
     const match = (allComunas || []).filter((comuna: Comuna) => {
       if (comuna.name?.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;

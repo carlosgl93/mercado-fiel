@@ -1,24 +1,24 @@
-import '../PerfilPrestador/mobileProfile.css';
+import { Apoyo } from '@/api/supportRequests';
+import BackButton from '@/components/BackButton';
+import Loading from '@/components/Loading';
+import { ColumnCenteredFlexBox, FlexBox, FlexColumn } from '@/components/styled';
+import { SubTitle, Text } from '@/components/StyledComponents';
+import { Prestador } from '@/store/auth/prestador';
+import { DescriptionOutlined, LocationOn } from '@mui/icons-material';
+import { Avatar, List, ListItem, ListItemAvatar, ListItemText, styled } from '@mui/material';
+import { CalendarIcon } from '@mui/x-date-pickers';
+import { capitalizeFirst } from '../../utils/capitalizeFirstLetter';
+import { StyledContactButton } from '../PerfilPrestador/DesktopPerfilPrestadorStyledComponents';
 import {
   HeroContainer,
   StyledCTAs,
   StyledTitle,
   Wrapper,
 } from '../PerfilPrestador/MobilePerfilPrestadorStyledComponents';
-import Loading from '@/components/Loading';
-import { Apoyo } from '@/api/supportRequests';
+import '../PerfilPrestador/mobileProfile.css';
 import { BackButtonContainer } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
-import BackButton from '@/components/BackButton';
-import { ColumnCenteredFlexBox, FlexBox, FlexColumn } from '@/components/styled';
-import { SubTitle, Text } from '@/components/StyledComponents';
-import { Avatar, List, ListItem, ListItemAvatar, ListItemText, styled } from '@mui/material';
-import { DescriptionOutlined, LocationOn } from '@mui/icons-material';
-import { CalendarIcon } from '@mui/x-date-pickers';
-import { StyledContactButton } from '../PerfilPrestador/DesktopPerfilPrestadorStyledComponents';
-import { VerApoyoController } from './VerApoyoController';
 import { VerApoyoChatModal } from './VerApoyoChatModal';
-import { Prestador } from '@/store/auth/prestador';
-import { capitalizeFirst } from '../../utils/capitalizeFirstLetter';
+import { VerApoyoController } from './VerApoyoController';
 
 type VerApoyoProps = {
   apoyo: Apoyo;
@@ -161,7 +161,7 @@ export const VerApoyo = (props: VerApoyoProps) => {
             </CenteredListItemAvatar>
             <ListItemText>
               {apoyo.comunasIds.map((c) => {
-                const renderComuna = allComunas.find((comuna) => comuna.id === c);
+                const renderComuna = (allComunas || []).find((comuna) => comuna.id === c);
                 return <Text key={c}>{renderComuna?.name}</Text>;
               })}
             </ListItemText>

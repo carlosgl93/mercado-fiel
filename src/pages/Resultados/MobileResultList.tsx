@@ -29,7 +29,9 @@ export const MobileResultList = ({ customers }: MobileResultsProps) => {
       >
         {userLookingFor === UserLookingFor.CUSTOMERS && customers ? (
           customers.map((customer) => {
-            const { idUsuario, profilePictureUrl, nombre } = customer;
+            const { idUsuario, profilePictureUrl, usuario } = customer;
+            if (!usuario) return null; // Ensure usuario exists
+            const { nombre } = usuario;
             return (
               <Link
                 key={idUsuario}

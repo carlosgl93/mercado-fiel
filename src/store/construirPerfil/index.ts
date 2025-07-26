@@ -1,26 +1,26 @@
+import api from '@/api/api';
+import { getPrestadorComunas } from '@/api/comunas/getPrestadorComunas';
 import {
   DisponibilidadFromFront,
   getDisponibilidadByPrestadorId,
 } from '@/api/disponibilidad/getDisponibilidadByPrestadorId';
-import { Comuna, Prestador, TarifaFront } from '@/types';
-import { atom, useRecoilState } from 'recoil';
-import { Actions } from './types';
-import { useEffect } from 'react';
-import useAuth from '../auth';
-import { getPrestadorById } from '@/api/prestadores/getPrestadorById';
-import { getPrestadorComunas } from '@/api/comunas/getPrestadorComunas';
-import { getPrestadorTarifas } from '@/api/tarifas/getTarifas';
 import { postDisponibilidad } from '@/api/disponibilidad/postDisponibilidad';
-import { notificationState } from '../snackbar';
-import api from '@/api/api';
-import useRecibeApoyo from '../recibeApoyo';
-import { useNavigate } from 'react-router-dom';
+import { getPrestadorById } from '@/api/prestadores/getPrestadorById';
 import { postTarifas } from '@/api/tarifas';
+import { getPrestadorTarifas } from '@/api/tarifas/getTarifas';
 import { postFreeMeetGreet } from '@/api/tarifas/postFreeMeetGreet';
-import { ExperienceState } from './experiencia';
-import { CuentaBancaria } from '@/types/CuentaBancaria';
 import { HistorialLaboralEntry } from '@/hooks/useHistorialLaboral';
 import { EducacionInputs } from '@/pages/ConstruirPerfil/EducacionFormacion/EducacionFormacion';
+import { Comuna, Prestador, TarifaFront } from '@/types';
+import { CuentaBancaria } from '@/types/CuentaBancaria';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { atom, useRecoilState } from 'recoil';
+import useAuth from '../auth';
+import useRecibeApoyo from '../recibeApoyo';
+import { notificationState } from '../snackbar';
+import { ExperienceState } from './experiencia';
+import { Actions } from './types';
 
 type ConstruirPerfilState = {
   prestador: Prestador;
@@ -254,7 +254,7 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     setConstruirPerfil((prev) => ({ ...prev, searchedComuna: e.target.value }));
-    const match = allComunas?.filter((comuna) => {
+    const match = (allComunas || [])?.filter((comuna) => {
       if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
@@ -279,7 +279,7 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
         ...prev,
         comunas: [...prev.comunas, comuna],
         searchedComuna: '',
-        searchedComunasState: allComunas,
+        searchedComunasState: allComunas || [],
       };
     });
   };
@@ -400,7 +400,7 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
       // !construirPerfil.searchedComunasState?.length &&
       //   setConstruirPerfil((prev) => ({
       //     ...prev,
-      //     searchedComunasState: allComunas || [],
+      //     searchedComunasState: (allComunas || []) || [],
       //   }));
       // !construirPerfil.cuentaBancaria &&
       //   setConstruirPerfil((prev) => ({ ...prev, cuentaBancaria: prestadorCuentaBancaria }));
@@ -418,7 +418,7 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
       //   setConstruirPerfil((prev) => ({ ...prev, prestador: user as Prestador }));
     }
     setConstruirPerfil((prev) => ({ ...prev, loading: false }));
-  }, [setConstruirPerfil, user, allComunas]);
+  }, [setConstruirPerfil, user, allComunas || []]);
 
   return [
     construirPerfil,

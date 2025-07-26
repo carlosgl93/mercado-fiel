@@ -1,3 +1,4 @@
+export * from '../models/Comuna';
 export * from './Mensaje';
 export * from './Prestador';
 export * from './Servicio';

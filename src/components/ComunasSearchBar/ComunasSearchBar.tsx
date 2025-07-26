@@ -13,11 +13,11 @@ type SearchBarProps = {
 function ComunasSearchBar({ routeToResultados = true }: SearchBarProps) {
   const { allComunas } = useComunas();
   const [, { addComuna }] = useRecibeApoyo();
-  const [comunasState, setComunasState] = useState(allComunas);
+  const [comunasState, setComunasState] = useState(allComunas || []);
   const router = useNavigate();
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    const match = allComunas.filter((comuna) => {
+    const match = (allComunas || []).filter((comuna) => {
       if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
@@ -37,7 +37,7 @@ function ComunasSearchBar({ routeToResultados = true }: SearchBarProps) {
   };
 
   const clickComunaHandler = () => {
-    setComunasState(allComunas);
+    setComunasState(allComunas || []);
     if (!routeToResultados) {
       return;
     }

@@ -91,6 +91,93 @@ async function main() {
     planes.push(plan);
   }
 
+  // Seed regions
+  console.log('🌎 Seeding regions...');
+  const regiones = [];
+  const regionData = [
+    { codigo: 'RM', nombre: 'Metropolitana' },
+    { codigo: 'V', nombre: 'Valparaíso' },
+    { codigo: 'VIII', nombre: 'Biobío' },
+    { codigo: 'IX', nombre: 'Araucanía' },
+    { codigo: 'X', nombre: 'Los Lagos' },
+  ];
+
+  for (let i = 0; i < regionData.length; i++) {
+    const region = await prisma.regiones.upsert({
+      where: { id_region: i + 1 },
+      update: {},
+      create: {
+        id_region: i + 1,
+        codigo_region: regionData[i].codigo,
+        nombre: regionData[i].nombre,
+      },
+    });
+    regiones.push(region);
+  }
+
+  // Seed comunas
+  console.log('🏘️ Seeding comunas...');
+  const comunas = [];
+  const comunaData = [
+    { nombre: 'Santiago', id_region: 1 },
+    { nombre: 'Providencia', id_region: 1 },
+    { nombre: 'Las Condes', id_region: 1 },
+    { nombre: 'Ñuñoa', id_region: 1 },
+    { nombre: 'Valparaíso', id_region: 2 },
+    { nombre: 'Viña del Mar', id_region: 2 },
+    { nombre: 'Concepción', id_region: 3 },
+    { nombre: 'Talcahuano', id_region: 3 },
+    { nombre: 'Temuco', id_region: 4 },
+    { nombre: 'Puerto Montt', id_region: 5 },
+  ];
+
+  for (let i = 0; i < comunaData.length; i++) {
+    const comuna = await prisma.comunas.upsert({
+      where: { id_comuna: i + 1 },
+      update: {},
+      create: {
+        id_comuna: i + 1,
+        nombre: comunaData[i].nombre,
+        id_region: comunaData[i].id_region,
+      },
+    });
+    comunas.push(comuna);
+  }
+
+  // Seed direcciones
+  console.log('📍 Seeding addresses...');
+  const direcciones = [];
+  const calles = [
+    'Av. Providencia',
+    'Calle Las Condes',
+    'Av. Apoquindo',
+    'Calle Vitacura',
+    'Av. Kennedy',
+    'Calle Los Rosales',
+    'Av. Las Flores',
+    'Calle San Martín',
+    "Av. O'Higgins",
+    'Calle Moneda',
+    'Av. La Dehesa',
+    'Calle El Bosque',
+    'Av. Santa María',
+    'Calle Pedro de Valdivia',
+    'Av. Costanera',
+  ];
+
+  for (let i = 0; i < calles.length; i++) {
+    const direccion = await prisma.direcciones.create({
+      data: {
+        calle: calles[i],
+        numero: `${Math.floor(Math.random() * 9999) + 1}`,
+        id_comuna: comunas[Math.floor(Math.random() * comunas.length)].id_comuna,
+        id_region: regiones[Math.floor(Math.random() * regiones.length)].id_region,
+        codigo_postal: `${Math.floor(Math.random() * 90000) + 10000}`,
+      },
+    });
+    direcciones.push(direccion);
+  }
+
   // Seed usuarios
   console.log('👥 Seeding users...');
   const usuarios = [];
@@ -189,11 +276,14 @@ async function main() {
           5 + i
         } años de experiencia en el mercado.`,
         telefono_contacto: `+56912345${100 + i}`,
-        direccion: `Av. Providencia ${1000 + i * 100}, Santiago`,
+        id_direccion: direcciones[i % direcciones.length].id_direccion,
         latitud: -33.45 + (Math.random() - 0.5) * 0.1,
         longitud: -70.66 + (Math.random() - 0.5) * 0.1,
         destacado: i % 3 === 0,
         email: `tienda${i}@business.com`,
+        radio_entrega_km: 5 + Math.floor(Math.random() * 15), // 5-20 km radius
+        cobra_envio: Math.random() > 0.3, // 70% charge for delivery
+        envio_gratis_desde: Math.random() > 0.5 ? Math.floor(Math.random() * 20000) + 10000 : null,
       },
     });
     proveedores.push(proveedor);
@@ -208,7 +298,7 @@ async function main() {
       update: {},
       create: {
         id_usuario: usuarios[i].id_usuario,
-        direccion: `Calle Los Rosales ${(i - 10) * 50}, Las Condes`,
+        id_direccion: direcciones[(i - 11) % direcciones.length].id_direccion,
         telefono: `+56987654${200 + (i - 10)}`,
       },
     });
@@ -432,7 +522,7 @@ async function main() {
           : null,
         total: Math.floor(Math.random() * 50000) + 5000,
         estado: ['pendiente', 'confirmado', 'enviado', 'entregado'][Math.floor(Math.random() * 4)],
-        direccion_entrega: cliente.direccion,
+        id_direccion_entrega: cliente.id_direccion,
       },
     });
 

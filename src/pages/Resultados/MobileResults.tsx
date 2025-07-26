@@ -15,7 +15,7 @@ const MobileResults = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
-  const { customers } = useCustomers(page, limit);
+  const { isLoadingCustomers, customers } = useCustomers(page, limit);
 
   console.log('suppliers', suppliers);
 
@@ -25,7 +25,7 @@ const MobileResults = () => {
 
   // const resultsLength = verifiedPrestadores?.prestadores?.length;
 
-  if (isLoadingSuppliers) {
+  if (isLoadingSuppliers || isLoadingCustomers) {
     return <Loading />;
   }
 

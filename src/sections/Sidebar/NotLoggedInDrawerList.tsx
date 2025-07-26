@@ -82,11 +82,11 @@ export const NotLoggedInDrawerList = ({ closeDrawer }: NotLoggedInDrawerListProp
           <Button variant="outlined">Conviértete en persona de apoyo</Button>
         </ListItemButton>
       </ListItem> */}
-      <ListItem sx={{ mx: 'auto' }}>
+      {/* <ListItem sx={{ mx: 'auto' }}>
         <ListItemButton component={Link} to="/comienzo" onClick={closeDrawer}>
           <Button variant="contained">Comenzar</Button>
         </ListItemButton>
-      </ListItem>
+      </ListItem> */}
     </List>
   );
 };

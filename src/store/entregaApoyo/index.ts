@@ -1,8 +1,8 @@
 import { atom, useRecoilState } from 'recoil';
 
-import type { Actions } from './types';
+import { Comuna } from '@/models/Comuna';
 import { Especialidad, Servicio } from '@/types/Servicio';
-import { Comuna } from '@/types/Comuna';
+import type { Actions } from './types';
 
 type EntregaApoyoState = {
   step: number;

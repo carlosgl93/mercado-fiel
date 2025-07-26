@@ -5,8 +5,8 @@ import Button from '@mui/material/Button';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 import useNotifications from '@/store/notifications';
-import { useSetRecoilState } from 'recoil';
 import { notificationState } from '@/store/snackbar';
+import { useSetRecoilState } from 'recoil';
 
 function SW() {
   const setNotification = useSetRecoilState(notificationState);
@@ -51,7 +51,8 @@ function SW() {
         action: (
           <Button
             onClick={() => {
-              updateServiceWorker(false);
+              updateServiceWorker(true);
+
               caches
                 .keys()
                 .then((cacheNames) => {
@@ -62,6 +63,7 @@ function SW() {
                 .then(() => {
                   window.location.reload();
                 });
+              window.location.reload();
               setNotification((prev) => ({ ...prev, open: false }));
               close();
             }}

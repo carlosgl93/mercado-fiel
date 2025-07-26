@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { IconButton, InputAdornment, OutlinedInput, Box } from '@mui/material';
-import { Search } from '@mui/icons-material';
-import useRecibeApoyo from '@/store/recibeApoyo';
-import { Comuna } from '@/types/Comuna';
 import { useComunas } from '@/hooks/useComunas';
+import { Comuna } from '@/models/Comuna';
+import useRecibeApoyo from '@/store/recibeApoyo';
+import { Search } from '@mui/icons-material';
+import { Box, IconButton, InputAdornment, OutlinedInput } from '@mui/material';
+import { useState } from 'react';
 
 function FiltersSearchBar() {
   const { allComunas } = useComunas();
@@ -24,8 +24,9 @@ function FiltersSearchBar() {
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setComunaInput(e.target.value);
-    const match = allComunas.filter((comuna: Comuna) => {
-      if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
+    console.log('all comunas', allComunas);
+    const match = (allComunas || []).filter((comuna: Comuna) => {
+      if (comuna.name?.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
     });
@@ -79,8 +80,8 @@ function FiltersSearchBar() {
           overflow: 'auto',
         }}
       >
-        {comunasState.length <= 5 &&
-          comunasState.map((_comuna) => (
+        {(comunasState || []).length <= 5 &&
+          comunasState?.map((_comuna) => (
             <Box
               key={_comuna.id}
               sx={{

@@ -1,14 +1,14 @@
-import { Comuna } from '@/types';
-import regions from '../utils/regions.json';
-import { useEffect, useMemo, useState } from 'react';
-import { notificationState } from '@/store/snackbar';
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useAuthNew } from './useAuthNew';
 import { db } from '@/firebase/firebase';
-import { doc, collection, updateDoc, where, query, getDocs } from 'firebase/firestore';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { comunasState } from '@/store/construirPerfil/comunas';
 import { Prestador, prestadorState } from '@/store/auth/prestador';
+import { comunasState } from '@/store/construirPerfil/comunas';
+import { notificationState } from '@/store/snackbar';
+import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { getAllComunas } from '../api/comunas';
+import { Comuna } from '../models';
+import { useAuthNew } from './useAuthNew';
 
 const updateProviderComunas = async ({
   providerId,
@@ -64,22 +64,16 @@ export const useComunas = () => {
   const setPrestador = useSetRecoilState(prestadorState);
   const queryClient = useQueryClient();
 
-  const allComunas = useMemo(() => {
-    const comunas: Comuna[] = [];
-    regions.regiones.forEach((r, i) => {
-      const newComunas = r.comunas.map((c, j) => {
-        return {
-          id: Number(`${i}${j}`),
-          name: c,
-          region: r.region,
-          country: 'Chile',
-        };
-      });
-      comunas.push(...newComunas);
-    });
-
-    return comunas;
-  }, [regions]);
+  const { data: allComunas, isLoading: isLoadingAllComunas } = useQuery<Comuna[]>(
+    ['comunas'],
+    () => {
+      return getAllComunas();
+    },
+    {
+      keepPreviousData: true,
+      staleTime: 60 * 1000000000000,
+    },
+  );
 
   const resetComunas = () => {
     setSelectedComunas([]);
@@ -89,7 +83,8 @@ export const useComunas = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setComunasSearched(e.target.value);
-    const match = allComunas.filter((comuna) => {
+    console.log('all comunas', allComunas);
+    const match = (allComunas || []).filter((comuna: Comuna) => {
       if (comuna.name.toLowerCase().includes(e.target.value.toLowerCase())) {
         return comuna;
       }
@@ -204,8 +199,10 @@ export const useComunas = () => {
   );
 
   const getComunasNamesById = (comunasIds: number[]) => {
-    const comunasNames = allComunas.filter((comuna) => comunasIds.includes(comuna.id));
-    return comunasNames.map((comuna) => comuna.name).join(', ');
+    const comunasNames = (allComunas || []).filter((comuna: Comuna) =>
+      comunasIds.includes(comuna.id),
+    );
+    return comunasNames.map((comuna: Comuna) => comuna.name).join(', ');
   };
 
   useEffect(() => {
@@ -226,6 +223,7 @@ export const useComunas = () => {
     removeComunaIsLoading,
     fetchPrestadorComunasIsLoading,
     prestadorComunas,
+    isLoadingAllComunas,
     getComunasNamesById,
     setComunasSearched,
     setMatchedComunas,

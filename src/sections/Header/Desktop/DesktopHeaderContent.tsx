@@ -21,7 +21,6 @@ import { Theme } from '@mui/material/styles';
 import { styled } from '@mui/system';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { SubTitle } from '../../../components/StyledComponents';
 import { routesToExcludeInHeader } from '../routesToExcludeInHeader';
 
 const DesktopHeaderContent = () => {
@@ -115,7 +114,18 @@ const DesktopHeaderContent = () => {
         }}
       >
         <BurgerIconWithLogo prestador={prestador} toggle={sidebarActions.toggle} user={user} />
-        <SubTitle>Mercado Fiel</SubTitle>
+        <Button
+          variant="outlined"
+          sx={{
+            border: 'none',
+          }}
+          component={Link}
+          to="/"
+          title="Ir a la página principal"
+          aria-label="Ir a la página principal"
+        >
+          Mercado Fiel
+        </Button>
       </FlexBox>
       <List
         sx={{
@@ -393,7 +403,7 @@ const UnauthenticatedHeaderContent = () => {
           Explorar
         </Button>
       </ListItem>
-      <ListItem sx={{ mx: 'auto' }}>
+      {/* <ListItem sx={{ mx: 'auto' }}>
         <Button
           component={Link}
           to="/comienzo"
@@ -406,7 +416,7 @@ const UnauthenticatedHeaderContent = () => {
         >
           Comenzar
         </Button>
-      </ListItem>
+      </ListItem> */}
     </>
   );
 };

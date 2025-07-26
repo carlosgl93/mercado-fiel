@@ -1,132 +1,301 @@
+import { Avatar, Box, Button, ListItem } from '@mui/material';
 import { Link } from 'react-router-dom';
-import Reviews from '@/components/Reviews';
-import Loading from '@/components/Loading';
-import { Text, Title } from '@/components/StyledComponents';
-import { Box, ListItem, Button, Avatar } from '@mui/material';
-import { useGetPrestadores } from '@/hooks/useGetPrestadores';
+import Reviews from '../../components/Reviews';
+import { FlexBox } from '../../components/styled';
+import { Text, Title } from '../../components/StyledComponents';
+import { useUserLookingFor } from '../../hooks';
+import { Customer, Supplier } from '../../models';
 
-const DesktopResultList = () => {
-  const { isLoading, infinitePrestadores, infinitePrestadoresIsLoading } = useGetPrestadores();
+const DesktopResultList = ({
+  results,
+  setPage,
+  setLimit,
+}: {
+  results: Customer[] | Supplier[] | undefined;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setLimit: React.Dispatch<React.SetStateAction<number>>;
+}) => {
+  const { userLookingFor } = useUserLookingFor();
 
-  if (isLoading || infinitePrestadoresIsLoading) return <Loading />;
-
-  return (
-    <>
+  if (!results || results.length === 0) {
+    return (
       <Box
-        component={'ul'}
         sx={{
-          maxWidth: '75%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '60vh',
+          px: '2rem',
         }}
       >
-        {infinitePrestadores?.map((page, pageIndex) => {
-          if (page.prestadores.length === 0) {
-            return (
-              <Box
-                key={pageIndex}
+        No hay resultados para mostrar con estos filtros.
+      </Box>
+    );
+  }
+
+  if (userLookingFor === null) {
+    return (
+      <Text>Selecciona si buscas proveedores o clientes en los filtros para ver resultados.</Text>
+    );
+
+    // return (
+    //   <Link
+    //     to={`/perfil-prestador/${id}`}
+    //     style={{
+    //       textDecoration: 'none',
+    //     }}
+    //     key={id}
+    //   >
+    //     <ListItem
+    //       sx={{
+    //         display: 'grid',
+    //         gridTemplateColumns: '30% 70%',
+    //         mb: '1rem',
+    //       }}
+    //     >
+    //       <Box
+    //         sx={{
+    //           display: 'flex',
+    //           flexDirection: 'column',
+    //           justifyContent: 'start',
+    //           alignContent: 'start',
+    //           alignItems: 'start',
+    //         }}
+    //       >
+    //         <Avatar
+    //           sx={{
+    //             height: '120px',
+    //             width: '120px',
+    //           }}
+    //           src={profileImageUrl}
+    //         />
+    //       </Box>
+    //       <Box
+    //         sx={{
+    //           display: 'flex',
+    //           flexDirection: 'column',
+    //           py: '3vh',
+    //         }}
+    //       >
+    //         <Box>
+    //           <Title
+    //             variant="h6"
+    //             color="primary"
+    //             sx={{
+    //               fontSize: '1.4rem',
+    //             }}
+    //           >
+    //             {firstname} {lastname}
+    //           </Title>
+    //           <Reviews average={averageReviews || 0} total_reviews={totalReviews || 0} />
+    //         </Box>
+    //         <Text>Servicio: {servicio}</Text>
+    //         <Text>{especialidad}</Text>
+    //         <Button
+    //           variant="outlined"
+    //           sx={{
+    //             mt: '1vh',
+    //             maxWidth: '50%',
+    //           }}
+    //         >
+    //           Ver perfil
+    //         </Button>
+    //       </Box>
+    //     </ListItem>
+    //   </Link>
+    // );
+  }
+
+  if (userLookingFor === 'customers') {
+    // render customer results
+    return (
+      <FlexBox flexDirection={'column'}>
+        {(results as Customer[]).map((c) => {
+          const { idCliente: id, profilePictureUrl, usuario } = c;
+          const { nombre } = usuario || {};
+          return (
+            <Link
+              to={`/perfil-prestador/${id}`}
+              style={{
+                textDecoration: 'none',
+              }}
+              key={id}
+            >
+              <ListItem
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '60vh',
-                  px: '2rem',
+                  display: 'grid',
+                  gridTemplateColumns: '30% 70%',
+                  mb: '1rem',
                 }}
               >
-                <Text>Aún no hay prestadores para esta combinacion de filtros</Text>
-              </Box>
-            );
-          }
-          return (
-            <div key={pageIndex}>
-              {page.prestadores.map((prestador) => {
-                const {
-                  id,
-                  firstname,
-                  lastname,
-                  servicio,
-                  especialidad,
-                  averageReviews,
-                  totalReviews,
-                  profileImageUrl,
-                } = prestador;
-                return (
-                  <Link
-                    to={`/perfil-prestador/${id}`}
-                    style={{
-                      textDecoration: 'none',
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'start',
+                    alignContent: 'start',
+                    alignItems: 'start',
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      height: '120px',
+                      width: '120px',
                     }}
-                    key={id}
-                  >
-                    <ListItem
+                    src={profilePictureUrl || ''}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    py: '3vh',
+                  }}
+                >
+                  <Box>
+                    <Title
+                      variant="h6"
+                      color="primary"
                       sx={{
-                        display: 'grid',
-                        gridTemplateColumns: '30% 70%',
-                        mb: '1rem',
+                        fontSize: '1.4rem',
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'start',
-                          alignContent: 'start',
-                          alignItems: 'start',
-                        }}
-                      >
-                        <Avatar
-                          sx={{
-                            height: '120px',
-                            width: '120px',
-                          }}
-                          src={profileImageUrl}
-                        />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          py: '3vh',
-                        }}
-                      >
-                        <Box>
-                          <Title
-                            variant="h6"
-                            color="primary"
-                            sx={{
-                              fontSize: '1.4rem',
-                            }}
-                          >
-                            {firstname} {lastname}
-                          </Title>
-                          <Reviews
-                            average={averageReviews || 0}
-                            total_reviews={totalReviews || 0}
-                          />
-                        </Box>
-                        <Text>Servicio: {servicio}</Text>
-                        <Text>{especialidad}</Text>
-                        <Button
-                          variant="outlined"
-                          sx={{
-                            mt: '1vh',
-                            maxWidth: '50%',
-                          }}
-                        >
-                          Ver perfil
-                        </Button>
-                      </Box>
-                      {/* TODO implement availability */}
-                      {/* <Text>Availability: {prestador.availability.map((a) => a.name).join(', ')}</Text> */}
-                    </ListItem>
-                  </Link>
-                );
-              })}
-            </div>
+                      {nombre}
+                    </Title>
+                    {/* TODO: implement reviews in the model? */}
+                    <Reviews average={0} total_reviews={0} />
+                  </Box>
+                  {/* <Text>Servicio: {servicio}</Text> */}
+                  {/* <Text>{especialidad}</Text> */}
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      mt: '1vh',
+                      maxWidth: '50%',
+                    }}
+                  >
+                    Ver perfil
+                  </Button>
+                </Box>
+              </ListItem>
+            </Link>
           );
         })}
-      </Box>
-      <Box className="bottomSentinel" />
-    </>
-  );
+        {/* TODO: implement proper pagination */}
+        <Box>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setPage((prev) => prev + 1);
+              setLimit((prev) => prev + 10);
+            }}
+            sx={{
+              mt: '1rem',
+              width: '100%',
+              maxWidth: '200px',
+            }}
+          >
+            Cargar más resultados
+          </Button>
+        </Box>
+      </FlexBox>
+    );
+  } else if (userLookingFor === 'suppliers') {
+    // render supplier results
+    return (
+      <FlexBox flexDirection={'column'}>
+        {(results as Supplier[]).map((s) => {
+          const { idProveedor: id, usuario } = s;
+          const { nombre, profilePictureUrl } = usuario || {};
+          return (
+            <Link
+              to={`/perfil-prestador/${id}`}
+              style={{
+                textDecoration: 'none',
+              }}
+              key={id}
+            >
+              <ListItem
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: '30% 70%',
+                  mb: '1rem',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'start',
+                    alignContent: 'start',
+                    alignItems: 'start',
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      height: '120px',
+                      width: '120px',
+                    }}
+                    src={profilePictureUrl || ''}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    py: '3vh',
+                  }}
+                >
+                  <Box>
+                    <Title
+                      variant="h6"
+                      color="primary"
+                      sx={{
+                        fontSize: '1.4rem',
+                      }}
+                    >
+                      {nombre}
+                    </Title>
+                    {/* TODO: implement reviews in the model? */}
+                    <Reviews average={0} total_reviews={0} />
+                  </Box>
+                  {/* <Text>Servicio: {servicio}</Text> */}
+                  {/* <Text>{especialidad}</Text> */}
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      mt: '1vh',
+                      maxWidth: '50%',
+                    }}
+                  >
+                    Ver perfil
+                  </Button>
+                </Box>
+              </ListItem>
+            </Link>
+          );
+        })}
+        {/* TODO: implement proper pagination */}
+
+        <Box>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setPage((prev) => prev + 1);
+              setLimit((prev) => prev + 10);
+            }}
+            sx={{
+              mt: '1rem',
+              width: '100%',
+              maxWidth: '200px',
+            }}
+          >
+            Cargar más resultados
+          </Button>
+        </Box>
+      </FlexBox>
+    );
+  }
 };
 
 export default DesktopResultList;

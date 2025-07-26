@@ -1,13 +1,13 @@
-import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
+import Loading from '@/components/Loading';
+import { useComunas } from '@/hooks/useComunas';
+import { Comuna } from '@/models/Comuna';
+import { User, userState } from '@/store/auth/user';
 import { Search } from '@mui/icons-material';
+import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
 import { Box } from '@mui/system';
 import { useState } from 'react';
-import Loading from '@/components/Loading';
-import { Comuna } from '@/types/Comuna';
-import { useComunas } from '@/hooks/useComunas';
-import { useRecoilState } from 'recoil';
-import { User, userState } from '@/store/auth/user';
 import { UseFormSetValue } from 'react-hook-form';
+import { useRecoilState } from 'recoil';
 import { IFormInput } from './PerfilUsuarioController';
 
 type UserComunaSearchBarProps = {

@@ -1,14 +1,8 @@
-import { selector } from 'recoil';
+import { ComunaDB, mapComunaDBToComuna } from '../../models/Comuna';
 import api from '../api';
 
-export const getAllComunas = selector({
-  key: 'getAllComunas',
-  get: async () => {
-    try {
-      const response = await api.get(`/comunas`);
-      return response;
-    } catch (error) {
-      console.error(error);
-    }
-  },
-});
+export const getAllComunas = async () => {
+  const res = await api.get('/comunas');
+
+  return res.data.data.map((c: ComunaDB) => mapComunaDBToComuna(c));
+};

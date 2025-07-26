@@ -1,4 +1,4 @@
-import { Comuna } from '@/types/Comuna';
+import { Comuna } from '@/models/Comuna';
 import { Especialidad, Servicio } from '@/types/Servicio';
 
 type Actions = {

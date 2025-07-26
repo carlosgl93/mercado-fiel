@@ -8,6 +8,62 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model regiones {
+  id_region     Int      @id @default(autoincrement())
+  codigo_region String   @unique @db.VarChar(10) // e.g., "XV", "RM"
+  nombre        String   @db.VarChar(100)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  comunas    comunas[]
+  direcciones direcciones[]
+
+  @@map("regiones")
+}
+
+model comunas {
+  id_comuna  Int      @id @default(autoincrement())
+  id_region  Int
+  nombre     String   @db.VarChar(100)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  region      regiones      @relation(fields: [id_region], references: [id_region])
+  direcciones direcciones[]
+
+  @@map("comunas")
+}
+
+model direcciones {
+  id_direccion     Int      @id @default(autoincrement())
+  calle            String   @db.VarChar(200)
+  numero           String?  @db.VarChar(20)
+  departamento     String?  @db.VarChar(20)
+  id_comuna        Int
+  id_region        Int
+  codigo_postal    String?  @db.VarChar(10)
+  referencia       String?  @db.Text // Additional reference/landmark
+  latitud          Decimal? @db.Decimal(9, 6)
+  longitud         Decimal? @db.Decimal(9, 6)
+  direccion_completa String? @db.Text // Computed field for full address
+  activa           Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  comuna    comunas   @relation(fields: [id_comuna], references: [id_comuna])
+  region    regiones  @relation(fields: [id_region], references: [id_region])
+  
+  // Back relations
+  proveedores_direccion proveedores[]
+  clientes_direccion    clientes[]
+  pedidos_direccion     pedidos[]
+
+  @@map("direcciones")
+}
+
 // User table
 model usuarios {
   id_usuario          Int      @id @default(autoincrement())
@@ -67,11 +123,16 @@ model proveedores {
   nombre_negocio    String   @db.VarChar(100)
   descripcion       String?  @db.Text
   telefono_contacto String?  @db.VarChar(20)
-  direccion         String?  @db.VarChar(150)
+  id_direccion      Int?
+  direccion         direcciones? @relation(fields: [id_direccion], references: [id_direccion])
+  
   latitud           Decimal? @db.Decimal(9, 6)
   longitud          Decimal? @db.Decimal(9, 6)
   destacado         Boolean  @default(false)
-  email             String?  @unique @db.VarChar(100)
+  email             String?  @unique @db.VarChar(100) // email contacto proveedor puede ser distinto del de la ucneta de usuario
+  radio_entrega_km  Int?         @default(10) // Delivery radius in kilometers
+  cobra_envio       Boolean      @default(true)
+  envio_gratis_desde Decimal?    @db.Decimal(10, 2) // Free shipping threshold
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
@@ -81,15 +142,34 @@ model proveedores {
   suscripciones       suscripciones[]
   publicidad          publicidad[]
   campanas_colectivas compras_colectivas[]
+  areas_servicio      areas_servicio[]
 
   @@map("proveedores")
+}
+
+model areas_servicio {
+  id_area      Int         @id @default(autoincrement())
+  id_proveedor Int
+  proveedor    proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  tipo         String      @db.VarChar(20) // 'comuna', 'region', 'radio'
+  id_comuna    Int?
+  id_region    Int?
+  radio_km     Int?        // For radius-based service areas
+  costo_envio  Decimal?    @db.Decimal(8, 2)
+  tiempo_entrega_dias Int? @default(3)
+  activa       Boolean     @default(true)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  @@map("areas_servicio")
 }
 
 model clientes {
   id_cliente     Int      @id @default(autoincrement())
   id_usuario     Int      @unique
   usuario        usuarios @relation(fields: [id_usuario], references: [id_usuario])
-  direccion      String?  @db.VarChar(150)
+  id_direccion   Int?
+  direccion      direcciones? @relation(fields: [id_direccion], references: [id_direccion])
   telefono       String?  @db.VarChar(20)
   fecha_registro DateTime @default(now()) @db.Timestamp
   created_at     DateTime @default(now())
@@ -339,7 +419,9 @@ model pedidos {
   estado            String              @default("pendiente") // pendiente, confirmado, enviado, entregado, cancelado
   fecha_pedido      DateTime            @default(now())
   fecha_entrega     DateTime?
-  direccion_entrega String?             @db.VarChar(200)
+  id_direccion_entrega Int?
+  direccion_entrega    direcciones? @relation(fields: [id_direccion_entrega], references: [id_direccion])
+  costo_envio       Decimal?            @db.Decimal(8, 2)
   notas             String?             @db.Text
   created_at        DateTime            @default(now())
   updated_at        DateTime            @updatedAt

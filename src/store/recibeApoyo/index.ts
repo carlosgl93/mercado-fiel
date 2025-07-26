@@ -2,12 +2,12 @@ import { useCallback } from 'react';
 
 import { atom, useRecoilState } from 'recoil';
 
-import type { Actions } from './types';
-import { Comuna } from '@/types/Comuna';
-import { Especialidad, Servicio } from '@/types/Servicio';
-import { Prestador } from '@/types/Prestador';
 import { ForWhom } from '@/api/auth';
+import { Comuna } from '@/models/Comuna';
+import { Prestador } from '@/types/Prestador';
+import { Especialidad, Servicio } from '@/types/Servicio';
 import { useNavigate } from 'react-router-dom';
+import type { Actions } from './types';
 
 type RecibeApoyoState = {
   step: number;

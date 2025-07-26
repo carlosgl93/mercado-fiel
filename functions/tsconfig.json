@@ -12,5 +12,5 @@
     "resolveJsonModule": true
   },
   "compileOnSave": true,
-  "include": ["src", "seed.ts", "prisma"]
+  "include": ["src", "seed.ts"]
 }

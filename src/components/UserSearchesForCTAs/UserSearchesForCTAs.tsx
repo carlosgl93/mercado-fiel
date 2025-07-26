@@ -24,7 +24,7 @@ export const UserSearchesForCTAs = () => {
         </ButtonCTA>
         <ButtonCTA
           variant="contained"
-          onClick={() => handleSelectUserLookingFor(UserLookingFor.SUPPLIERS)}
+          onClick={() => handleSelectUserLookingFor(UserLookingFor.CUSTOMERS)}
         >
           Clientes
         </ButtonCTA>

@@ -1,5 +1,5 @@
 import { ForWhom } from '@/api/auth';
-import { Comuna } from '@/types/Comuna';
+import { Comuna } from '@/models/Comuna';
 import { Prestador } from '@/types/Prestador';
 import { Especialidad, Servicio } from '@/types/Servicio';
 

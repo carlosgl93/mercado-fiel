@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs'; // Using bcryptjs instead of bcrypt for better TypeScript support
+import * as bcrypt from 'bcryptjs';
 import express, { NextFunction, Request, Response } from 'express';
 
 const router = express.Router();
@@ -13,20 +13,7 @@ interface CreateUserRequest {
   activo?: boolean;
   profile_picture_url?: string;
   id_plan?: number;
-  roles?: string[];
-  proveedor?: {
-    nombre_negocio: string;
-    descripcion?: string;
-    telefono_contacto?: string;
-    direccion?: string;
-    latitud?: number;
-    longitud?: number;
-    email?: string;
-  };
-  cliente?: {
-    direccion?: string;
-    telefono?: string;
-  };
+  roles?: string[]; // Array of role names
 }
 
 interface UpdateUserRequest {
@@ -36,20 +23,7 @@ interface UpdateUserRequest {
   activo?: boolean;
   profile_picture_url?: string;
   id_plan?: number;
-  roles?: string[];
-  proveedor?: {
-    nombre_negocio?: string;
-    descripcion?: string;
-    telefono_contacto?: string;
-    direccion?: string;
-    latitud?: number;
-    longitud?: number;
-    email?: string;
-  };
-  cliente?: {
-    direccion?: string;
-    telefono?: string;
-  };
+  roles?: string[]; // Array of role names
 }
 
 // Helper function to hash passwords
@@ -80,7 +54,7 @@ const parseNumberParam = (param: any, defaultValue: number): number => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
-// GET /usuarios - Get all users with filtering and pagination
+// GET /users - Get all users with filtering and pagination
 router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page = parseNumberParam(req.query.page, 1);
@@ -89,7 +63,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
     const activo = parseQueryParam(req.query.activo);
     const rol = parseQueryParam(req.query.rol);
     const plan = parseQueryParam(req.query.plan);
-    const sortBy = parseQueryParam(req.query.sortBy) || 'created_at';
+    const sortBy = parseQueryParam(req.query.sortBy) || 'fecha_registro';
     const sortOrder = parseQueryParam(req.query.sortOrder) || 'desc';
 
     const skip = (page - 1) * limit;
@@ -104,10 +78,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
       ];
     }
 
-    if (activo) {
+    if (activo !== '' && activo !== undefined) {
       where.activo = activo === 'true';
     }
 
+    if (plan) {
+      where.id_plan = parseInt(plan);
+    }
+
+    // Filter by role
     if (rol) {
       where.roles = {
         some: {
@@ -118,37 +97,29 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
       };
     }
 
-    if (plan) {
-      where.plan = {
-        nombre: plan,
-      };
-    }
-
     // Build orderBy
     const orderBy: Prisma.usuariosOrderByWithRelationInput = {};
-    if (
-      sortBy === 'created_at' ||
-      sortBy === 'updated_at' ||
-      sortBy === 'nombre' ||
-      sortBy === 'email'
-    ) {
+    if (sortBy === 'fecha_registro' || sortBy === 'updated_at') {
       orderBy[sortBy] = sortOrder as 'asc' | 'desc';
+    } else if (sortBy === 'nombre' || sortBy === 'email') {
+      orderBy[sortBy] = sortOrder as 'asc' | 'desc';
+    } else {
+      orderBy.fecha_registro = 'desc';
     }
 
-    // Get users with related data
-    const [usuarios, total] = await Promise.all([
+    const [users, total] = await Promise.all([
       prisma.usuarios.findMany({
-        where,
         skip,
         take: limit,
+        where,
         orderBy,
         include: {
+          plan: true,
           roles: {
             include: {
               rol: true,
             },
           },
-          plan: true,
           proveedor: {
             select: {
               id_proveedor: true,
@@ -159,18 +130,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
           cliente: {
             select: {
               id_cliente: true,
-              direccion: true,
               telefono: true,
-            },
-          },
-          _count: {
-            select: {
-              comentarios: true,
-              pagos: true,
-              participaciones: true,
-              pedidos: true,
-              notificaciones: { where: { leida: false } },
-              lista_deseos: true,
             },
           },
         },
@@ -178,19 +138,25 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
       prisma.usuarios.count({ where }),
     ]);
 
-    // Remove sensitive data
-    const sanitizedUsers = usuarios.map((user) => excludeFields(user));
+    // Transform the users data to include roles array and sanitize
+    const sanitizedUsers = users.map((user) => {
+      const { roles: rolesRelation, ...userData } = user;
+      return {
+        ...excludeFields(userData),
+        roles: rolesRelation.map((ur) => ur.rol.nombre),
+        has_proveedor: !!user.proveedor,
+        has_cliente: !!user.cliente,
+      };
+    });
 
     res.json({
       success: true,
-      data: {
-        usuarios: sanitizedUsers,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
+      data: sanitizedUsers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -198,94 +164,50 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
   }
 });
 
-// GET /usuarios/:id - Get user by ID
+// GET /users/:id - Get specific user
 router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const includeStats = parseQueryParam(req.query.includeStats) === 'true';
 
-    const includeOptions: Prisma.usuariosInclude = {
-      roles: {
-        include: {
-          rol: true,
-        },
-      },
-      plan: true,
-      proveedor: true,
-      cliente: true,
-      _count: {
-        select: {
-          comentarios: true,
-          pagos: true,
-          participaciones: true,
-          pedidos: true,
-          notificaciones: { where: { leida: false } },
-          lista_deseos: true,
-        },
-      },
-    };
-
-    if (includeStats) {
-      includeOptions.comentarios = {
-        include: {
-          producto: {
-            select: {
-              nombre_producto: true,
-            },
+    const user = await prisma.usuarios.findUnique({
+      where: { id_usuario: parseInt(id) },
+      include: {
+        plan: true,
+        roles: {
+          include: {
+            rol: true,
           },
         },
-        orderBy: {
-          created_at: 'desc',
-        },
-        take: 5,
-      };
-      includeOptions.participaciones = {
-        include: {
-          campana: {
-            select: {
-              nombre: true,
-              estado: true,
-              producto: {
-                select: {
-                  nombre_producto: true,
+        proveedor: {
+          include: {
+            direccion: {
+              include: {
+                comuna: {
+                  include: {
+                    region: true,
+                  },
                 },
               },
             },
           },
         },
-        orderBy: {
-          created_at: 'desc',
+        cliente: {
+          include: {
+            direccion: {
+              include: {
+                comuna: {
+                  include: {
+                    region: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        take: 5,
-      };
-      includeOptions.pedidos = {
-        select: {
-          id_pedido: true,
-          tipo_pedido: true,
-          total: true,
-          estado: true,
-          created_at: true,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-        take: 5,
-      };
-      includeOptions.notificaciones = {
-        where: { leida: false },
-        orderBy: {
-          created_at: 'desc',
-        },
-        take: 10,
-      };
-    }
-
-    const usuario = await prisma.usuarios.findUnique({
-      where: { id_usuario: parseInt(id) },
-      include: includeOptions,
+      },
     });
 
-    if (!usuario) {
+    if (!user) {
       res.status(404).json({
         success: false,
         message: 'Usuario no encontrado',
@@ -293,7 +215,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction): Prom
       return;
     }
 
-    const sanitizedUser = excludeFields(usuario);
+    // Transform the user data
+    const { roles: rolesRelation, ...userData } = user;
+    const sanitizedUser = {
+      ...excludeFields(userData),
+      roles: rolesRelation.map((ur) => ur.rol.nombre),
+    };
 
     res.json({
       success: true,
@@ -304,305 +231,81 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction): Prom
   }
 });
 
-// POST /usuarios - Create new user
-router.post(
-  '/',
-  async (
-    req: Request<{}, {}, CreateUserRequest>,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const {
-        nombre,
-        email,
-        password,
-        activo = true,
-        profile_picture_url,
-        id_plan,
-        roles = ['comprador'], // Default role
-        proveedor,
-        cliente,
-      } = req.body;
+// POST /users - Create a new user
+router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const {
+      nombre,
+      email,
+      password,
+      activo = true,
+      profile_picture_url,
+      id_plan,
+      roles = ['comprador'], // Default role
+    } = req.body as CreateUserRequest;
 
-      // Validation
-      if (!nombre || !email || !password) {
-        res.status(400).json({
-          success: false,
-          message: 'Nombre, email y contraseña son requeridos',
-        });
-        return;
-      }
-
-      // Check if email already exists
-      const existingUser = await prisma.usuarios.findUnique({
-        where: { email },
+    // Validation
+    if (!nombre || !email || !password) {
+      res.status(400).json({
+        success: false,
+        message: 'Nombre, email y contraseña son requeridos',
       });
-
-      if (existingUser) {
-        res.status(400).json({
-          success: false,
-          message: 'Ya existe un usuario con este email',
-        });
-        return;
-      }
-
-      // Hash password
-      const contrasena_hash = await hashPassword(password);
-
-      // Start transaction
-      const result = await prisma.$transaction(async (tx) => {
-        // Create user
-        const usuario = await tx.usuarios.create({
-          data: {
-            nombre,
-            email,
-            contrasena_hash,
-            activo,
-            profile_picture_url,
-            id_plan,
-          },
-        });
-
-        // Assign roles
-        for (const roleName of roles) {
-          const rol = await tx.roles.findUnique({
-            where: { nombre: roleName },
-          });
-
-          if (rol) {
-            await tx.usuarioRol.create({
-              data: {
-                id_usuario: usuario.id_usuario,
-                id_rol: rol.id_rol,
-              },
-            });
-          }
-        }
-
-        // Create provider profile if data provided
-        if (proveedor && roles.includes('proveedor')) {
-          await tx.proveedores.create({
-            data: {
-              id_usuario: usuario.id_usuario,
-              ...proveedor,
-            },
-          });
-        }
-
-        // Create client profile if data provided or if has 'comprador' role
-        if (cliente || roles.includes('comprador')) {
-          await tx.clientes.create({
-            data: {
-              id_usuario: usuario.id_usuario,
-              ...cliente,
-            },
-          });
-        }
-
-        // Return user with relations
-        return await tx.usuarios.findUnique({
-          where: { id_usuario: usuario.id_usuario },
-          include: {
-            roles: {
-              include: {
-                rol: true,
-              },
-            },
-            plan: true,
-            proveedor: true,
-            cliente: true,
-          },
-        });
-      });
-
-      const sanitizedUser = excludeFields(result!);
-
-      res.status(201).json({
-        success: true,
-        message: 'Usuario creado exitosamente',
-        data: sanitizedUser,
-      });
-    } catch (error) {
-      next(error);
+      return;
     }
-  },
-);
 
-// PUT /usuarios/:id - Update user
-router.put(
-  '/:id',
-  async (
-    req: Request<{ id: string }, {}, UpdateUserRequest>,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { nombre, email, password, activo, profile_picture_url, roles, proveedor, cliente } =
-        req.body;
+    // Check if email already exists
+    const existingUser = await prisma.usuarios.findUnique({
+      where: { email },
+    });
 
-      // Check if user exists
-      const existingUser = await prisma.usuarios.findUnique({
-        where: { id_usuario: parseInt(id) },
-        include: {
-          roles: true,
-          proveedor: true,
-          cliente: true,
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        message: 'Ya existe un usuario con este email',
+      });
+      return;
+    }
+
+    // Hash password
+    const contrasena_hash = await hashPassword(password);
+
+    // Create user with roles in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create user
+      const user = await tx.usuarios.create({
+        data: {
+          nombre,
+          email,
+          contrasena_hash,
+          activo,
+          profile_picture_url,
+          id_plan,
         },
       });
 
-      if (!existingUser) {
-        res.status(404).json({
-          success: false,
-          message: 'Usuario no encontrado',
-        });
-        return;
-      }
-
-      // Check email uniqueness if changing email
-      if (email && email !== existingUser.email) {
-        const emailExists = await prisma.usuarios.findUnique({
-          where: { email },
-        });
-
-        if (emailExists) {
-          res.status(400).json({
-            success: false,
-            message: 'Ya existe un usuario con este email',
-          });
-          return;
-        }
-      }
-
-      // Prepare update data
-      const updateData: Prisma.usuariosUpdateInput = {};
-      if (nombre !== undefined) updateData.nombre = nombre;
-      if (email !== undefined) updateData.email = email;
-      if (activo !== undefined) updateData.activo = activo;
-      if (profile_picture_url !== undefined) updateData.profile_picture_url = profile_picture_url;
-      // if (id_plan !== undefined) updateData.id_plan = id_plan;
-
-      // Hash new password if provided
-      if (password) {
-        updateData.contrasena_hash = await hashPassword(password);
-      }
-
-      const result = await prisma.$transaction(async (tx) => {
-        // Update user basic info
-        await tx.usuarios.update({
-          where: { id_usuario: parseInt(id) },
-          data: updateData,
-        });
-
-        // Update roles if provided
-        if (roles && Array.isArray(roles)) {
-          // Remove existing roles
-          await tx.usuarioRol.deleteMany({
-            where: { id_usuario: parseInt(id) },
+      // Assign roles
+      if (roles && roles.length > 0) {
+        for (const roleName of roles) {
+          const role = await tx.roles.findUnique({
+            where: { nombre: roleName },
           });
 
-          // Add new roles
-          for (const roleName of roles) {
-            const rol = await tx.roles.findUnique({
-              where: { nombre: roleName },
-            });
-
-            if (rol) {
-              await tx.usuarioRol.create({
-                data: {
-                  id_usuario: parseInt(id),
-                  id_rol: rol.id_rol,
-                },
-              });
-            }
-          }
-        }
-
-        // Update provider profile if data provided
-        if (proveedor) {
-          if (existingUser.proveedor) {
-            await tx.proveedores.update({
-              where: { id_proveedor: existingUser.proveedor.id_proveedor },
-              data: proveedor,
-            });
-          } else {
-            await tx.proveedores.create({
+          if (role) {
+            await tx.usuarioRol.create({
               data: {
-                nombre_negocio: proveedor.nombre_negocio || '',
-                id_usuario: parseInt(id),
-                ...proveedor,
+                id_usuario: user.id_usuario,
+                id_rol: role.id_rol,
               },
             });
           }
         }
-
-        // Update client profile if data provided
-        if (cliente) {
-          if (existingUser.cliente) {
-            await tx.clientes.update({
-              where: { id_cliente: existingUser.cliente.id_cliente },
-              data: cliente,
-            });
-          } else {
-            await tx.clientes.create({
-              data: {
-                id_usuario: parseInt(id),
-                ...cliente,
-              },
-            });
-          }
-        }
-
-        // Return updated user with relations
-        return await tx.usuarios.findUnique({
-          where: { id_usuario: parseInt(id) },
-          include: {
-            roles: {
-              include: {
-                rol: true,
-              },
-            },
-            plan: true,
-            proveedor: true,
-            cliente: true,
-          },
-        });
-      });
-
-      const sanitizedUser = excludeFields(result!);
-
-      res.json({
-        success: true,
-        message: 'Usuario actualizado exitosamente',
-        data: sanitizedUser,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// PATCH /usuarios/:id/status - Toggle user status
-router.patch(
-  '/:id/status',
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { activo } = req.body;
-
-      if (typeof activo !== 'boolean') {
-        res.status(400).json({
-          success: false,
-          message: 'El campo activo debe ser un booleano',
-        });
-        return;
       }
 
-      const usuario = await prisma.usuarios.update({
-        where: { id_usuario: parseInt(id) },
-        data: { activo },
+      // Return user with roles
+      return await tx.usuarios.findUnique({
+        where: { id_usuario: user.id_usuario },
         include: {
+          plan: true,
           roles: {
             include: {
               rol: true,
@@ -610,49 +313,167 @@ router.patch(
           },
         },
       });
+    });
 
-      const sanitizedUser = excludeFields(usuario);
+    const { roles: rolesRelation, ...userData } = result!;
+    const sanitizedUser = {
+      ...excludeFields(userData),
+      roles: rolesRelation.map((ur) => ur.rol.nombre),
+    };
 
-      res.json({
-        success: true,
-        message: `Usuario ${activo ? 'activado' : 'desactivado'} exitosamente`,
-        data: sanitizedUser,
+    res.status(201).json({
+      success: true,
+      data: sanitizedUser,
+      message: 'Usuario creado exitosamente',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /users/:id - Update user
+router.put('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { nombre, email, password, activo, profile_picture_url, id_plan, roles } =
+      req.body as UpdateUserRequest;
+
+    // Check if user exists
+    const existingUser = await prisma.usuarios.findUnique({
+      where: { id_usuario: parseInt(id) },
+    });
+
+    if (!existingUser) {
+      res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado',
       });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
+      return;
+    }
+
+    // Check email uniqueness if email is being updated
+    if (email && email !== existingUser.email) {
+      const emailExists = await prisma.usuarios.findUnique({
+        where: { email },
+      });
+
+      if (emailExists) {
+        res.status(400).json({
+          success: false,
+          message: 'Ya existe un usuario con este email',
+        });
+        return;
+      }
+    }
+
+    // Update user in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Prepare update data
+      const updateData: Prisma.usuariosUpdateInput = {};
+      if (nombre !== undefined) updateData.nombre = nombre;
+      if (email !== undefined) updateData.email = email;
+      if (password !== undefined) updateData.contrasena_hash = await hashPassword(password);
+      if (activo !== undefined) updateData.activo = activo;
+      if (profile_picture_url !== undefined) updateData.profile_picture_url = profile_picture_url;
+      if (id_plan !== undefined) {
+        updateData.plan = id_plan ? { connect: { id_plan } } : { disconnect: true };
+      }
+
+      // Update user
+      await tx.usuarios.update({
+        where: { id_usuario: parseInt(id) },
+        data: updateData,
+      });
+
+      // Update roles if provided
+      if (roles !== undefined) {
+        // Remove existing roles
+        await tx.usuarioRol.deleteMany({
+          where: { id_usuario: parseInt(id) },
+        });
+
+        // Add new roles
+        for (const roleName of roles) {
+          const role = await tx.roles.findUnique({
+            where: { nombre: roleName },
+          });
+
+          if (role) {
+            await tx.usuarioRol.create({
+              data: {
+                id_usuario: parseInt(id),
+                id_rol: role.id_rol,
+              },
+            });
+          }
+        }
+      }
+
+      // Return updated user with roles
+      return await tx.usuarios.findUnique({
+        where: { id_usuario: parseInt(id) },
+        include: {
+          plan: true,
+          roles: {
+            include: {
+              rol: true,
+            },
+          },
+        },
+      });
+    });
+
+    const { roles: rolesRelation, ...userData } = result!;
+    const sanitizedUser = {
+      ...excludeFields(userData),
+      roles: rolesRelation.map((ur) => ur.rol.nombre),
+    };
+
+    res.json({
+      success: true,
+      data: sanitizedUser,
+      message: 'Usuario actualizado exitosamente',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /users/:id/roles - Assign role to user
+router.post(
+  '/:id/roles',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { role_name } = req.body;
+
+      if (!role_name) {
+        res.status(400).json({
+          success: false,
+          message: 'role_name es requerido',
+        });
+        return;
+      }
+
+      // Check if user exists
+      const user = await prisma.usuarios.findUnique({
+        where: { id_usuario: parseInt(id) },
+      });
+
+      if (!user) {
         res.status(404).json({
           success: false,
           message: 'Usuario no encontrado',
         });
         return;
       }
-      next(error);
-    }
-  },
-);
 
-// POST /usuarios/:id/roles - Add role to user
-router.post(
-  '/:id/roles',
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const { roleName } = req.body;
-
-      if (!roleName) {
-        res.status(400).json({
-          success: false,
-          message: 'Nombre del rol es requerido',
-        });
-        return;
-      }
-
-      // Find role
-      const rol = await prisma.roles.findUnique({
-        where: { nombre: roleName },
+      // Check if role exists
+      const role = await prisma.roles.findUnique({
+        where: { nombre: role_name },
       });
 
-      if (!rol) {
+      if (!role) {
         res.status(404).json({
           success: false,
           message: 'Rol no encontrado',
@@ -661,33 +482,34 @@ router.post(
       }
 
       // Check if user already has this role
-      const existingRole = await prisma.usuarioRol.findUnique({
+      const existingAssignment = await prisma.usuarioRol.findUnique({
         where: {
           id_usuario_id_rol: {
             id_usuario: parseInt(id),
-            id_rol: rol.id_rol,
+            id_rol: role.id_rol,
           },
         },
       });
 
-      if (existingRole) {
+      if (existingAssignment) {
         res.status(400).json({
           success: false,
-          message: 'El usuario ya tiene este rol',
+          message: 'El usuario ya tiene este rol asignado',
         });
         return;
       }
 
+      // Assign role
       await prisma.usuarioRol.create({
         data: {
           id_usuario: parseInt(id),
-          id_rol: rol.id_rol,
+          id_rol: role.id_rol,
         },
       });
 
       res.json({
         success: true,
-        message: `Rol ${roleName} agregado exitosamente`,
+        message: `Rol '${role_name}' asignado exitosamente al usuario`,
       });
     } catch (error) {
       next(error);
@@ -695,137 +517,98 @@ router.post(
   },
 );
 
-// DELETE /usuarios/:id/roles/:roleId - Remove role from user
+// DELETE /users/:id/roles/:role_name - Remove role from user
 router.delete(
-  '/:id/roles/:roleId',
+  '/:id/roles/:role_name',
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { id, roleId } = req.params;
+      const { id, role_name } = req.params;
 
-      await prisma.usuarioRol.delete({
-        where: {
-          id_usuario_id_rol: {
-            id_usuario: parseInt(id),
-            id_rol: parseInt(roleId),
-          },
-        },
+      // Get role ID
+      const role = await prisma.roles.findUnique({
+        where: { nombre: role_name },
       });
 
-      res.json({
-        success: true,
-        message: 'Rol removido exitosamente',
-      });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
+      if (!role) {
         res.status(404).json({
           success: false,
-          message: 'Rol no encontrado para este usuario',
+          message: 'Rol no encontrado',
         });
         return;
       }
+
+      // Remove role assignment
+      const deleted = await prisma.usuarioRol.deleteMany({
+        where: {
+          id_usuario: parseInt(id),
+          id_rol: role.id_rol,
+        },
+      });
+
+      if (deleted.count === 0) {
+        res.status(404).json({
+          success: false,
+          message: 'El usuario no tiene este rol asignado',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Rol '${role_name}' removido exitosamente del usuario`,
+      });
+    } catch (error) {
       next(error);
     }
   },
 );
 
-// DELETE /usuarios/:id - Soft delete user (deactivate)
+// DELETE /users/:id - Delete user (soft delete by deactivating)
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const hard = parseQueryParam(req.query.hard) === 'true';
 
-    if (hard) {
-      // Hard delete - remove user and all related data
-      await prisma.$transaction(async (tx) => {
-        // Delete in order to respect foreign key constraints
-        await tx.usuarioRol.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.participanteColectivo.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.notificaciones.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.lista_deseos.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.comentarios.deleteMany({ where: { id_cliente: parseInt(id) } });
-        await tx.solicitudescontacto.deleteMany({ where: { id_cliente: parseInt(id) } });
-        await tx.pagos.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.pedidos.deleteMany({ where: { id_usuario: parseInt(id) } });
+    const user = await prisma.usuarios.findUnique({
+      where: { id_usuario: parseInt(id) },
+    });
 
-        // Delete provider/client profiles
-        await tx.proveedores.deleteMany({ where: { id_usuario: parseInt(id) } });
-        await tx.clientes.deleteMany({ where: { id_usuario: parseInt(id) } });
-
-        // Finally delete user
-        await tx.usuarios.delete({ where: { id_usuario: parseInt(id) } });
-      });
-
-      res.json({
-        success: true,
-        message: 'Usuario eliminado permanentemente',
-      });
-    } else {
-      // Soft delete - just deactivate
-      const usuario = await prisma.usuarios.update({
-        where: { id_usuario: parseInt(id) },
-        data: { activo: false },
-      });
-
-      const sanitizedUser = excludeFields(usuario);
-
-      res.json({
-        success: true,
-        message: 'Usuario desactivado exitosamente',
-        data: sanitizedUser,
-      });
-    }
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+    if (!user) {
       res.status(404).json({
         success: false,
         message: 'Usuario no encontrado',
       });
       return;
     }
+
+    // Soft delete by deactivating the user
+    await prisma.usuarios.update({
+      where: { id_usuario: parseInt(id) },
+      data: { activo: false },
+    });
+
+    res.json({
+      success: true,
+      message: 'Usuario desactivado correctamente',
+    });
+  } catch (error) {
     next(error);
   }
 });
 
-// GET /usuarios/:id/stats - Get user statistics
+// GET /users/:id/stats - Get user statistics
 router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
 
-    const stats = await prisma.usuarios.findUnique({
+    const user = await prisma.usuarios.findUnique({
       where: { id_usuario: parseInt(id) },
-      select: {
-        _count: {
-          select: {
-            comentarios: true,
-            pagos: true,
-            participaciones: true,
-            pedidos: true,
-            notificaciones: true,
-            lista_deseos: true,
-          },
-        },
-        pagos: {
-          select: {
-            monto: true,
-            estado: true,
-          },
-        },
-        participaciones: {
-          select: {
-            monto_aportado: true,
-            estado: true,
-          },
-        },
-        pedidos: {
-          select: {
-            total: true,
-            estado: true,
-          },
-        },
+      include: {
+        proveedor: true,
+        cliente: true,
       },
     });
 
-    if (!stats) {
+    if (!user) {
       res.status(404).json({
         success: false,
         message: 'Usuario no encontrado',
@@ -833,36 +616,47 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    // Calculate additional stats
-    const totalSpent = stats.pagos
-      .filter((p: any) => p.estado === 'completado')
-      .reduce((sum: number, p: any) => sum + Number(p.monto), 0);
+    const stats: any = {
+      user_info: {
+        id_usuario: user.id_usuario,
+        nombre: user.nombre,
+        email: user.email,
+        fecha_registro: user.fecha_registro,
+        activo: user.activo,
+      },
+    };
 
-    const totalCollectiveContributions = stats.participaciones.reduce(
-      (sum: number, p: any) => sum + Number(p.monto_aportado),
-      0,
-    );
+    // Provider stats
+    if (user.proveedor) {
+      const [productCount, totalSales] = await Promise.all([
+        prisma.productos.count({
+          where: { id_proveedor: user.proveedor.id_proveedor },
+        }),
+        // Note: You might need to add a ventas/sales table to track actual sales
+        // For now, this is a placeholder
+        Promise.resolve(0),
+      ]);
 
-    const orderStats = stats.pedidos.reduce((acc: any, pedido: any) => {
-      acc[pedido.estado] = (acc[pedido.estado] || 0) + 1;
-      return acc;
-    }, {});
+      stats.proveedor_stats = {
+        total_productos: productCount,
+        total_ventas: totalSales,
+        destacado: user.proveedor.destacado,
+      };
+    }
+
+    // Customer stats
+    if (user.cliente) {
+      // Note: You might need to add a compras/purchases table to track purchases
+      // For now, this is a placeholder
+      stats.cliente_stats = {
+        total_compras: 0,
+        fecha_ultima_compra: null,
+      };
+    }
 
     res.json({
       success: true,
-      data: {
-        counts: stats._count,
-        financial: {
-          totalSpent,
-          totalCollectiveContributions,
-          averageOrderValue:
-            stats.pedidos.length > 0
-              ? stats.pedidos.reduce((sum: number, p: any) => sum + Number(p.total), 0) /
-                stats.pedidos.length
-              : 0,
-        },
-        orders: orderStats,
-      },
+      data: stats,
     });
   } catch (error) {
     next(error);

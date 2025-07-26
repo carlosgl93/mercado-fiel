@@ -13,8 +13,23 @@ export const useUserLookingFor = () => {
     setUserLookingFor(lookingFor);
   };
 
+  const translatedLookingFor = () => {
+    switch (userLookingFor) {
+      case UserLookingFor.SUPPLIERS:
+        return 'Proveedores';
+      case UserLookingFor.CUSTOMERS:
+        return 'Clientes';
+      default:
+        return null;
+    }
+  };
+
+  const lookingFor = translatedLookingFor();
+
   return {
     userLookingFor,
+    lookingFor,
     handleSelectLookingFor,
+    translatedLookingFor,
   };
 };

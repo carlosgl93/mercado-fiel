@@ -1,4 +1,5 @@
 import { Box, styled } from '@mui/material';
+import { useUserLookingFor } from '../../hooks';
 import { StyledTitle } from '../UsuarioDashboard/StyledComponents';
 
 const Wrapper = styled(Box)(() => ({
@@ -15,9 +16,13 @@ const Wrapper = styled(Box)(() => ({
 }));
 
 export const ResultadosHeader = () => {
+  const { lookingFor } = useUserLookingFor();
+
   return (
     <Wrapper>
-      <StyledTitle>Buscar Prestadores</StyledTitle>
+      <StyledTitle>
+        Buscando {lookingFor ? lookingFor.toLowerCase() : 'proveedores y clientes'}
+      </StyledTitle>
     </Wrapper>
   );
 };

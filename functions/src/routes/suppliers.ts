@@ -7,20 +7,18 @@ export const suppliersRouter = Router();
 
 // Types for request bodies
 interface CreateSupplierRequest {
-  // User data
-  nombre: string;
-  email: string;
-  password?: string; // Optional, will generate if not provided
-  // Supplier-specific data
+  id_usuario: number;
   nombre_negocio: string;
   descripcion?: string;
   telefono_contacto?: string;
-  direccion?: string;
+  id_direccion?: number;
   latitud?: number;
   longitud?: number;
   destacado?: boolean;
-  email_negocio?: string; // Separate business email
-  id_plan?: number;
+  email?: string; // Business email
+  radio_entrega_km?: number;
+  cobra_envio?: boolean;
+  envio_gratis_desde?: number;
 }
 
 interface UpdateSupplierRequest {
@@ -33,12 +31,15 @@ interface UpdateSupplierRequest {
   nombre_negocio?: string;
   descripcion?: string;
   telefono_contacto?: string;
-  direccion?: string;
+  id_direccion?: number;
   latitud?: number;
   longitud?: number;
   destacado?: boolean;
   email_negocio?: string;
   id_plan?: number;
+  radio_entrega_km?: number;
+  cobra_envio?: boolean;
+  envio_gratis_desde?: number;
 }
 
 // Helper function to hash passwords
@@ -47,13 +48,8 @@ const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, saltRounds);
 };
 
-// Helper function to generate random password
-const generateRandomPassword = (): string => {
-  return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-};
-
 // Helper function to exclude sensitive fields
-const excludeFields = <T extends Record<string, any>>(
+export const excludeFields = <T extends Record<string, any>>(
   obj: T,
   fields: string[] = ['contrasena_hash'],
 ): Omit<T, keyof typeof fields> => {
@@ -64,9 +60,12 @@ const excludeFields = <T extends Record<string, any>>(
 
 // GET /suppliers - List suppliers with pagination and filtering
 suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  console.log(req.query);
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const comunaId = parseInt((req.query?.comunaId as string) || '');
+    const categoryId = parseInt(req.query.category as string) || null;
     const skip = (page - 1) * limit;
     const search = req.query.search as string;
     const destacado = req.query.destacado as string;
@@ -101,12 +100,37 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
       };
     }
 
+    if (comunaId) {
+      where.direccion = {
+        comuna: {
+          id_comuna: comunaId,
+        },
+      };
+    }
+
+    if (categoryId) {
+      where.productos = {
+        some: {
+          categoria: {
+            id_categoria: categoryId,
+          },
+        },
+      };
+    }
+
     const [suppliers, total] = await Promise.all([
       prisma.proveedores.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { created_at: 'desc' },
+        // orderBy: {  },
+        orderBy: {
+          usuario: {
+            plan: {
+              precio_mensual: 'desc',
+            },
+          },
+        },
         include: {
           usuario: {
             select: {
@@ -115,12 +139,27 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
               email: true,
               activo: true,
               fecha_registro: true,
+              profile_picture_url: true,
               plan: {
                 select: {
                   nombre: true,
                   precio_mensual: true,
                 },
               },
+            },
+          },
+          direccion: {
+            include: {
+              comuna: {
+                include: {
+                  region: true,
+                },
+              },
+            },
+          },
+          productos: {
+            include: {
+              categoria: true,
             },
           },
           _count: {
@@ -135,15 +174,15 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
       prisma.proveedores.count({ where }),
     ]);
 
-    // Remove sensitive data from nested user objects
-    const sanitizedSuppliers = suppliers.map((supplier) => ({
-      ...supplier,
-      usuario: excludeFields(supplier.usuario),
-    }));
+    // // Remove sensitive data from nested user objects
+    // const sanitizedSuppliers = suppliers.map((supplier) => ({
+    //   ...supplier,
+    //   usuario: excludeFields(supplier.usuario),
+    // }));
 
     res.json({
       success: true,
-      data: sanitizedSuppliers,
+      data: suppliers,
       pagination: {
         page,
         limit,
@@ -238,14 +277,14 @@ suppliersRouter.get(
         return;
       }
 
-      const sanitizedSupplier = {
-        ...supplier,
-        usuario: excludeFields(supplier.usuario),
-      };
+      // const sanitizedSupplier = {
+      //   ...supplier,
+      //   usuario: excludeFields(supplier.usuario),
+      // };
 
       res.json({
         success: true,
-        data: sanitizedSupplier,
+        data: supplier,
       });
     } catch (error) {
       next(error);
@@ -263,48 +302,59 @@ suppliersRouter.post(
   ): Promise<void> => {
     try {
       const {
-        // User data
-        nombre,
-        email,
-        password,
-        // Supplier data
+        id_usuario,
         nombre_negocio,
         descripcion,
         telefono_contacto,
-        direccion,
+        id_direccion,
         latitud,
         longitud,
         destacado = false,
-        email_negocio,
-        id_plan,
+        email,
+        radio_entrega_km = 10,
+        cobra_envio = true,
+        envio_gratis_desde,
       } = req.body;
 
       // Validation
-      if (!nombre || !email || !nombre_negocio) {
+      if (!id_usuario || !nombre_negocio) {
         res.status(400).json({
           success: false,
-          message: 'Nombre de usuario, email y nombre del negocio son requeridos.',
+          message: 'id_usuario y nombre_negocio son requeridos',
         });
         return;
       }
 
-      // Check if email already exists
+      // Check if user exists
       const existingUser = await prisma.usuarios.findUnique({
-        where: { email },
+        where: { id_usuario },
       });
 
-      if (existingUser) {
+      if (!existingUser) {
+        res.status(404).json({
+          success: false,
+          message: 'Usuario no encontrado',
+        });
+        return;
+      }
+
+      // Check if supplier already exists for this user
+      const existingSupplier = await prisma.proveedores.findUnique({
+        where: { id_usuario },
+      });
+
+      if (existingSupplier) {
         res.status(400).json({
           success: false,
-          message: 'Ya existe un usuario con este email',
+          message: 'Este usuario ya tiene un perfil de proveedor',
         });
         return;
       }
 
       // Check if business email already exists (if provided)
-      if (email_negocio) {
+      if (email) {
         const existingBusinessEmail = await prisma.proveedores.findUnique({
-          where: { email: email_negocio },
+          where: { email },
         });
 
         if (existingBusinessEmail) {
@@ -316,74 +366,46 @@ suppliersRouter.post(
         }
       }
 
-      // Generate password if not provided
-      const finalPassword = password || generateRandomPassword();
-      const contrasena_hash = await hashPassword(finalPassword);
-
-      // Create supplier with user in a transaction
+      // Create supplier in a transaction
       const result = await prisma.$transaction(async (tx) => {
-        // Create user first
-        const usuario = await tx.usuarios.create({
+        // Create supplier profile
+        const proveedor = await tx.proveedores.create({
           data: {
-            nombre,
+            id_usuario,
+            nombre_negocio,
+            descripcion,
+            telefono_contacto,
+            id_direccion,
+            latitud,
+            longitud,
+            destacado,
             email,
-            contrasena_hash,
-            activo: true,
-            id_plan,
+            radio_entrega_km,
+            cobra_envio,
+            envio_gratis_desde,
           },
         });
 
-        // Assign provider role
+        // Assign provider role if not already assigned
         const proveedorRole = await tx.roles.findUnique({
           where: { nombre: 'proveedor' },
         });
 
         if (proveedorRole) {
-          await tx.usuarioRol.create({
-            data: {
-              id_usuario: usuario.id_usuario,
+          await tx.usuarioRol.upsert({
+            where: {
+              id_usuario_id_rol: {
+                id_usuario,
+                id_rol: proveedorRole.id_rol,
+              },
+            },
+            update: {},
+            create: {
+              id_usuario,
               id_rol: proveedorRole.id_rol,
             },
           });
         }
-
-        // Also assign customer role (providers can also buy)
-        const compradorRole = await tx.roles.findUnique({
-          where: { nombre: 'comprador' },
-        });
-
-        if (compradorRole) {
-          await tx.usuarioRol.create({
-            data: {
-              id_usuario: usuario.id_usuario,
-              id_rol: compradorRole.id_rol,
-            },
-          });
-
-          // Create client profile too
-          await tx.clientes.create({
-            data: {
-              id_usuario: usuario.id_usuario,
-              direccion,
-              telefono: telefono_contacto,
-            },
-          });
-        }
-
-        // Create supplier profile
-        const proveedor = await tx.proveedores.create({
-          data: {
-            id_usuario: usuario.id_usuario,
-            nombre_negocio,
-            descripcion,
-            telefono_contacto,
-            direccion,
-            latitud,
-            longitud,
-            destacado,
-            email: email_negocio,
-          },
-        });
 
         // Return supplier with user data
         return await tx.proveedores.findUnique({
@@ -403,19 +425,15 @@ suppliersRouter.post(
         });
       });
 
-      const sanitizedSupplier = {
-        ...result!,
-        usuario: excludeFields(result!.usuario),
-        // Include generated password in response if it was auto-generated
-        ...(password ? {} : { generated_password: finalPassword }),
-      };
+      // const sanitizedSupplier = {
+      //   ...result!,
+      //   usuario: excludeFields(result!.usuario),
+      // };
 
       res.status(201).json({
         success: true,
-        data: sanitizedSupplier,
-        message: password
-          ? 'Proveedor creado exitosamente'
-          : 'Proveedor creado exitosamente. Se generó una contraseña automática.',
+        data: result,
+        message: 'Proveedor creado exitosamente',
       });
     } catch (error: any) {
       if (error.code === 'P2002') {
@@ -450,11 +468,14 @@ suppliersRouter.put(
         nombre_negocio,
         descripcion,
         telefono_contacto,
-        direccion,
+        id_direccion,
         latitud,
         longitud,
         destacado,
         email_negocio,
+        radio_entrega_km,
+        cobra_envio,
+        envio_gratis_desde,
       } = req.body;
 
       // Check if supplier exists
@@ -528,11 +549,19 @@ suppliersRouter.put(
         if (descripcion !== undefined) supplierUpdateData.descripcion = descripcion;
         if (telefono_contacto !== undefined)
           supplierUpdateData.telefono_contacto = telefono_contacto;
-        if (direccion !== undefined) supplierUpdateData.direccion = direccion;
+        if (id_direccion !== undefined) {
+          supplierUpdateData.direccion = id_direccion
+            ? { connect: { id_direccion } }
+            : { disconnect: true };
+        }
         if (latitud !== undefined) supplierUpdateData.latitud = latitud;
         if (longitud !== undefined) supplierUpdateData.longitud = longitud;
         if (destacado !== undefined) supplierUpdateData.destacado = destacado;
         if (email_negocio !== undefined) supplierUpdateData.email = email_negocio;
+        if (radio_entrega_km !== undefined) supplierUpdateData.radio_entrega_km = radio_entrega_km;
+        if (cobra_envio !== undefined) supplierUpdateData.cobra_envio = cobra_envio;
+        if (envio_gratis_desde !== undefined)
+          supplierUpdateData.envio_gratis_desde = envio_gratis_desde;
 
         if (Object.keys(supplierUpdateData).length > 0) {
           await tx.proveedores.update({
@@ -559,14 +588,14 @@ suppliersRouter.put(
         });
       });
 
-      const sanitizedSupplier = {
-        ...result!,
-        usuario: excludeFields(result!.usuario),
-      };
+      // const sanitizedSupplier = {
+      //   ...result!,
+      //   usuario: excludeFields(result!.usuario),
+      // };
 
       res.json({
         success: true,
-        data: sanitizedSupplier,
+        data: result,
         message: 'Proveedor actualizado exitosamente',
       });
     } catch (error: any) {

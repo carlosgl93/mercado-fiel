@@ -1,11 +1,11 @@
 import { IconButton, InputAdornment, List, ListItem, OutlinedInput } from '@mui/material';
 
+import { useComunas } from '@/hooks/useComunas';
+import { Comuna } from '@/models/Comuna';
+import useEntregaApoyo from '@/store/entregaApoyo';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { Box } from '@mui/system';
 import { useState } from 'react';
-import useEntregaApoyo from '@/store/entregaApoyo';
-import { Comuna } from '@/types/Comuna';
-import { useComunas } from '@/hooks/useComunas';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 
 function SearchBar() {
   const [{ selectedComunas }, { addComuna, removeComuna }] = useEntregaApoyo();

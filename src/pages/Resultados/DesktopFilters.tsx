@@ -1,23 +1,22 @@
 import { StyledSelect, Title } from '@/components/StyledComponents';
-import { IconButton, List, ListItemButton, ListItemText } from '@mui/material';
+import useRecibeApoyo from '@/store/recibeApoyo';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import { IconButton, List, ListItemButton, ListItemText } from '@mui/material';
 import { Box } from '@mui/system';
 import FiltersSearchBar from './FiltersSearchBar';
-import useRecibeApoyo from '@/store/recibeApoyo';
 
-import { Servicio } from '@/types/Servicio';
-import { ChangeEvent } from 'react';
-import { useServicios } from '@/hooks/useServicios';
+import Loading from '../../components/Loading';
+import { useCategories, useComunas, UserLookingFor, useUserLookingFor } from '../../hooks';
+import { Category } from '../../models/Category';
 
 const DesktopFilters = () => {
-  const [{ servicio, especialidad, comuna }, { removeComuna, selectServicio, selectEspecialidad }] =
-    useRecibeApoyo();
-  const { allServicios } = useServicios();
-  const especialidades = servicio?.especialidades;
-  const handleSelectServicio = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedService = allServicios.find((s: Servicio) => s.serviceName === e.target.value);
-    selectServicio(selectedService as Servicio);
-  };
+  const { userLookingFor, handleSelectLookingFor } = useUserLookingFor();
+  const { getCategories, isLoadingCategories, selectedCategory, handleSelectCategory } =
+    useCategories();
+  const { isLoadingAllComunas } = useComunas();
+  const [{ comuna }, { removeComuna }] = useRecibeApoyo();
+
+  if (isLoadingCategories) return <Loading />;
 
   return (
     <Box
@@ -35,125 +34,99 @@ const DesktopFilters = () => {
             fontSize: '1.2rem',
           }}
         >
-          Comunas
+          ¿Qué buscas?
         </Title>
-        <FiltersSearchBar />
-        {comuna && (
-          <List>
-            <ListItemButton
-              onClick={() => removeComuna(comuna!)}
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '90% 10%',
-                alignItems: 'center',
-                border: '1px solid',
-                borderColor: 'primary.dark',
-                borderRadius: '0.25rem',
-                padding: '0.5rem 1rem',
-                backgroundColor: 'primary.main',
-                color: 'secondary.main',
-                ':hover': {
-                  backgroundColor: 'primary.light',
-                  color: 'primary.dark',
-                },
-                my: '1vh',
-              }}
-            >
-              <ListItemText primary={comuna.name} />
-
-              <IconButton
-                sx={{
-                  color: 'secondary.contrastText',
-                }}
-              >
-                <CancelOutlinedIcon />
-              </IconButton>
-            </ListItemButton>
-          </List>
-        )}
+        <StyledSelect
+          value={userLookingFor || ''}
+          onChange={(e) => handleSelectLookingFor(e.target.value as UserLookingFor)}
+        >
+          <option>¿Proveedores o clientes?</option>
+          {Object.values(UserLookingFor).map((userType) => {
+            return (
+              <option key={userType} value={userType}>
+                {userType === UserLookingFor.SUPPLIERS ? 'Proveedores' : 'Clientes'}
+              </option>
+            );
+          })}
+        </StyledSelect>
       </Box>
 
-      {/* SERVICIO */}
-      <Box>
-        <Title
-          variant="h6"
-          sx={{
-            fontSize: '1.2rem',
-          }}
-        >
-          Servicio
-        </Title>
-        {allServicios && (
-          <StyledSelect value={servicio?.serviceName || ''} onChange={handleSelectServicio}>
-            <option>Selecciona un servicio</option>
-            {allServicios.map((servicio: Servicio) => {
-              return (
-                <option key={servicio.id} value={servicio.serviceName}>
-                  {servicio.serviceName}
-                </option>
-              );
-            })}
-          </StyledSelect>
-        )}
+      {isLoadingAllComunas ? (
+        <Loading />
+      ) : (
+        <Box>
+          <Title
+            variant="h6"
+            sx={{
+              fontSize: '1.2rem',
+            }}
+          >
+            Comunas
+          </Title>
+          <FiltersSearchBar />
+          {comuna && (
+            <List>
+              <ListItemButton
+                onClick={() => removeComuna(comuna!)}
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: '90% 10%',
+                  alignItems: 'center',
+                  border: '1px solid',
+                  borderColor: 'primary.dark',
+                  borderRadius: '0.25rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'primary.main',
+                  color: 'secondary.main',
+                  ':hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'primary.dark',
+                  },
+                  my: '1vh',
+                }}
+              >
+                <ListItemText primary={comuna.name} />
 
-        {servicio && especialidades?.length && (
-          <>
-            <Title
-              variant="h6"
-              sx={{
-                fontSize: '1.2rem',
-              }}
-            >
-              Especialidad
-            </Title>
+                <IconButton
+                  sx={{
+                    color: 'secondary.contrastText',
+                  }}
+                >
+                  <CancelOutlinedIcon />
+                </IconButton>
+              </ListItemButton>
+            </List>
+          )}
+        </Box>
+      )}
+
+      {userLookingFor === UserLookingFor.SUPPLIERS && (
+        <Box>
+          <Title
+            variant="h6"
+            sx={{
+              fontSize: '1.2rem',
+            }}
+          >
+            Categoría
+          </Title>
+          {getCategories && (
             <StyledSelect
-              value={especialidad?.especialidadName}
-              onChange={(e) => {
-                selectEspecialidad(
-                  servicio?.especialidades?.find((esp) => esp.especialidadName === e.target.value),
-                );
-              }}
+              value={selectedCategory.id || ''}
+              onChange={(e) => handleSelectCategory(e.target.value)}
             >
-              <option value="">Selecciona una especialidad</option>
-              {servicio.especialidades?.map((especialidad) => {
+              <option>Selecciona una categoría</option>
+              {getCategories.map((category: Category) => {
                 return (
-                  <option key={especialidad.id} value={especialidad.especialidadName}>
-                    {especialidad.especialidadName}
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 );
               })}
             </StyledSelect>
-          </>
-        )}
-      </Box>
-
-      {/* ESPECIALIDAD */}
-
-      {/* DISPONIBILIDAD */}
-      {/* <Title
-        variant="h6"
-        sx={{
-          fontSize: '1.2rem',
-        }}
-      >
-        Disponibilidad
-      </Title>
-      <StyledUnorderedList>
-        {availability.map((day) => {
-          return (
-            <StyledListItem key={day.id}>
-              <StyledCheckboxInput
-                type="checkbox"
-                id={day.name}
-                name="availability"
-                value={day.name}
-                onClick={() => setAvailability(day)}
-              />
-              <label htmlFor={day.name}>{day.name}</label>
-            </StyledListItem>
-          );
-        })}
-      </StyledUnorderedList> */}
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

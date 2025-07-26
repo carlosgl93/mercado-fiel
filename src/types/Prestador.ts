@@ -1,5 +1,5 @@
 import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
-import { Comuna } from './Comuna';
+import { Comuna } from '../models/Comuna';
 
 export interface Prestador {
   email: string;

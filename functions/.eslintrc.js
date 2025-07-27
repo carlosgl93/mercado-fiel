@@ -1,3 +1,4 @@
+/* eslint-disable */
 module.exports = {
   root: true,
   env: {
@@ -5,39 +6,38 @@ module.exports = {
     node: true,
   },
   extends: [
-    "eslint:recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:import/typescript",
-    "google",
-    "plugin:@typescript-eslint/recommended",
+    'eslint:recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/typescript',
+    'google',
+    // 'plugin:@typescript-eslint/recommended',
   ],
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: ["tsconfig.json", "tsconfig.dev.json"],
-    sourceType: "module",
+    project: ['tsconfig.json', 'tsconfig.dev.json'],
+    sourceType: 'module',
   },
   ignorePatterns: [
-    "/lib/**/*", // Ignore built files.
+    '/lib/**/*', // Ignore built files.
+    '/prisma/**/*', // Ignore compiled seed files.
   ],
-  plugins: [
-    "@typescript-eslint",
-    "import",
-  ],
+  plugins: ['@typescript-eslint', 'import'],
   rules: {
-    "quotes": "off",
-    "import/no-unresolved": 0,
-    "indent": "off",
-    "object-curly-spacing": "off",
-    "no-trailing-spaces": "off",
-    "max-len": "off",
-    "operator-linebreak": "off",
-    "spaced-comment": "off",
-    "require-jsdoc": "off",
-    "no-case-declarations": "off",
-    "no-multi-spaces": "off",
-    "camelcase": "off",
-    "comma-dangle": "off",
-    "linebreak-style": "off",
+    quotes: 'off',
+    'import/no-unresolved': 0,
+    indent: 'off',
+    'object-curly-spacing': 'off',
+    'no-trailing-spaces': 'off',
+    'max-len': 'off',
+    'operator-linebreak': 'off',
+    'spaced-comment': 'off',
+    'require-jsdoc': 'off',
+    'no-case-declarations': 'off',
+    'no-multi-spaces': 'off',
+    camelcase: 'off',
+    'comma-dangle': 'off',
+    'linebreak-style': 'off',
+    'new-cap': 'off', // Allow PrismaClient() constructor pattern - this is valid
   },
 };

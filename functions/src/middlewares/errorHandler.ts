@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 
 // Centralized error handler middleware
-export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function errorHandler(
+  err: Error & { status?: number },
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
   console.error('API Error:', err);
   res.status(err.status || 500).json({
     success: false,

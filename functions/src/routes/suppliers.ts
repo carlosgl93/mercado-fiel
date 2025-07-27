@@ -49,7 +49,7 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 // Helper function to exclude sensitive fields
-export const excludeFields = <T extends Record<string, any>>(
+export const excludeFields = <T extends Record<string, unknown>>(
   obj: T,
   fields: string[] = ['contrasena_hash'],
 ): Omit<T, keyof typeof fields> => {
@@ -296,7 +296,7 @@ suppliersRouter.get(
 suppliersRouter.post(
   '/',
   async (
-    req: Request<{}, {}, CreateSupplierRequest>,
+    req: Request<Record<string, never>, unknown, CreateSupplierRequest>,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
@@ -435,8 +435,8 @@ suppliersRouter.post(
         data: result,
         message: 'Proveedor creado exitosamente',
       });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
         res.status(400).json({
           success: false,
           message: 'Email ya está en uso',
@@ -452,7 +452,7 @@ suppliersRouter.post(
 suppliersRouter.put(
   '/:id',
   async (
-    req: Request<{ id: string }, {}, UpdateSupplierRequest>,
+    req: Request<{ id: string }, unknown, UpdateSupplierRequest>,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
@@ -545,23 +545,41 @@ suppliersRouter.put(
 
         // Update supplier data if provided
         const supplierUpdateData: Prisma.proveedoresUpdateInput = {};
-        if (nombre_negocio !== undefined) supplierUpdateData.nombre_negocio = nombre_negocio;
-        if (descripcion !== undefined) supplierUpdateData.descripcion = descripcion;
-        if (telefono_contacto !== undefined)
+        if (nombre_negocio !== undefined) {
+          supplierUpdateData.nombre_negocio = nombre_negocio;
+        }
+        if (descripcion !== undefined) {
+          supplierUpdateData.descripcion = descripcion;
+        }
+        if (telefono_contacto !== undefined) {
           supplierUpdateData.telefono_contacto = telefono_contacto;
+        }
         if (id_direccion !== undefined) {
           supplierUpdateData.direccion = id_direccion
             ? { connect: { id_direccion } }
             : { disconnect: true };
         }
-        if (latitud !== undefined) supplierUpdateData.latitud = latitud;
-        if (longitud !== undefined) supplierUpdateData.longitud = longitud;
-        if (destacado !== undefined) supplierUpdateData.destacado = destacado;
-        if (email_negocio !== undefined) supplierUpdateData.email = email_negocio;
-        if (radio_entrega_km !== undefined) supplierUpdateData.radio_entrega_km = radio_entrega_km;
-        if (cobra_envio !== undefined) supplierUpdateData.cobra_envio = cobra_envio;
-        if (envio_gratis_desde !== undefined)
+        if (latitud !== undefined) {
+          supplierUpdateData.latitud = latitud;
+        }
+        if (longitud !== undefined) {
+          supplierUpdateData.longitud = longitud;
+        }
+        if (destacado !== undefined) {
+          supplierUpdateData.destacado = destacado;
+        }
+        if (email_negocio !== undefined) {
+          supplierUpdateData.email = email_negocio;
+        }
+        if (radio_entrega_km !== undefined) {
+          supplierUpdateData.radio_entrega_km = radio_entrega_km;
+        }
+        if (cobra_envio !== undefined) {
+          supplierUpdateData.cobra_envio = cobra_envio;
+        }
+        if (envio_gratis_desde !== undefined) {
           supplierUpdateData.envio_gratis_desde = envio_gratis_desde;
+        }
 
         if (Object.keys(supplierUpdateData).length > 0) {
           await tx.proveedores.update({
@@ -598,8 +616,8 @@ suppliersRouter.put(
         data: result,
         message: 'Proveedor actualizado exitosamente',
       });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
         res.status(400).json({
           success: false,
           message: 'Email ya está en uso',
@@ -707,8 +725,8 @@ suppliersRouter.delete(
           message: 'Proveedor desactivado exitosamente',
         });
       }
-    } catch (error: any) {
-      if (error.code === 'P2025') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2025') {
         res.status(404).json({
           success: false,
           message: 'Proveedor no encontrado',
@@ -774,10 +792,13 @@ suppliersRouter.get(
             : 0,
       };
 
-      const campaignStats = stats.campanas_colectivas.reduce((acc: any, campaign) => {
-        acc[campaign.estado] = (acc[campaign.estado] || 0) + 1;
-        return acc;
-      }, {});
+      const campaignStats = stats.campanas_colectivas.reduce(
+        (acc: Record<string, number>, campaign) => {
+          acc[campaign.estado] = (acc[campaign.estado] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       res.json({
         success: true,

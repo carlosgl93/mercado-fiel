@@ -31,7 +31,16 @@
     "prepare": "husky install",
     "deploy": "pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app",
     "emulators": "firebase emulators:start --only functions,hosting",
-    "supabaseEmulators": "supabase start emulators && cd ./functions && npm run seed-db"
+    "supabaseEmulators": "supabase start emulators && cd ./functions && npm run seed-db",
+    "env:setup": "chmod +x ./scripts/env-manager.sh && ./scripts/env-manager.sh setup",
+    "env:dev": "./scripts/env-manager.sh dev",
+    "env:prod": "./scripts/env-manager.sh prod",
+    "env:status": "./scripts/env-manager.sh status",
+    "env:clean": "./scripts/env-manager.sh clean",
+    "dev:start": "./scripts/env-manager.sh start",
+    "dev:quick": "pnpm run env:dev && pnpm run dev",
+    "prod:deploy": "./scripts/env-manager.sh deploy && curl -X PURGE https://mercado-fiel.web.app/",
+    "prod:quick": "pnpm run env:prod && pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app/"
   },
   "dependencies": {
     "@emotion/react": "^11.10.4",

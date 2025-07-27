@@ -25,13 +25,13 @@ interface UpdateProductoRequest {
 }
 
 // Helper function to safely parse query parameters
-const parseQueryParam = (param: any): string => {
+const parseQueryParam = (param: unknown): string => {
   if (typeof param === 'string') return param;
   if (Array.isArray(param)) return param[0] || '';
   return '';
 };
 
-const parseNumberParam = (param: any, defaultValue: number): number => {
+const parseNumberParam = (param: unknown, defaultValue: number): number => {
   const parsed = parseInt(parseQueryParam(param));
   return isNaN(parsed) ? defaultValue : parsed;
 };
@@ -239,7 +239,7 @@ productosRouter.get(
 productosRouter.post(
   '/',
   async (
-    req: Request<{}, {}, CreateProductoRequest>,
+    req: Request<Record<string, never>, unknown, CreateProductoRequest>,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
@@ -333,7 +333,7 @@ productosRouter.post(
 productosRouter.put(
   '/:id',
   async (
-    req: Request<{ id: string }, {}, UpdateProductoRequest>,
+    req: Request<{ id: string }, unknown, UpdateProductoRequest>,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
@@ -488,8 +488,8 @@ productosRouter.delete(
         success: true,
         message: 'Producto eliminado exitosamente',
       });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2025') {
         res.status(404).json({
           success: false,
           message: 'Producto no encontrado',

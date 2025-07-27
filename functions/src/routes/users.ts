@@ -13,7 +13,7 @@ interface CreateUserRequest {
   activo?: boolean;
   profile_picture_url?: string;
   id_plan?: number;
-  roles?: string[]; // Array of role names
+  roles?: string[];
 }
 
 interface UpdateUserRequest {
@@ -23,7 +23,7 @@ interface UpdateUserRequest {
   activo?: boolean;
   profile_picture_url?: string;
   id_plan?: number;
-  roles?: string[]; // Array of role names
+  roles?: string[];
 }
 
 // Helper function to hash passwords
@@ -33,7 +33,7 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 // Helper function to exclude sensitive fields
-const excludeFields = <T extends Record<string, any>>(
+const excludeFields = <T extends Record<string, unknown>>(
   user: T,
   fields: string[] = ['contrasena_hash'],
 ): Omit<T, keyof typeof fields> => {
@@ -43,13 +43,13 @@ const excludeFields = <T extends Record<string, any>>(
 };
 
 // Helper function to safely parse query parameters
-const parseQueryParam = (param: any): string => {
+const parseQueryParam = (param: unknown): string => {
   if (typeof param === 'string') return param;
   if (Array.isArray(param)) return param[0] || '';
   return '';
 };
 
-const parseNumberParam = (param: any, defaultValue: number): number => {
+const parseNumberParam = (param: unknown, defaultValue: number): number => {
   const parsed = parseInt(parseQueryParam(param));
   return isNaN(parsed) ? defaultValue : parsed;
 };
@@ -315,7 +315,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
       });
     });
 
-    const { roles: rolesRelation, ...userData } = result!;
+    if (!result) {
+      throw new Error('Error creating user');
+    }
+
+    const { roles: rolesRelation, ...userData } = result;
     const sanitizedUser = {
       ...excludeFields(userData),
       roles: rolesRelation.map((ur) => ur.rol.nombre),
@@ -423,7 +427,11 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction): Prom
       });
     });
 
-    const { roles: rolesRelation, ...userData } = result!;
+    if (!result) {
+      throw new Error('Error updating user');
+    }
+
+    const { roles: rolesRelation, ...userData } = result;
     const sanitizedUser = {
       ...excludeFields(userData),
       roles: rolesRelation.map((ur) => ur.rol.nombre),
@@ -616,7 +624,26 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    const stats: any = {
+    interface UserStats {
+      user_info: {
+        id_usuario: number;
+        nombre: string;
+        email: string;
+        fecha_registro: Date;
+        activo: boolean;
+      };
+      proveedor_stats?: {
+        total_productos: number;
+        total_ventas: number;
+        destacado: boolean;
+      };
+      cliente_stats?: {
+        total_compras: number;
+        fecha_ultima_compra: Date | null;
+      };
+    }
+
+    const stats: UserStats = {
       user_info: {
         id_usuario: user.id_usuario,
         nombre: user.nombre,

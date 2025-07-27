@@ -17,7 +17,7 @@ interface UpdateCustomerRequest {
 }
 
 // Helper function to exclude sensitive fields
-const excludeFields = <T extends Record<string, any>>(
+const excludeFields = <T extends Record<string, unknown>>(
   obj: T,
   fields: string[] = ['contrasena_hash'],
 ): Omit<T, keyof typeof fields> => {
@@ -275,9 +275,13 @@ customersRouter.post(
         });
       });
 
+      if (!result) {
+        throw new Error('Error creating customer');
+      }
+
       const sanitizedCustomer = {
-        ...result!,
-        usuario: excludeFields(result!.usuario),
+        ...result,
+        usuario: excludeFields(result.usuario),
       };
 
       res.status(201).json({

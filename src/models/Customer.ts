@@ -1,3 +1,5 @@
+import { User, UserDB } from './User';
+
 export interface CustomerDB extends Omit<UsuarioDB, 'cliente'> {
   id_cliente: number;
   id_usuario: number;
@@ -6,15 +8,7 @@ export interface CustomerDB extends Omit<UsuarioDB, 'cliente'> {
   fecha_registro: string;
   created_at: string;
   updated_at: string;
-  usuario?: {
-    id_usuario: number;
-    nombre: string;
-    email: string;
-    activo: boolean;
-    fecha_registro: string;
-    plan: number;
-    profile_picture_url?: string | null;
-  };
+  usuario: UserDB;
   direccion?: {
     id_direccion: number;
     calle: string;
@@ -71,14 +65,7 @@ export interface Customer {
   createdAt: string;
   updatedAt: string;
   activo: boolean;
-  usuario?: {
-    idUsuario: number;
-    nombre: string;
-    email: string;
-    activo: boolean;
-    fechaRegistro: string;
-    plan: number;
-  };
+  usuario: User;
   profilePictureUrl?: string | null;
   direccion?: {
     idDireccion: number;
@@ -110,4 +97,24 @@ export interface Customer {
       };
     };
   };
+
+  // Legacy compatibility fields (for backwards compatibility with existing components)
+  id?: string;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  gender?: string;
+  dob?: string;
+  phone?: string;
+  address?: string;
+  comuna?: any;
+  patientName?: string;
+  role?: string;
+  forWhom?: string;
+  profileImageUrl?: string;
+  pacientes?: any[];
+  rut?: string;
+  service?: string;
+  speciality?: string;
+  patientAge?: string;
 }

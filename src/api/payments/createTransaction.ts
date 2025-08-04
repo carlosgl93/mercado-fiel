@@ -6,9 +6,9 @@
  */
 
 import { paymentSettings } from '@/config';
+import { v4 as uuidv4 } from 'uuid';
 import { Appointment } from '../appointments';
 import paykuApi from '../paykuApi';
-import { v4 as uuidv4 } from 'uuid';
 import { CreatedTransaction } from './payku/models';
 
 export async function createTransaction(paykuParams: {
@@ -41,7 +41,8 @@ export async function createTransaction(paykuParams: {
     const paykuRes = await paykuApi.post('/transaction', {
       email: appointments[0]?.customer?.email,
       order: orderId,
-      subject: `Pago por servicio de ${appointments[0]?.servicio?.name} al prestador ${appointments[0].provider.firstname} ${appointments[0].provider.lastname}`,
+      subject: 'Pago por servicio de sesión',
+      // subject: `Pago por servicio de ${appointments[0]?.servicio?.name} al prestador ${appointments[0].provider.firstname} ${appointments[0].provider.lastname}`,
       amount: Math.round(+totalToPay * paymentSettings.appCommission),
       currency: paymentSettings.currency,
       payment: paymentSettings.paymentMethods,

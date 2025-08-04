@@ -1,4 +1,3 @@
-import { ForWhom } from '@/api/auth';
 import { Comuna } from '@/models/Comuna';
 import { Prestador } from '@/types/Prestador';
 import { Especialidad, Servicio } from '@/types/Servicio';
@@ -7,7 +6,7 @@ type Actions = {
   addComuna: (comuna: Comuna) => void;
   removeComuna: (comuna: Comuna) => void;
   increaseStep: () => void;
-  selectForWhom: (forWhom: ForWhom) => void;
+  // selectForWhom: (forWhom: ForWhom) => void;
   selectServicio: (servicio: Servicio | null) => void;
   selectEspecialidad: (especialidad: Especialidad | undefined) => void;
   decreaseStep: () => void;

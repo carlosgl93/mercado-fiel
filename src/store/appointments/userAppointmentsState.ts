@@ -1,15 +1,15 @@
+import { Appointment } from '@/api/appointments';
+import { Customer } from '@/models';
 import dayjs from 'dayjs';
 import { DocumentData } from 'firebase/firestore';
 import { atom } from 'recoil';
-import { User } from '../auth/user';
-import { Appointment } from '@/api/appointments';
 
 export type UserAppointment = {
   scheduledTimeAndDate: dayjs.Dayjs;
   provider: DocumentData | undefined;
   service: DocumentData;
   isPaid: boolean | undefined;
-  customer: User;
+  customer: Customer;
 };
 
 export const userAppointmentsState = atom<Appointment[]>({

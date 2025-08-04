@@ -1,10 +1,10 @@
-import { Box, List, ListItem, styled } from '@mui/material';
-import { Text } from '@/components/StyledComponents';
-import { StyledAvatar } from '../PerfilPrestador/MobilePerfilPrestadorStyledComponents';
-import { StyledTitle, Wrapper } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
-import { formatDate } from '@/utils/formatDate';
-import Loading from '@/components/Loading';
 import { Conversation } from '@/api/firebase/chat';
+import Loading from '@/components/Loading';
+import { Text } from '@/components/StyledComponents';
+import { formatDate } from '@/utils/formatDate';
+import { Box, List, ListItem, styled } from '@mui/material';
+import { StyledAvatar } from '../PerfilProveedor/MobilePerfilPrestadorStyledComponents';
+import { StyledTitle, Wrapper } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
 import { usePrestadorInbox } from './usePrestadorInbox';
 
 const TitleContainer = styled(Box)(() => ({

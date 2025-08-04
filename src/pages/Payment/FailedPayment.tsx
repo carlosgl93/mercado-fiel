@@ -1,11 +1,11 @@
-import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined';
 import { Appointment } from '@/api/appointments';
+import { Text, Title } from '@/components/StyledComponents';
+import { email as customerSupportEmail, customerSupportPhone } from '@/config';
+import { getOS } from '@/utils';
+import { formatDate } from '@/utils/formatDate';
+import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined';
 import { Box, styled, Theme } from '@mui/material';
 import { ButtonCTA } from '../UsuarioDashboard/StyledComponents';
-import { customerSupportPhone, email as customerSupportEmail } from '@/config';
-import { Text, Title } from '@/components/StyledComponents';
-import { formatDate } from '@/utils/formatDate';
-import { getOS } from '@/utils';
 
 type FailedPaymentProps = {
   appointments: Appointment[];
@@ -57,9 +57,7 @@ export const FailedPayment = ({ appointments, theme }: FailedPaymentProps) => {
       <Text>
         Aún puedes realizar el pago para asegurar tu sesión con {appointment.provider.firstname}.
       </Text>
-      <Text>
-        Servicio: <b>{appointment.servicio.name}</b>
-      </Text>
+      <Text>{/* Servicio: <b>{appointment.servicio.name}</b> */}</Text>
       <Text>
         Proveedor:{' '}
         <b>

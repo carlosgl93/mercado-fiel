@@ -1,5 +1,5 @@
-import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import { Mensaje } from '@/types/Mensaje';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import {
   ChatContainer,
   StyledChatInput,
@@ -19,12 +19,12 @@ import {
 import { Prestador } from '@/types/Prestador';
 
 import Loading from '@/components/Loading';
+import { CenteredFlexBox } from '@/components/styled';
+import { useAuth, useChat, useUser } from '@/hooks';
+import { chatState } from '@/store/chat/chatStore';
 import { formatDate } from '@/utils/formatDate';
 import { Box, CircularProgress } from '@mui/material';
-import { chatState } from '@/store/chat/chatStore';
 import { useRecoilValue } from 'recoil';
-import { useAuthNew, useChat, useUser } from '@/hooks';
-import { CenteredFlexBox } from '@/components/styled';
 
 export type LocationState = {
   messages: Mensaje[];
@@ -33,7 +33,7 @@ export type LocationState = {
 };
 
 export const PrestadorChat = () => {
-  const { prestador } = useAuthNew();
+  const { proveedor } = useAuth();
 
   const conversation = useRecoilValue(chatState);
   const customerId = conversation?.userId;
@@ -50,6 +50,9 @@ export const PrestadorChat = () => {
     handleSaveMessage,
     setMessage,
   } = useChat(customerId, prestadorId);
+
+  if (!proveedor) return <span>No hay proveedor disponible</span>;
+  const { idProveedor: id, nombreNegocio: firstname, profileImageUrl: imageUrl, email } = proveedor;
 
   return (
     <ChatContainer>
@@ -114,11 +117,11 @@ export const PrestadorChat = () => {
                 sendWithEnter(e, {
                   message,
                   sentBy: 'provider',
-                  providerId: prestador?.id ?? '',
+                  providerId: id,
                   userId: user?.id ?? '',
                   username: user?.firstname ? user.firstname : user?.email ? user.email : '',
-                  providerName: prestador?.firstname,
-                  providerEmail: prestador?.email || '',
+                  providerName: firstname,
+                  providerEmail: email || '',
                   userEmail: user?.email || '',
                 })
               }
@@ -132,7 +135,7 @@ export const PrestadorChat = () => {
                   userId: conversation?.userId,
                   username: conversation?.username,
                   providerName: conversation?.providerName,
-                  providerEmail: prestador?.email || '',
+                  providerEmail: email || '',
                   userEmail: user?.email || '',
                 })
               }

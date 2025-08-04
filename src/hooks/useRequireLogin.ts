@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { protectedRoutes } from '@/routes';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { userState } from '@/store/auth/user';
-import { prestadorState } from '@/store/auth/prestador';
 import { redirectToAfterLoginState } from '@/store/auth';
+import { proveedorState } from '@/store/auth/proveedor';
+import { userState } from '@/store/auth/user';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useRecoilState, useRecoilValue } from 'recoil';
 
 export function useRequireLogin() {
   const [redirectAfterLogin, setRedirectAfterLogin] = useRecoilState(redirectToAfterLoginState);
-  const prestador = useRecoilValue(prestadorState);
+  const prestador = useRecoilValue(proveedorState);
   const user = useRecoilValue(userState);
   const navigate = useNavigate();
   const location = useLocation();

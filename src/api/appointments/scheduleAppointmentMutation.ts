@@ -1,10 +1,9 @@
-import { UserCreatedServicio } from '@/pages/ConstruirPerfil/Servicio/types';
+import { db } from '@/firebase/firebase';
+import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
 import { User } from '@/store/auth/user';
 import { Prestador } from '@/types';
 import dayjs, { Dayjs } from 'dayjs';
-import { db } from '@/firebase/firebase';
 import { addDoc, collection, DocumentReference, FieldValue } from 'firebase/firestore';
-import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
 
 export type ScheduleAppointmentProvider = Pick<
   Prestador,
@@ -31,7 +30,6 @@ export type TStatus =
 export interface Appointment {
   id?: string;
   provider: ScheduleAppointmentProvider;
-  servicio: UserCreatedServicio;
   customer: ScheduleAppointmentCustomer;
   scheduledDate: string;
   scheduledTime: string;
@@ -68,7 +66,6 @@ export async function scheduleService(appointments: ScheduleAppointmentParams[])
     ).toISOString();
     const newAppointment: Appointment = {
       provider: app.provider,
-      servicio: app.servicio,
       customer: app.customer,
       scheduledDate: app.scheduledDate,
       scheduledTime: app.scheduledTime,

@@ -60,7 +60,6 @@ export const excludeFields = <T extends Record<string, unknown>>(
 
 // GET /suppliers - List suppliers with pagination and filtering
 suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  console.log(req.query);
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -148,6 +147,7 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
               },
             },
           },
+
           direccion: {
             include: {
               comuna: {
@@ -158,9 +158,37 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
             },
           },
           productos: {
-            include: {
-              categoria: true,
+            select: {
+              nombre_producto: true,
+              precio_unitario: true,
+              disponible: true,
+              fecha_publicacion: true,
+              descripcion: true,
+              imagen_url: true,
+              comentarios: {
+                select: {
+                  id_comentario: true,
+                  texto: true,
+                  calificacion: true,
+                },
+              },
+              categoria: {
+                select: {
+                  id_categoria: true,
+                  nombre: true,
+                },
+              },
             },
+            // include: {
+            //   comentarios: {
+            //     select: {
+            //       id_comentario: true,
+            //       texto: true,
+            //       calificacion: true,
+            //     },
+            //   },
+            //   categoria: true,
+            // },
           },
           _count: {
             select: {

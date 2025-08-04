@@ -1,30 +1,26 @@
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import {
+  Avatar,
+  Divider,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
-  Box,
-  Divider,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 
-import { generalOptionsDrawerList, usuarioDrawerOptions } from './usuarioDrawerOptions';
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import { User } from '@/store/auth/user';
 import { FlexBox } from '@/components/styled';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import { useAuth } from '../../hooks/useAuthSupabase';
+import { generalOptionsDrawerList, usuarioDrawerOptions } from './usuarioDrawerOptions';
 
 type UsuarioDrawerListProps = {
   closeDrawer: () => void;
 };
 
 export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
-  const { user, logout } = useAuthNew();
-
-  const { firstname, email, patientName, forWhom } = user as User;
+  const { user, signOut } = useAuth();
 
   return (
     <List
@@ -46,7 +42,7 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
         }}
       >
         <Avatar />
-        <Box
+        {/* <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -63,12 +59,12 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
               Paciente: {patientName}
             </span>
           ) : null}
-        </Box>
+        </Box> */}
       </ListItem>
       <ListItem>
         <ListItemButton
           onClick={() => {
-            logout();
+            signOut();
             closeDrawer();
           }}
         >

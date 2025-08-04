@@ -40,7 +40,8 @@
     "dev:start": "./scripts/env-manager.sh start",
     "dev:quick": "pnpm run env:dev && pnpm run dev",
     "prod:deploy": "./scripts/env-manager.sh deploy && curl -X PURGE https://mercado-fiel.web.app/",
-    "prod:quick": "pnpm run env:prod && pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app/"
+    "prod:quick": "pnpm run env:prod && pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app/",
+    "lint": "eslint --ext .js,.ts,.tsx src"
   },
   "dependencies": {
     "@emotion/react": "^11.10.4",
@@ -52,7 +53,7 @@
     "@mui/utils": "^5.10.6",
     "@mui/x-data-grid": "^7.6.2",
     "@mui/x-date-pickers": "^7.3.1",
-    "@prisma/client": "^6.10.1",
+    "@prisma/client": "^6.13.0",
     "@supabase/supabase-js": "^2.50.2",
     "@testing-library/user-event": "^14.5.2",
     "axios": "^1.6.2",
@@ -62,7 +63,6 @@
     "is-mobile": "^3.1.1",
     "notistack": "^3.0.1",
     "path": "^0.12.7",
-    "prisma": "^6.10.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^3.1.4",

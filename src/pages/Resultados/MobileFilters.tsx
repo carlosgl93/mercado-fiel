@@ -1,26 +1,16 @@
-import { List, ListItemButton, ListItemText, Box, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { Box, Button, List, ListItemButton, ListItemText } from '@mui/material';
 
-import { StyledSelect, Title } from '@/components/StyledComponents';
-import FiltersSearchBar from './FiltersSearchBar';
-import { Servicio } from '@/types/Servicio';
+import { Title } from '@/components/StyledComponents';
 import { FiltersController } from './FiltersController';
+import FiltersSearchBar from './FiltersSearchBar';
 
 type MobileFiltersProps = {
   closeFilters: () => void;
 };
 
 export const MobileFilters = ({ closeFilters }: MobileFiltersProps) => {
-  const {
-    comuna,
-    servicio,
-    allServicios,
-    especialidad,
-    especialidades,
-    removeComuna,
-    selectEspecialidad,
-    handleSelectServicio,
-  } = FiltersController();
+  const { comuna, servicio, especialidad, removeComuna, selectEspecialidad } = FiltersController();
 
   return (
     <Box
@@ -98,98 +88,16 @@ export const MobileFilters = ({ closeFilters }: MobileFiltersProps) => {
           my: '1rem',
         }}
       >
-        {/* SERVICIO */}
-        <Title
-          variant="h6"
+        <Button
           sx={{
-            fontSize: '1.2rem',
+            mt: '3rem',
           }}
+          onClick={closeFilters}
+          variant="contained"
         >
-          Servicio
-        </Title>
-        {allServicios && (
-          <StyledSelect value={servicio?.serviceName || ''} onChange={handleSelectServicio}>
-            <option value={''} disabled>
-              Elige un servicio
-            </option>
-            <option value={''}>Todos</option>
-            {allServicios.map((servicio: Servicio) => {
-              return (
-                <option key={servicio.id} value={servicio.serviceName}>
-                  {servicio.serviceName}
-                </option>
-              );
-            })}
-          </StyledSelect>
-        )}
+          Buscar
+        </Button>
       </Box>
-
-      {servicio && especialidades?.length && (
-        <>
-          <Title
-            variant="h6"
-            sx={{
-              fontSize: '1.2rem',
-            }}
-          >
-            Especialidad
-          </Title>
-          <StyledSelect
-            value={especialidad?.especialidadName}
-            onChange={(e) => {
-              selectEspecialidad(
-                servicio?.especialidades?.find((esp) => esp.especialidadName === e.target.value),
-              );
-            }}
-          >
-            <option value="">Selecciona una especialidad</option>
-            {servicio.especialidades?.map((especialidad) => {
-              return (
-                <option key={especialidad.id} value={especialidad.especialidadName}>
-                  {especialidad.especialidadName}
-                </option>
-              );
-            })}
-          </StyledSelect>
-        </>
-      )}
-
-      {/* ESPECIALIDAD */}
-
-      {/* DISPONIBILIDAD */}
-      {/* <Title
-        variant="h6"
-        sx={{
-          fontSize: '1.2rem',
-        }}
-      >
-        Disponibilidad
-      </Title>
-      <StyledUnorderedList>
-        {availability.map((day) => {
-          return (
-            <StyledListItem key={day.id}>
-              <StyledCheckboxInput
-                type="checkbox"
-                id={day.name}
-                name="availability"
-                value={day.name}
-                onClick={() => setAvailability(day)}
-              />
-              <label htmlFor={day.name}>{day.name}</label>
-            </StyledListItem>
-          );
-        })}
-      </StyledUnorderedList> */}
-      <Button
-        sx={{
-          mt: '3rem',
-        }}
-        onClick={closeFilters}
-        variant="contained"
-      >
-        Buscar
-      </Button>
     </Box>
   );
 };

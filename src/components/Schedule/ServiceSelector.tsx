@@ -1,12 +1,11 @@
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { ScheduleController } from './ScheduleController';
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 type ServiceSelectorProps = {
   handleSelectServicio: (serviceId: string) => void;
 };
 
 const ServiceSelector = ({ handleSelectServicio }: ServiceSelectorProps) => {
-  const { prestadorCreatedServicios } = ScheduleController();
+  // const { prestadorCreatedServicios } = ScheduleController();
 
   return (
     <FormControl
@@ -30,11 +29,11 @@ const ServiceSelector = ({ handleSelectServicio }: ServiceSelectorProps) => {
         defaultValue={''}
       >
         <MenuItem value="">Selecciona un servicio:</MenuItem>
-        {prestadorCreatedServicios?.map((e) => (
+        {/* {prestadorCreatedServicios?.map((e) => (
           <MenuItem key={e.id ? e.id : e.name} value={e.id}>
             {e.name}
           </MenuItem>
-        ))}
+        ))} */}
       </Select>
     </FormControl>
   );

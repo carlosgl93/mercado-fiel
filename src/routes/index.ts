@@ -45,17 +45,14 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/EntregaApoyo')),
     path: '/entrega-apoyo',
   },
-  [Pages.RecibeApoyo]: {
-    component: asyncComponentLoader(() => import('@/pages/RecibeApoyo')),
-    path: '/recibe-apoyo',
-  },
+
   [Pages.Resultados]: {
     component: asyncComponentLoader(() => import('@/pages/Resultados')),
     path: '/resultados',
   },
-  [Pages.PerfilPrestador]: {
-    component: asyncComponentLoader(() => import('@/pages/PerfilPrestador')),
-    path: '/perfil-prestador/:id',
+  [Pages.PerfilProveedor]: {
+    component: asyncComponentLoader(() => import('@/pages/PerfilProveedor')),
+    path: '/perfil-proveedor/:id',
   },
   [Pages.PreviewPerfilPrestador]: {
     component: asyncComponentLoader(() => import('@/pages/PreviewPerfilPrestador')),
@@ -65,42 +62,32 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil')),
     path: '/construir-perfil',
   },
-  [Pages.Servicios]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Servicio')),
-    path: '/construir-perfil/servicios',
-  },
+  // [Pages.Servicios]: {
+  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Servicio')),
+  //   path: '/construir-perfil/servicios',
+  // },
   [Pages.Disponibilidad]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Disponibilidad')),
     path: '/construir-perfil/disponibilidad',
   },
-  [Pages.EditarComunasPrestador]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Comunas')),
-    path: '/construir-perfil/comunas',
-  },
-  [Pages.Tarifas]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Tarifas')),
-    path: '/construir-perfil/tarifas',
-  },
+  // [Pages.EditarComunasPrestador]: {
+  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Comunas')),
+  //   path: '/construir-perfil/comunas',
+  // },
+  // [Pages.Tarifas]: {
+  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Tarifas')),
+  //   path: '/construir-perfil/tarifas',
+  // },
   [Pages.Experiencia]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Experiencia')),
     path: '/construir-perfil/experiencia',
   },
-  [Pages.SobreMi]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/SobreMi')),
-    path: '/construir-perfil/sobreMi',
-  },
+
   [Pages.CuentaBancaria]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/CuentaBancaria')),
     path: '/construir-perfil/cuentaBancaria',
   },
-  [Pages.HistorialLaboral]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/HistorialLaboral')),
-    path: '/construir-perfil/historialLaboral',
-  },
-  [Pages.EducacionFormacion]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/EducacionFormacion')),
-    path: '/construir-perfil/educacionFormacion',
-  },
+
   [Pages.DetallesBasicos]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/DetallesBasicos')),
     path: '/construir-perfil/detallesBasicos',
@@ -121,10 +108,10 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/UsuarioInbox')),
     path: '/usuario-inbox',
   },
-  [Pages.PerfilUsuario]: {
-    component: asyncComponentLoader(() => import('@/pages/PerfilUsuario')),
-    path: '/perfil-usuario',
-  },
+  // [Pages.PerfilCliente]: {
+  //   component: asyncComponentLoader(() => import('@/pages/PerfilCliente')),
+  //   path: '/perfil-cliente/:id',
+  // },
   [Pages.UsuarioDashboard]: {
     component: asyncComponentLoader(() => import('@/pages/UsuarioDashboard')),
     path: '/usuario-dashboard',
@@ -157,10 +144,10 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/BackOffice/Pagos')),
     path: '/backoffice/pagos',
   },
-  [Pages.AdminLogin]: {
-    component: asyncComponentLoader(() => import('@/pages/AdminLogin')),
-    path: '/backoffice/login',
-  },
+  // [Pages.AdminLogin]: {
+  //   component: asyncComponentLoader(() => import('@/pages/AdminLogin')),
+  //   path: '/backoffice/login',
+  // },
   [Pages.TermsConditions]: {
     component: asyncComponentLoader(() => import('@/pages/TermsConditions')),
     path: '/terms-conditions',
@@ -177,19 +164,6 @@ const routes: Routes = {
   [Pages.EncuentraClientes]: {
     component: asyncComponentLoader(() => import('@/pages/PrestadorDashboard/EncuentraClientes')),
     path: '/encuentra-clientes',
-  },
-  [Pages.MisApoyos]: {
-    component: asyncComponentLoader(() => import('@/pages/Apoyo')),
-    path: '/mis-apoyos',
-  },
-  [Pages.CrearApoyo]: {
-    component: asyncComponentLoader(() => import('@/pages/Apoyo/PublicarAyuda')),
-    path: '/mis-apoyos/crear',
-  },
-
-  [Pages.VerApoyo]: {
-    component: asyncComponentLoader(() => import('@/pages/VerApoyo')),
-    path: '/ver-apoyo/:id',
   },
 
   [Pages.Contacto]: {

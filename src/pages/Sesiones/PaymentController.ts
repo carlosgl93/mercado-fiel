@@ -1,8 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { notificationState } from '@/store/snackbar';
-import { useSetRecoilState } from 'recoil';
 import { sendEmailApi } from '@/api';
-import { useAuthNew } from '@/hooks';
 import {
   paymentVerificationFailedMutation,
   savePaymentMutation,
@@ -10,11 +6,15 @@ import {
   verifyPaymentMutation,
 } from '@/api/appointments';
 import { getDuePayments } from '@/api/payments';
+import { notificationState } from '@/store/snackbar';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useSetRecoilState } from 'recoil';
+import { useAuth } from '../../hooks';
 
 export const PaymentController = (appointment?: ScheduleAppointmentParams) => {
   const setNotification = useSetRecoilState(notificationState);
   const client = useQueryClient();
-  const { user } = useAuthNew();
+  const { user } = useAuth();
 
   const { data: duePayments, isLoading: duePaymentsIsLoading } = useQuery(
     'duePaymentsQuery',

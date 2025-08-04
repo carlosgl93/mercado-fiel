@@ -1,15 +1,15 @@
-import { useAuthNew } from '@/hooks';
-import { useRecoilValue } from 'recoil';
-import { ListUserSessions } from './User/ListUserSessions';
 import { userAppointmentsState } from '@/store/appointments';
-import { ListProviderSessions } from './Provider/ListProviderSessions';
 import { providerAppointmentsState } from '@/store/appointments/providerAppointmentsState';
+import { useRecoilValue } from 'recoil';
+import { useAuth } from '../../hooks';
+import { ListProviderSessions } from './Provider/ListProviderSessions';
+import { ListUserSessions } from './User/ListUserSessions';
 
 export const ListSesiones = () => {
   const userSessions = useRecoilValue(userAppointmentsState);
   const providerSessions = useRecoilValue(providerAppointmentsState);
 
-  const { user } = useAuthNew();
+  const { user } = useAuth();
 
   if (user?.id) {
     return <ListUserSessions userSessions={userSessions} />;

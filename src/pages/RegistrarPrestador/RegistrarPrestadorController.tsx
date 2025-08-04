@@ -1,10 +1,9 @@
 import useEntregaApoyo from '@/store/entregaApoyo';
 import { notificationState } from '@/store/snackbar';
 import { ChangeEvent, useEffect, useReducer } from 'react';
-import { useRecoilState } from 'recoil';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import { CreatePrestadorParams } from '@/api/auth';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { useAuth } from '../../hooks';
 
 type FormState = {
   error: string;
@@ -71,7 +70,7 @@ const reducer = (state: FormState, action: FormActions) => {
 
 const RegistrarPrestadorController = () => {
   const [notification, setNotification] = useRecoilState(notificationState);
-  const { createPrestador, createPrestadorLoading, prestador, user } = useAuthNew();
+  const { signUpWithEmail, signUpLoading, proveedor, cliente } = useAuth();
   const [{ selectedComunas, selectedServicio, selectedEspecialidad }] = useEntregaApoyo();
 
   const navigate = useNavigate();
@@ -170,20 +169,14 @@ const RegistrarPrestadorController = () => {
       });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else {
-      const prestador: CreatePrestadorParams = {
-        nombre,
-        apellido,
-        rut,
-        // telefono,
-        correo,
-        contrasena,
-        comunas: selectedComunas,
-        servicio: selectedServicio ?? undefined,
-        acceptedTerms,
-        especialidad: selectedEspecialidad ?? undefined,
-      };
-
-      createPrestador(prestador);
+      await signUpWithEmail({
+        email: correo,
+        password: contrasena,
+        nombre: `${nombre} ${apellido}`,
+        type: 'proveedor',
+        nombre_negocio: `${nombre} ${apellido}`, // You might want to add this field to the form
+        descripcion: '', // Add description field if needed
+      });
     }
   };
 
@@ -206,15 +199,15 @@ const RegistrarPrestadorController = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.email) {
+    if (cliente?.usuario?.email) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (prestador?.email) {
+    if (proveedor?.usuario?.email) {
       navigate('/prestador-dashboard');
       return;
     }
-  }, [user, prestador]);
+  }, [cliente, proveedor, navigate]);
 
   useEffect(() => {
     if (!selectedServicio || !selectedComunas) {
@@ -228,7 +221,7 @@ const RegistrarPrestadorController = () => {
     handleSubmit,
     handleSelect,
     handleAcceptTerms,
-    createPrestadorLoading,
+    signUpLoading,
   };
 };
 

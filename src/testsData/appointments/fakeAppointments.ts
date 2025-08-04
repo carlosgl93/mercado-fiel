@@ -10,14 +10,7 @@ export const fakeTodayAppointments: Appointment[] = [
       lastname: 'Doe',
       email: 'provider@example.com',
     },
-    servicio: {
-      id: 'service123',
-      name: 'Service Name',
-      description: 'Service Description',
-      price: '100',
-      speciality: 'speciality',
-      duration: 60,
-    },
+
     customer: {
       id: 'customer123',
       firstname: 'Jane',
@@ -45,14 +38,7 @@ export const fakeFutureApps: Appointment[] = [
       lastname: 'Doe',
       email: 'provider@example.com',
     },
-    servicio: {
-      id: 'service123',
-      name: 'Service Name',
-      description: 'Service Description',
-      price: '100',
-      speciality: 'speciality',
-      duration: 60,
-    },
+
     customer: {
       id: 'customer123',
       firstname: 'Jane',

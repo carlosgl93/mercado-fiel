@@ -1,21 +1,21 @@
-import { UserAppointmentController } from './UserAppointmentController';
-import { Box, Button, CardContent, CircularProgress } from '@mui/material';
-import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
-import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import { Appointment, TStatus } from '@/api/appointments';
-import PaymentIcon from '@mui/icons-material/Payment';
+import { Rate } from '@/components';
+import { FlexBox } from '@/components/styled';
 import { Text } from '@/components/StyledComponents';
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import WorkIcon from '@mui/icons-material/Work';
-import { FlexBox } from '@/components/styled';
-import { Rate } from '@/components';
+import { Box, Button, CardContent, CircularProgress } from '@mui/material';
+import { UserAppointmentController } from './UserAppointmentController';
 
 type SessionCardContentProps = {
   appointment: Appointment;
 };
 
 export const UserSessionCardContent = ({ appointment }: SessionCardContentProps) => {
-  const { provider, servicio, isPaid, status, confirmedByUser, rating, paykuId } = appointment;
+  const { provider, isPaid, status, confirmedByUser, rating, paykuId } = appointment;
   const { firstname, lastname, email } = provider;
 
   const {
@@ -37,7 +37,7 @@ export const UserSessionCardContent = ({ appointment }: SessionCardContentProps)
       }}
     >
       <Person firstname={firstname} lastname={lastname} email={email} />
-      <Work serviceName={servicio?.name} />
+      {/* <Work serviceName={servicio?.name} /> */}
       <Payment isPaid={isPaid} status={status} />
       <Box
         sx={{

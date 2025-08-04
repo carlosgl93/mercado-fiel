@@ -1,31 +1,28 @@
-import { scheduleService, ScheduleAppointmentParams, Appointment } from '@/api/appointments';
-import DoNotDisturbAltOutlinedIcon from '@mui/icons-material/DoNotDisturbAltOutlined';
-import { interactedPrestadorState } from '@/store/resultados/interactedPrestador';
-import { usePerfilPrestador } from '@/pages/PerfilPrestador/usePerfilPrestador';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { Appointment, ScheduleAppointmentParams, scheduleService } from '@/api/appointments';
 import { updateAppointment } from '@/api/appointments/updateAppointment';
-import { PickersDayProps, PickersDay } from '@mui/x-date-pickers';
-import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
-import { scheduleState } from '@/store/schedule/sheduleState';
-import { useMutation, useQueryClient } from 'react-query';
-import { useAppointments } from '@/hooks/useAppointments';
-import { useState, useCallback, useEffect } from 'react';
-import { Badge, SelectChangeEvent } from '@mui/material';
-import { notificationState } from '@/store/snackbar';
-import { useServicios } from '@/hooks/useServicios';
 import { createTransaction } from '@/api/payments';
-import { Prestador } from '@/store/auth/prestador';
-import { useNavigate } from 'react-router-dom';
+import { useAppointments } from '@/hooks/useAppointments';
+import { usePerfilPrestador } from '@/pages/PerfilProveedor/usePerfilProveedor';
 import { useLoading } from '@/store/global';
-import { useAuthNew } from '@/hooks';
+import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
+import { scheduleState } from '@/store/schedule/sheduleState';
+import { notificationState } from '@/store/snackbar';
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
+import DoNotDisturbAltOutlinedIcon from '@mui/icons-material/DoNotDisturbAltOutlined';
+import { Badge, SelectChangeEvent } from '@mui/material';
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
+import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useAuth } from '../../hooks';
+import { SupplierWithProducts } from '../../models';
 
 export const ScheduleController = () => {
-  const { prestadorCreatedServicios: prestadorServicios, prestadorCreatedServiciosLoading } =
-    useServicios();
-  const prestador = useRecoilValue(interactedPrestadorState);
+  const prestador = useRecoilValue(interactedProveedorState);
   const { setLoading } = useLoading();
-  const { handleCloseScheduleModal } = usePerfilPrestador(prestador as Prestador);
+  const { handleCloseScheduleModal } = usePerfilPrestador(prestador as SupplierWithProducts);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [waitingForPayku, setWaitingForPayku] = useState(false);
   const [schedule, setSchedule] = useRecoilState(scheduleState);
@@ -35,9 +32,8 @@ export const ScheduleController = () => {
   const { providersAppointments, providersAppointmentsLoading } = useAppointments();
   const navigate = useNavigate();
   const client = useQueryClient();
-  const { user } = useAuthNew();
+  const { user } = useAuth();
   const {
-    selectedService,
     isMultiple,
     selectedDates,
     selectedTimes,
@@ -60,7 +56,6 @@ export const ScheduleController = () => {
 
   useEffect(() => {
     const isEnabled =
-      !!selectedService?.id &&
       !!selectedDates &&
       !!selectedTimes &&
       !scheduleServiceLoading &&
@@ -69,7 +64,7 @@ export const ScheduleController = () => {
       howManySessionsToSchedule <= Object.keys(selectedTimes).length;
 
     setIsButtonEnabled(isEnabled);
-  }, [selectedService, selectedDates, selectedTimes, waitingForPayku, howManySessionsToSchedule]);
+  }, [selectedDates, selectedTimes, waitingForPayku, howManySessionsToSchedule]);
 
   useEffect(() => {
     if (selectedDates?.length === howManySessionsToSchedule) {
@@ -172,14 +167,6 @@ export const ScheduleController = () => {
     );
   };
 
-  const handleSelectServicio = (serviceId: string) => {
-    const selectedService = prestadorServicios?.find((s) => s?.id === serviceId);
-    setSchedule({
-      ...schedule,
-      selectedService,
-    });
-  };
-
   const handleCheckIsMultiple = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSchedule((prev) => {
       if (e.target.value === 'false') {
@@ -273,7 +260,7 @@ export const ScheduleController = () => {
       time: selectedTimes![date.format('YYYY-MM-DD') as unknown as number].format('HH:mm'),
     }));
 
-    if (prestador && user && schedule.selectedService) {
+    if (prestador && user) {
       const provider = {
         id: prestador.id,
         firstname: prestador.firstname,
@@ -292,7 +279,6 @@ export const ScheduleController = () => {
           ({ date, time }) =>
             ({
               provider,
-              servicio: selectedService!,
               customer,
               scheduledDate: date,
               scheduledTime: time,
@@ -301,7 +287,7 @@ export const ScheduleController = () => {
               confirmedByUser: false,
               isMultiple,
               howManySessionsToConfirm,
-              totalPaidScheduling: Number(selectedService?.price) * (howManySessionsToConfirm || 1),
+              totalPaidScheduling: Number(0) * (howManySessionsToConfirm || 1),
               providersAvailability: providerAvailability,
             } as ScheduleAppointmentParams),
         ),
@@ -339,14 +325,14 @@ export const ScheduleController = () => {
       onSuccess: async (data: Appointment[]) => {
         const paykuParams = {
           appointments: data,
-          totalToPay: Number(schedule.selectedService!.price) * (howManySessionsToConfirm || 1),
+          totalToPay: 0, // this will be calculated below
+          // totalToPay: Number(schedule.selectedService!.price) * (howManySessionsToConfirm || 1),
           sessionsToConfirm: howManySessionsToConfirm,
         };
         setSchedule({
           selectedTimes: null,
           selectedDates: null,
           isMultiple: false,
-          selectedService: undefined,
           howManySessionsToSchedule: 1,
           howManySessionsToConfirm: 1,
         });
@@ -365,27 +351,20 @@ export const ScheduleController = () => {
       },
     },
   );
-  const selectedServiceDuration = selectedService?.duration;
-  const availableTimesStep =
-    selectedServiceDuration && selectedServiceDuration > 45 ? 60 : selectedServiceDuration;
 
   const numberOfSessionsOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   return {
-    prestadorCreatedServicios: prestadorServicios,
-    prestadorCreatedServiciosLoading,
     providersAppointmentsLoading,
     handleCloseScheduleModal,
     numberOfSessionsOptions,
     scheduleServiceLoading,
     providersAppointments,
     providerAvailability,
-    availableTimesStep,
     waitingForPayku,
     prestador,
     schedule,
     value,
-    selectedService,
     isMultiple,
     selectedDates,
     selectedTimes,
@@ -398,7 +377,6 @@ export const ScheduleController = () => {
     handleSelectDate,
     // shouldDisableTime,
     renderAvailableDay,
-    handleSelectServicio,
     handleConfirmBooking,
     handleCheckIsMultiple,
     handleSelectSessionHour,

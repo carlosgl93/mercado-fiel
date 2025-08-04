@@ -1,27 +1,27 @@
-import { useRecoilValue } from 'recoil';
-import { Link } from 'react-router-dom';
+import { Avatar, Box, Divider } from '@mui/material';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import { Avatar, Box, Divider } from '@mui/material';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import { Link } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
 
-import ListItemButton from '@mui/material/ListItemButton';
-import { Prestador, prestadorState } from '@/store/auth/prestador';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import { generalOptionsDrawerList, prestadorDrawerOptions } from './prestadorDrawerOptions';
 import { FlexBox } from '@/components/styled';
+import { Prestador, proveedorState } from '@/store/auth/proveedor';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import ListItemButton from '@mui/material/ListItemButton';
+import { useAuth } from '../../hooks/useAuthSupabase';
+import { generalOptionsDrawerList, prestadorDrawerOptions } from './prestadorDrawerOptions';
 
 type PrestadorDrawerListProps = {
   closeDrawer: () => void;
 };
 
 function PrestadorDrawerList({ closeDrawer }: PrestadorDrawerListProps) {
-  const { logout } = useAuthNew();
+  const { signOut } = useAuth();
 
-  const prestador = useRecoilValue(prestadorState) as Prestador;
+  const prestador = useRecoilValue(proveedorState) as Prestador;
 
   const { firstname, lastname, servicio, email } = prestador;
 
@@ -67,7 +67,7 @@ function PrestadorDrawerList({ closeDrawer }: PrestadorDrawerListProps) {
       <ListItem>
         <ListItemButton
           onClick={() => {
-            logout();
+            signOut();
             closeDrawer();
           }}
         >

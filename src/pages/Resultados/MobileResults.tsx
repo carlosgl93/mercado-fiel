@@ -1,29 +1,27 @@
 import Loading from '@/components/Loading';
-import { Text } from '@/components/StyledComponents';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import { Box, Button, Drawer, useTheme } from '@mui/material';
 import { Suspense, useState } from 'react';
-import { useCustomers } from '../../hooks';
+import { useCustomers, UserLookingFor, useUserLookingFor } from '../../hooks';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import { MobileFilters } from './MobileFilters';
 import { MobileResultList } from './MobileResultList';
 
 const MobileResults = () => {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const theme = useTheme();
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const { lookingFor, userLookingFor } = useUserLookingFor();
 
   const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
   const { isLoadingCustomers, customers } = useCustomers(page, limit);
 
-  console.log('suppliers', suppliers);
+  const isLoading = isLoadingCustomers || isLoadingSuppliers;
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
-
-  // const resultsLength = verifiedPrestadores?.prestadores?.length;
 
   if (isLoadingSuppliers || isLoadingCustomers) {
     return <Loading />;
@@ -64,22 +62,7 @@ const MobileResults = () => {
           </Box>
         </Button>
       </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: '1rem',
-        }}
-      >
-        <Text>
-          {/* {resultsLength && resultsLength > 0
-            ? `${resultsLength} ${
-                resultsLength === 1 ? 'prestador encontrado' : 'prestadores encontrados'
-              }`
-            : 'Ningun prestador encontrado para esta combinación de filtros.'} */}
-        </Text>
-      </Box>
+
       <Box
         sx={{
           minHeight: '100vh',
@@ -94,9 +77,13 @@ const MobileResults = () => {
 
         <Suspense fallback={<Loading />}>
           <MobileResultList
-            customers={customers}
-            suppliers={suppliers}
-            page={page}
+            results={
+              lookingFor === null
+                ? [suppliers, customers]
+                : userLookingFor === UserLookingFor.CUSTOMERS
+                ? customers
+                : suppliers
+            }
             setPage={setPage}
             setLimit={setLimit}
           />

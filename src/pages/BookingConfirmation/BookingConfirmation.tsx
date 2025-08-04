@@ -1,20 +1,19 @@
+import Loading from '@/components/Loading';
 import Meta from '@/components/Meta';
-import { useRecoilValue } from 'recoil';
-import { paymentSettings } from '@/config';
-import { Box, styled } from '@mui/material';
-import { useLoading } from '@/store/global';
-import { formatDate } from '@/utils/formatDate';
-import { formatCLP } from '../../utils/formatCLP';
-import { formatMinutes } from '@/utils/formatMinutes';
+import { ScheduleController } from '@/components/Schedule/ScheduleController';
+import { FlexBox, FullSizeCenteredFlexBox } from '@/components/styled';
 import { Text, Title } from '@/components/StyledComponents';
 import { CenteredDivider } from '@/components/StyledDivider';
-import { ButtonCTA } from '../UsuarioDashboard/StyledComponents';
-import { FlexBox, FullSizeCenteredFlexBox } from '@/components/styled';
-import { ScheduleController } from '@/components/Schedule/ScheduleController';
-import { interactedPrestadorState } from '@/store/resultados/interactedPrestador';
+import { paymentSettings } from '@/config';
+import { useLoading } from '@/store/global';
+import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
+import { formatDate } from '@/utils/formatDate';
+import { Box, styled } from '@mui/material';
+import { useRecoilValue } from 'recoil';
+import { formatCLP } from '../../utils/formatCLP';
+import { StyledAvatar } from '../PerfilProveedor/MobilePerfilPrestadorStyledComponents';
 import { Container } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
-import { StyledAvatar } from '../PerfilPrestador/MobilePerfilPrestadorStyledComponents';
-import Loading from '@/components/Loading';
+import { ButtonCTA } from '../UsuarioDashboard/StyledComponents';
 
 function BookingConfirmation() {
   const { schedule, handleConfirmBooking } = ScheduleController();
@@ -22,16 +21,14 @@ function BookingConfirmation() {
     isMultiple,
     selectedDates,
     selectedTimes,
-    selectedService,
     howManySessionsToConfirm,
     howManySessionsToSchedule,
   } = schedule;
   const { loading } = useLoading();
 
-  const interactedPrestador = useRecoilValue(interactedPrestadorState);
-  if (!selectedService || !selectedDates || !selectedTimes || !interactedPrestador) return null;
+  const interactedPrestador = useRecoilValue(interactedProveedorState);
+  if (!selectedDates || !selectedTimes || !interactedPrestador) return null;
   const { firstname, lastname, email, profileImageUrl } = interactedPrestador;
-  const { name, price, duration } = selectedService;
 
   if (loading) return <Loading />;
 
@@ -76,12 +73,12 @@ function BookingConfirmation() {
 
               <StyledFlexBoxInner>
                 <StyledLeftText>Servicio</StyledLeftText>
-                <StyledText>{name}</StyledText>
+                {/* <StyledText>{name}</StyledText> */}
               </StyledFlexBoxInner>
 
               <StyledFlexBoxInner>
                 <StyledLeftText>Duración</StyledLeftText>
-                <StyledText>{formatMinutes(duration)}</StyledText>
+                {/* <StyledText>{formatMinutes(duration)}</StyledText> */}
               </StyledFlexBoxInner>
 
               <StyledFlexBoxInner>
@@ -120,7 +117,7 @@ function BookingConfirmation() {
               <StyledFlexBoxInner>
                 <StyledLeftText>Valor a pagar hoy:</StyledLeftText>
                 <StyledText>
-                  {formatCLP(Number(price) * (howManySessionsToConfirm || 1))} CLP
+                  {/* {formatCLP(Number(price) * (howManySessionsToConfirm || 1))} CLP */}
                 </StyledText>
               </StyledFlexBoxInner>
               <StyledFlexBoxInner>
@@ -129,7 +126,7 @@ function BookingConfirmation() {
                   {formatCLP(
                     Math.round(
                       (paymentSettings.appCommission - 1) *
-                        Number(price) *
+                        // Number(price) *
                         (howManySessionsToConfirm || 1),
                     ),
                   )}{' '}

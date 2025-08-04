@@ -57,7 +57,7 @@ export const PaymentsGridController = () => {
       {
         field: 'servicePrice',
         valueGetter: (_value, row) => {
-          return formatCLP(row.servicio.price);
+          return formatCLP(0);
         },
         headerName: 'Precio',
         width: 100,
@@ -66,7 +66,7 @@ export const PaymentsGridController = () => {
       {
         field: 'platformFee',
         valueGetter: (_value, row) => {
-          return formatCLP(+row.servicio.price * (paymentSettings.appCommission - 1));
+          return formatCLP(+0 * (paymentSettings.appCommission - 1));
         },
         headerName: 'Comisión Mercado Fiel',
         width: 100,

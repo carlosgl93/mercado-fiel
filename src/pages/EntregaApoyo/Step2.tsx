@@ -1,9 +1,8 @@
 import { TextContainer, Title } from '@/components/StyledComponents';
-import { entregaApoyoSteps } from './entregaApoyoSteps';
-import ServiceTypeList from './ServiceTypeList';
 import useEntregaApoyo from '@/store/entregaApoyo';
 import { Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { entregaApoyoSteps } from './entregaApoyoSteps';
 
 const Step2 = () => {
   const [{ selectedServicio }, { decreaseStep, increaseStep }] = useEntregaApoyo();
@@ -27,7 +26,6 @@ const Step2 = () => {
           {entregaApoyoSteps[1].title}
         </Title>
       </TextContainer>
-      <ServiceTypeList />
       <Box
         sx={{
           display: 'flex',

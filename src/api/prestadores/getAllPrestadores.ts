@@ -1,6 +1,6 @@
-import { Prestador } from '@/store/auth/prestador';
 import { db } from '@/firebase/firebase';
-import { collection, query, limit, getDocs } from 'firebase/firestore';
+import { Prestador } from '@/store/auth/proveedor';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 export const getAllPrestadores = async () => {
   const prestadorCollectionRef = collection(db, 'providers');

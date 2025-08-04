@@ -1,13 +1,13 @@
-import { useAuthNew } from './useAuthNew';
+import { db } from '@/firebase/firebase';
+import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
+import { proveedorState } from '@/store/auth/proveedor';
+import { availabilityState, editDisponibilidadState } from '@/store/construirPerfil/availability';
+import { notificationState } from '@/store/snackbar';
+import dayjs, { Dayjs } from 'dayjs';
 import { collection, doc, getDocs, query, setDoc, updateDoc } from 'firebase/firestore';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState } from 'recoil';
-import { notificationState } from '@/store/snackbar';
-import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
-import { availabilityState, editDisponibilidadState } from '@/store/construirPerfil/availability';
-import { db } from '@/firebase/firebase';
-import { prestadorState } from '@/store/auth/prestador';
-import dayjs, { Dayjs } from 'dayjs';
+import { useAuth } from './useAuth';
 
 const daysOfWeek = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 const sortAvailability = (data: AvailabilityData[]) =>
@@ -33,10 +33,10 @@ const updateDisponibilidad = async (id: string) => {
 export const useDisponibilidadNew = () => {
   const [, setNotification] = useRecoilState(notificationState);
   const [availability, setAvailability] = useRecoilState(availabilityState);
-  const [, setPrestadorState] = useRecoilState(prestadorState);
+  const [, setPrestadorState] = useRecoilState(proveedorState);
   const [editDisponibilidad, setEditDisponibilidad] = useRecoilState(editDisponibilidadState);
-  const { prestador } = useAuthNew();
-  const id = prestador?.id ?? '';
+  const { proveedor } = useAuth();
+  const id = proveedor?.id ?? '';
   const client = useQueryClient();
 
   const { error, isLoading, isError } = useQuery(

@@ -16,13 +16,6 @@ export async function getSuppliers(
   selectedComunas: Comuna | undefined,
   selectedCategory: Category | undefined,
 ): Promise<Supplier[]> {
-  console.log('getSuppliers called with:', {
-    page,
-    limit,
-    selectedComunas,
-    selectedCategory,
-  });
-  console.log('Selected Comunas:', selectedComunas);
   const res = await api.get('/suppliers', {
     params: {
       page,

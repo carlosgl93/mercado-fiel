@@ -1,16 +1,16 @@
+import { db } from '@/firebase/firebase';
+import { Prestador } from '@/store/auth/proveedor';
+import { Comuna } from '@/types';
+import { Especialidad, Servicio } from '@/types/Servicio';
 import {
   collection,
-  query,
-  limit,
-  where,
   getDocs,
-  startAfter,
+  limit,
+  query,
   QueryDocumentSnapshot,
+  startAfter,
+  where,
 } from 'firebase/firestore';
-import { Especialidad, Servicio } from '@/types/Servicio';
-import { Prestador } from '@/store/auth/prestador';
-import { db } from '@/firebase/firebase';
-import { Comuna } from '@/types';
 
 export const getPrestadores = async (
   comuna: Comuna | null,

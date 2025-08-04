@@ -33,6 +33,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      '@prisma/client': ['./functions/node_modules/@prisma/client'],
       '@': path.resolve('./src'),
       '@hooks': path.resolve('./src/hooks/index.ts'),
       '@api': path.resolve('./src/api'),

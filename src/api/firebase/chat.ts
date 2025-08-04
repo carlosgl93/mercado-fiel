@@ -1,16 +1,16 @@
 import { db } from '@/firebase/firebase';
-import { v4 as uuidv4 } from 'uuid';
 import {
-  doc,
   arrayUnion,
+  collection,
+  doc,
   getDoc,
+  getDocs,
+  query,
   setDoc,
   updateDoc,
-  collection,
-  query,
   where,
-  getDocs,
 } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
 type GetMessagesArgs = {
   userId: string;
@@ -36,7 +36,7 @@ export type Message = {
 
 export type SendMessageArgs = {
   userId?: string;
-  providerId?: string;
+  providerId?: string | number;
   message: string;
   sentBy: 'user' | 'provider';
   username?: string;

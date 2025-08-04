@@ -6,9 +6,7 @@ import { useResultFilters } from './useResultFilters';
 import { UserLookingFor } from './useUserLookingFor';
 
 export const useSuppliers = (page: number, limit: number) => {
-  const { selectedComunas, selectedCategory, userLookingFor, comuna } = useResultFilters();
-
-  console.log({ selectedComunas });
+  const { selectedCategory, userLookingFor, comuna } = useResultFilters();
 
   const {
     data: suppliers,

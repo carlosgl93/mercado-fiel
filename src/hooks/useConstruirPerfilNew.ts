@@ -1,10 +1,10 @@
+import { proveedorState } from '@/store/auth/proveedor';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { prestadorState } from '@/store/auth/prestador';
-import { useEffect } from 'react';
 
 export const useConstruirPerfilNew = () => {
-  const prestador = useRecoilValue(prestadorState);
+  const prestador = useRecoilValue(proveedorState);
   const navigate = useNavigate();
   const settings = prestador ? prestador!.settings : undefined;
 

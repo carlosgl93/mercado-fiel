@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 
 import { atom, useRecoilState } from 'recoil';
 
-import { ForWhom } from '@/api/auth';
 import { Comuna } from '@/models/Comuna';
 import { Prestador } from '@/types/Prestador';
 import { Especialidad, Servicio } from '@/types/Servicio';
@@ -14,7 +13,7 @@ type RecibeApoyoState = {
   comuna: Comuna | null;
   servicio: Servicio | null;
   especialidad: Especialidad | null;
-  forWhom: ForWhom;
+  // forWhom: ForWhom;
   disponibilidad: {
     id: number;
     name: string;
@@ -30,7 +29,7 @@ const recibeApoyoState = atom<RecibeApoyoState>({
     step: 0,
     comuna: null,
     servicio: null,
-    forWhom: '',
+    // forWhom: '',
     especialidad: null,
     disponibilidad: [],
     allServicios: null,
@@ -56,7 +55,6 @@ function useRecibeApoyo(): [RecibeApoyoState, Actions] {
       step: 0,
       comuna: null,
       servicio: null,
-      forWhom: '',
       especialidad: null,
       disponibilidad: [],
       allServicios: null,
@@ -117,13 +115,6 @@ function useRecibeApoyo(): [RecibeApoyoState, Actions] {
     setApoyo((prev) => ({
       ...prev,
       step: prev.step - 1,
-    }));
-  };
-
-  const selectForWhom = (forWhom: ForWhom) => {
-    setApoyo((prev) => ({
-      ...prev,
-      forWhom: forWhom,
     }));
   };
 
@@ -196,7 +187,7 @@ function useRecibeApoyo(): [RecibeApoyoState, Actions] {
       removeComuna,
       increaseStep,
       decreaseStep,
-      selectForWhom,
+      // selectForWhom,
       // filterByServicio,
       selectServicio,
       selectEspecialidad,

@@ -1,10 +1,6 @@
 import BackButton from '@/components/BackButton';
 import { FlexBox, HeaderIconImage } from '@/components/styled';
-import { useAuthNew } from '@/hooks';
 import { ChatTitle } from '@/pages/Chat/StyledChatMensajes';
-import routes from '@/routes';
-import { Prestador } from '@/store/auth/prestador';
-import { User } from '@/store/auth/user';
 import { chatState } from '@/store/chat/chatStore';
 import useSidebar from '@/store/sidebar';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -12,19 +8,19 @@ import MenuIcon from '@mui/icons-material/Menu';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 import { Box, Button, IconButton, useTheme } from '@mui/material';
-import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Theme } from '@mui/material/styles';
 import { styled } from '@mui/system';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { routesToExcludeInHeader } from '../routesToExcludeInHeader';
+import { useAuth } from '../../../hooks/useAuthSupabase';
+import { Customer, Supplier } from '../../../models';
+import { AuthCustomer, AuthSupplier } from '../../../types/auth';
 
 const DesktopHeaderContent = () => {
-  const { user, prestador } = useAuthNew();
+  const { user, supplier, signOut, customer } = useAuth();
   const [, sidebarActions] = useSidebar();
   const chats = useRecoilValue(chatState);
   const username = chats?.username;
@@ -59,11 +55,7 @@ const DesktopHeaderContent = () => {
             }}
           >
             Chateando con{' '}
-            {prestadorName
-              ? prestadorName
-              : prestador?.firstname
-              ? prestador?.firstname
-              : prestador?.email}
+            {prestadorName ? prestadorName : supplier?.nombre ? supplier?.nombre : supplier?.email}
           </ChatTitle>
         </Box>
       </FlexBox>
@@ -113,7 +105,11 @@ const DesktopHeaderContent = () => {
           alignItems: 'center',
         }}
       >
-        <BurgerIconWithLogo prestador={prestador} toggle={sidebarActions.toggle} user={user} />
+        <BurgerIconWithLogo
+          supplier={supplier}
+          toggle={sidebarActions.toggle}
+          customer={customer}
+        />
         <Button
           variant="outlined"
           sx={{
@@ -127,7 +123,7 @@ const DesktopHeaderContent = () => {
           Mercado Fiel
         </Button>
       </FlexBox>
-      <List
+      {/* <List
         sx={{
           display: 'flex',
           flexDirection: 'row',
@@ -175,17 +171,14 @@ const DesktopHeaderContent = () => {
                 </div>
               ),
             )}
-
-        {user?.role === 'admin' ? (
-          <AdminHeaderContent />
-        ) : user?.role === 'user' ? (
+        {customer?.email ? (
           <UserHeaderContent />
-        ) : prestador?.email ? (
+        ) : supplier?.email ? (
           <ProviderHeaderContent />
         ) : (
-          <UnauthenticatedHeaderContent />
+          <AdminHeaderContent />
         )}
-      </List>
+      </List> */}
     </FlexBox>
   );
 };
@@ -193,15 +186,15 @@ const DesktopHeaderContent = () => {
 export default DesktopHeaderContent;
 
 type BurgerIconWithLogoProps = {
-  user: User | null;
-  prestador: Prestador | null;
+  customer: AuthCustomer | Customer | null;
+  supplier: AuthSupplier | Supplier | null;
   toggle: () => void;
 };
 
-const BurgerIconWithLogo = ({ user, prestador, toggle }: BurgerIconWithLogoProps) => {
+const BurgerIconWithLogo = ({ customer: user, supplier, toggle }: BurgerIconWithLogoProps) => {
   return (
     <FlexBox>
-      {(user?.email || prestador?.email) && (
+      {(user?.email || supplier?.email) && (
         <IconButton
           onClick={toggle}
           size="large"
@@ -232,7 +225,7 @@ const StyledListItem = styled(ListItemText)({
 });
 
 const AdminHeaderContent = () => {
-  const { logout } = useAuthNew();
+  const { signOut } = useAuth();
   const theme = useTheme<Theme>();
   const navigate = useNavigate();
   return (
@@ -263,7 +256,7 @@ const AdminHeaderContent = () => {
               backgroundColor: theme.palette.primary.dark,
             },
           }}
-          onClick={() => logout()}
+          onClick={() => signOut()}
         >
           Salir
         </Button>
@@ -274,7 +267,7 @@ const AdminHeaderContent = () => {
 
 const UserHeaderContent = () => {
   const theme = useTheme();
-  const { logout } = useAuthNew();
+  const { signOut } = useAuth();
   return (
     <>
       <ListItem sx={{ mx: 'auto' }}>
@@ -313,7 +306,7 @@ const UserHeaderContent = () => {
       </ListItem>
       <ListItem sx={{ mx: 'auto' }}>
         <Button
-          onClick={() => logout()}
+          onClick={() => signOut()}
           variant="contained"
           sx={{
             '&:hover': {
@@ -330,7 +323,7 @@ const UserHeaderContent = () => {
 
 const ProviderHeaderContent = () => {
   const theme = useTheme();
-  const { logout } = useAuthNew();
+  const { signOut } = useAuth();
   return (
     <>
       <ListItem sx={{ mx: 'auto' }}>
@@ -352,7 +345,7 @@ const ProviderHeaderContent = () => {
       </ListItem>
       <ListItem sx={{ mx: 'auto' }}>
         <Button
-          onClick={() => logout()}
+          onClick={() => signOut()}
           variant="contained"
           sx={{
             '&:hover': {

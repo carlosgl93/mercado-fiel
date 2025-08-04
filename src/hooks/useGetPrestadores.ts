@@ -1,12 +1,12 @@
-import { useSetRecoilState } from 'recoil';
-import { useEffect, useState } from 'react';
-import { useInfiniteQuery, useQuery } from 'react-query';
-import { QueryDocumentSnapshot } from 'firebase/firestore';
-import useRecibeApoyo from '@/store/recibeApoyo';
-import { Prestador } from '@/store/auth/prestador';
-import { notificationState } from '@/store/snackbar';
 import { getAllPrestadores, getPrestadores } from '@/api/prestadores';
 import { getTotalPrestadoresQuery } from '@/api/prestadores/getTotalPrestadores';
+import { Prestador } from '@/store/auth/proveedor';
+import useRecibeApoyo from '@/store/recibeApoyo';
+import { notificationState } from '@/store/snackbar';
+import { QueryDocumentSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { useInfiniteQuery, useQuery } from 'react-query';
+import { useSetRecoilState } from 'recoil';
 
 export const useGetPrestadores = () => {
   const [{ servicio, comuna, especialidad }] = useRecibeApoyo();

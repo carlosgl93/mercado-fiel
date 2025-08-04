@@ -1,14 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
 import { Conversation, getProviderInboxMessages } from '@/api/firebase/chat';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import { useSetRecoilState } from 'recoil';
 import { chatState } from '@/store/chat/chatStore';
+import { useQuery } from 'react-query';
+import { useNavigate } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { useAuth } from '../../hooks';
 
 export const usePrestadorInbox = () => {
-  const { prestador } = useAuthNew();
+  const { proveedor } = useAuth();
   const setMessages = useSetRecoilState(chatState);
-  const providerId = prestador?.id;
+  const providerId = proveedor?.id;
 
   const router = useNavigate();
 

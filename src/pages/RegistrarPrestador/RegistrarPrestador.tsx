@@ -7,7 +7,7 @@ import RegistrarPrestadorController from './RegistrarPrestadorController';
 import { formInputs } from './formInputs';
 
 function RegistrarPrestador() {
-  const { state, handleChange, handleSubmit, handleAcceptTerms, createPrestadorLoading } =
+  const { state, handleChange, handleSubmit, handleAcceptTerms, signUpLoading } =
     RegistrarPrestadorController();
   const theme = useTheme();
   return (
@@ -127,7 +127,7 @@ function RegistrarPrestador() {
                 state.contrasena === '' ||
                 state.confirmarContrasena === '' ||
                 state.error !== '' ||
-                createPrestadorLoading
+                signUpLoading
               }
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {

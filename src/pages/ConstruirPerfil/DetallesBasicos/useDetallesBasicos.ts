@@ -1,12 +1,12 @@
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useMutation } from 'react-query';
-import { notificationState } from '@/store/snackbar';
-import { IDetallesBasicosInputs } from './DetallesBasicos';
-import { Prestador, prestadorState } from '@/store/auth/prestador';
 import { updatePrestadorDetallesBasicos } from '@/api/prestadores/updatePrestadorDetallesBasicos';
+import { Prestador, proveedorState } from '@/store/auth/proveedor';
+import { notificationState } from '@/store/snackbar';
+import { useMutation } from 'react-query';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { IDetallesBasicosInputs } from './DetallesBasicos';
 
 export const useDetallesBasicos = () => {
-  const [prestador, setPrestadorState] = useRecoilState(prestadorState);
+  const [prestador, setPrestadorState] = useRecoilState(proveedorState);
   const setNotification = useSetRecoilState(notificationState);
   const { mutate: updatePrestadorMutation, isLoading: updatePrestadorLoading } = useMutation(
     updatePrestadorDetallesBasicos,

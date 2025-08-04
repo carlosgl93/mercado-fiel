@@ -14,17 +14,16 @@ import {
 } from './StyledChatMensajes';
 
 import Loading from '@/components/Loading';
+import { CenteredFlexBox } from '@/components/styled';
+import { useAuth, useChat, usePrestador } from '@/hooks';
+import { chatState } from '@/store/chat/chatStore';
 import { formatDate } from '@/utils/formatDate';
 import { Box, CircularProgress } from '@mui/material';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import { useRecoilValue } from 'recoil';
-import { chatState } from '@/store/chat/chatStore';
-import { useChat, usePrestador } from '@/hooks';
-import { CenteredFlexBox } from '@/components/styled';
 import { useLocation } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
 
 export const UserChat = () => {
-  const { user } = useAuthNew();
+  const { user } = useAuth();
   const conversation = useRecoilValue(chatState);
   const { prestador } = usePrestador(conversation?.providerId);
   const location = useLocation();

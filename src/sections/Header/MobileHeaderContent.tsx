@@ -6,7 +6,7 @@ import BackButton from '@/components/BackButton';
 import { FlexBox, HeaderIconImage } from '@/components/styled';
 import { ChatTitle } from '@/pages/Chat/StyledChatMensajes';
 import { chatState } from '@/store/chat/chatStore';
-import { interactedPrestadorState } from '@/store/resultados/interactedPrestador';
+import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
 import useSidebar from '@/store/sidebar';
 import { Box, styled } from '@mui/material';
 import { useRecoilValue } from 'recoil';
@@ -15,7 +15,7 @@ import { SubTitle } from '../../components/StyledComponents';
 const MobileHeaderContent = () => {
   const [, sidebarActions] = useSidebar();
   const location = useLocation();
-  const prestador = useRecoilValue(interactedPrestadorState);
+  const prestador = useRecoilValue(interactedProveedorState);
   const chats = useRecoilValue(chatState);
   const username = chats?.username;
   const prestadorName = chats?.providerName;

@@ -1,7 +1,7 @@
 import Loading from '@/components/Loading';
 import { Search } from '@mui/icons-material';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { IconButton, InputAdornment } from '@mui/material';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { IconButtonBox, StyledOutlinedInput, Wrapper } from '../styledBackOffice';
 import { PrestadoresGridController } from './Controllers/PrestadoresGridController';
 
@@ -15,14 +15,12 @@ export const Prestadores = () => {
     allPrestadoresLoading,
     isLoadingVerifyPrestador,
     isLoadingTotalPrestadores,
-    isLoadingFailedVerifyPrestador,
+    // isLoadingFailedVerifyPrestador,
   } = PrestadoresGridController();
 
   const isLoading =
-    isLoadingFailedVerifyPrestador ||
-    isLoadingTotalPrestadores ||
-    isLoadingVerifyPrestador ||
-    allPrestadoresLoading;
+    // isLoadingFailedVerifyPrestador ||
+    isLoadingTotalPrestadores || isLoadingVerifyPrestador || allPrestadoresLoading;
 
   if (rows && totalPrestadores)
     return (

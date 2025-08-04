@@ -1,23 +1,22 @@
+import { SendMessageArgs } from '@/api/firebase/chat';
+import { Apoyo } from '@/api/supportRequests';
+import { useAuth, useChat } from '@/hooks';
+import { Prestador } from '@/store/auth/proveedor';
+import { User } from '@/store/auth/user';
+import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
+import { Box } from '@mui/material';
 import React from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+import { useRecoilValue } from 'recoil';
+import Loading from '../Loading';
 import { Title } from '../StyledComponents';
 import {
-  StyledTextArea,
-  StyledMessageOption,
-  StyledModalCTAsContainer,
   StyledCerrarButton,
   StyledEnviarButton,
+  StyledMessageOption,
+  StyledModalCTAsContainer,
+  StyledTextArea,
 } from './ChatModalStyledComponents';
-import { useChat } from '@/hooks';
-import { useLocation, useParams } from 'react-router-dom';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import Loading from '../Loading';
-import { Box } from '@mui/material';
-import { interactedPrestadorState } from '@/store/resultados/interactedPrestador';
-import { useRecoilValue } from 'recoil';
-import { Apoyo } from '@/api/supportRequests';
-import { User } from '@/store/auth/user';
-import { Prestador } from '@/store/auth/prestador';
-import { SendMessageArgs } from '@/api/firebase/chat';
 
 type EnviarMensajeProps = {
   message: string;
@@ -52,13 +51,13 @@ export const EnviarMensaje = ({
   const handleClickPredefinedMessage = (message: string) => {
     setMessage(message);
   };
-  const prestadorState = useRecoilValue(interactedPrestadorState);
+  const prestadorState = useRecoilValue(interactedProveedorState);
   const interactedPrestador = prestadorState
     ? prestadorState
     : { id: '', firstname: '', email: '' };
   const { pathname } = useLocation();
   const { id } = useParams();
-  const { user } = useAuthNew();
+  const { user } = useAuth();
   const providerId =
     prestador?.id ?? prestadorId ?? interactedPrestador?.id ?? (id || prestador?.id);
   const customerId = userId ?? user?.id ?? customer?.id;
@@ -74,7 +73,8 @@ export const EnviarMensaje = ({
       providerName: interactedPrestador?.firstname?.length
         ? interactedPrestador.firstname
         : interactedPrestador.email,
-      providerEmail: interactedPrestador.email,
+      // providerEmail: interactedPrestador.email,k
+      providerEmail: '',
       userEmail: user?.email ?? '',
     };
   } else {
@@ -85,8 +85,8 @@ export const EnviarMensaje = ({
       userId: customerId,
       username: customer?.firstname,
       providerName: prestador?.firstname?.length ? prestador?.firstname : prestador?.email,
-      providerEmail: prestador!.email,
-      userEmail: customer!.email,
+      providerEmail: '',
+      userEmail: '',
     };
   }
 

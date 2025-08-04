@@ -1,5 +1,5 @@
 import { sendEmailApi } from '@/api';
-import { Prestador } from '@/store/auth/prestador';
+import { Prestador } from '@/store/auth/proveedor';
 import { NotificationState } from '@/store/snackbar';
 import { QueryClient } from 'react-query';
 import { SetterOrUpdater } from 'recoil';

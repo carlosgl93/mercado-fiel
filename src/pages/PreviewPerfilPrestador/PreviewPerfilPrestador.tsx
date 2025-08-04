@@ -1,12 +1,12 @@
-import '../PerfilPrestador/mobileProfile.css';
-import Meta from '@/components/Meta';
-import { PreviewMobileProfile } from './PreviewMobileProfile';
-import { useAuthNew, usePrestador } from '@/hooks';
 import Loading from '@/components/Loading';
+import Meta from '@/components/Meta';
+import { useAuth, usePrestador } from '@/hooks';
+import '../PerfilPrestador/mobileProfile.css';
+import { PreviewMobileProfile } from './PreviewMobileProfile';
 
 function PreviewPerfilPrestador() {
-  const { prestador: loggedPrestador } = useAuthNew();
-  const { prestador, isLoading } = usePrestador(loggedPrestador?.id ?? '');
+  const { proveedor: loggedProveedor } = useAuth();
+  const { prestador, isLoading } = usePrestador(loggedProveedor?.id ?? '');
 
   return (
     <>

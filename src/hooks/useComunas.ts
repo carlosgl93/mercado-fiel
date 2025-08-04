@@ -1,5 +1,5 @@
 import { db } from '@/firebase/firebase';
-import { Prestador, prestadorState } from '@/store/auth/prestador';
+import { Prestador, proveedorState } from '@/store/auth/proveedor';
 import { comunasState } from '@/store/construirPerfil/comunas';
 import { notificationState } from '@/store/snackbar';
 import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { getAllComunas } from '../api/comunas';
 import { Comuna } from '../models';
-import { useAuthNew } from './useAuthNew';
+import { useAuth } from './useAuth';
 
 const updateProviderComunas = async ({
   providerId,
@@ -25,21 +25,21 @@ const updateProviderComunas = async ({
   });
 };
 
-const removePrestadorComuna = async ({
-  providerId,
-  comuna,
-  comunas,
-}: {
-  providerId: string;
-  comuna: Comuna;
-  comunas: Comuna[];
-}) => {
-  const providerRef = doc(db, 'providers', providerId);
+// const removePrestadorComuna = async ({
+//   providerId,
+//   comuna,
+//   comunas,
+// }: {
+//   providerId: string;
+//   comuna: Comuna;
+//   comunas: Comuna[];
+// }) => {
+//   const providerRef = doc(db, 'providers', providerId);
 
-  await updateDoc(providerRef, {
-    comunas: comunas.filter((c) => c.name !== comuna.name),
-  });
-};
+//   await updateDoc(providerRef, {
+//     comunas: comunas.filter((c) => c.name !== comuna.name),
+//   });
+// };
 
 const fetchProviderComunas = async (providerId: string | undefined) => {
   if (!providerId) return;
@@ -60,8 +60,8 @@ export const useComunas = () => {
   const [matchedComunas, setMatchedComunas] = useState<Comuna[]>([]);
   const [selectedComunas, setSelectedComunas] = useRecoilState(comunasState);
   const [, setNotification] = useRecoilState(notificationState);
-  const { prestador, user } = useAuthNew();
-  const setPrestador = useSetRecoilState(prestadorState);
+  const { proveedor, user } = useAuth();
+  const setPrestador = useSetRecoilState(proveedorState);
   const queryClient = useQueryClient();
 
   const { data: allComunas, isLoading: isLoadingAllComunas } = useQuery<Comuna[]>(
@@ -110,21 +110,21 @@ export const useComunas = () => {
     }
   };
 
-  const handleUpdatePrestadorComunas = () => {
-    if (selectedComunas.length === 0) {
-      setNotification({
-        message: 'Debes seleccionar al menos una comuna',
-        severity: 'warning',
-        open: true,
-      });
-      return;
-    }
+  // const handleUpdatePrestadorComunas = () => {
+  //   if (selectedComunas.length === 0) {
+  //     setNotification({
+  //       message: 'Debes seleccionar al menos una comuna',
+  //       severity: 'warning',
+  //       open: true,
+  //     });
+  //     return;
+  //   }
 
-    updateComunas({
-      providerId: prestador!.id,
-      comunas: selectedComunas,
-    });
-  };
+  //   updateComunas({
+  //     providerId: proveedor!.idProveedor,
+  //     comunas: selectedComunas,
+  //   });
+  // };
 
   const { mutate: updateComunas, isLoading: updateComunasisLoading } = useMutation(
     updateProviderComunas,
@@ -154,36 +154,36 @@ export const useComunas = () => {
     },
   );
 
-  const handleRemoveComuna = (comuna: Comuna) => {
-    if (prestador?.email) {
-      removeComuna({ providerId: prestador!.id, comuna, comunas: selectedComunas });
-    }
-    setSelectedComunas((prev) => prev.filter((comunaState) => comunaState.id !== comuna.id));
-  };
+  // const handleRemoveComuna = (comuna: Comuna) => {
+  //   if (proveedor?.email) {
+  //     removeComuna({ providerId: proveedor!.id, comuna, comunas: selectedComunas });
+  //   }
+  //   setSelectedComunas((prev) => prev.filter((comunaState) => comunaState.id !== comuna.id));
+  // };
 
-  const { mutate: removeComuna, isLoading: removeComunaIsLoading } = useMutation(
-    removePrestadorComuna,
-    {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries('providerComunas');
+  // const { mutate: removeComuna, isLoading: removeComunaIsLoading } = useMutation(
+  //   removePrestadorComuna,
+  //   {
+  //     onSuccess: async () => {
+  //       await queryClient.invalidateQueries('providerComunas');
 
-        setNotification({
-          message: 'Comuna eliminada',
-          severity: 'success',
-          open: true,
-        });
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    },
-  );
+  //       setNotification({
+  //         message: 'Comuna eliminada',
+  //         severity: 'success',
+  //         open: true,
+  //       });
+  //     },
+  //     onError: (error) => {
+  //       console.error(error);
+  //     },
+  //   },
+  // );
 
   const { data: prestadorComunas, isLoading: fetchPrestadorComunasIsLoading } = useQuery(
-    ['providerComunas', prestador?.id],
-    () => fetchProviderComunas(prestador?.id),
+    ['providerComunas', proveedor?.id],
+    () => fetchProviderComunas(proveedor?.id),
     {
-      enabled: !!prestador?.id,
+      enabled: !!proveedor?.id,
       onSuccess(data) {
         setSelectedComunas([...data]);
       },
@@ -220,7 +220,7 @@ export const useComunas = () => {
     matchedComunas,
     selectedComunas,
     updateComunasisLoading,
-    removeComunaIsLoading,
+    // removeComunaIsLoading,
     fetchPrestadorComunasIsLoading,
     prestadorComunas,
     isLoadingAllComunas,
@@ -229,8 +229,8 @@ export const useComunas = () => {
     setMatchedComunas,
     handleChangeSearchComuna,
     handleSelectComuna,
-    handleRemoveComuna,
-    handleUpdatePrestadorComunas,
+    // handleRemoveComuna,
+    // handleUpdatePrestadorComunas,
     resetComunas,
   };
 };

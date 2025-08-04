@@ -6,11 +6,6 @@ import {
 } from '@/api/disponibilidad/getDisponibilidadByPrestadorId';
 import { postDisponibilidad } from '@/api/disponibilidad/postDisponibilidad';
 import { getPrestadorById } from '@/api/prestadores/getPrestadorById';
-import { postTarifas } from '@/api/tarifas';
-import { getPrestadorTarifas } from '@/api/tarifas/getTarifas';
-import { postFreeMeetGreet } from '@/api/tarifas/postFreeMeetGreet';
-import { HistorialLaboralEntry } from '@/hooks/useHistorialLaboral';
-import { EducacionInputs } from '@/pages/ConstruirPerfil/EducacionFormacion/EducacionFormacion';
 import { Comuna, Prestador, TarifaFront } from '@/types';
 import { CuentaBancaria } from '@/types/CuentaBancaria';
 import { useEffect } from 'react';
@@ -34,8 +29,6 @@ type ConstruirPerfilState = {
   editDisponibilidad: boolean;
   experiencia: ExperienceState;
   cuentaBancaria: CuentaBancaria | undefined;
-  historialLaboral: HistorialLaboralEntry[];
-  educacionFormacion: EducacionInputs[];
   [key: string]:
     | DisponibilidadFromFront[]
     | Prestador
@@ -46,9 +39,7 @@ type ConstruirPerfilState = {
     | null
     | undefined
     | ExperienceState
-    | CuentaBancaria
-    | HistorialLaboralEntry[]
-    | EducacionInputs[];
+    | CuentaBancaria;
 };
 
 export const construirPerfilState = atom<ConstruirPerfilState>({
@@ -159,21 +150,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
         ...prev,
         loading: false,
         error: 'Hubo un error obteniendo las comunas.',
-      }));
-    }
-  }
-
-  async function getTarifas(id: string) {
-    try {
-      setConstruirPerfil((prev) => ({ ...prev, loading: true }));
-      const tarifasResponse = await getPrestadorTarifas(id);
-      const tarifas = tarifasResponse;
-      setConstruirPerfil((prev) => ({ ...prev, tarifas, loading: false }));
-    } catch (error) {
-      setConstruirPerfil((prev) => ({
-        ...prev,
-        loading: false,
-        error: 'Hubo un error obteniendo las tarifas.',
       }));
     }
   }
@@ -360,35 +336,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
     }));
   };
 
-  const handleSaveTarifas = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setConstruirPerfil((prev) => ({ ...prev, loading: true }));
-    try {
-      await postTarifas(user?.id ?? '', construirPerfil?.tarifas as TarifaFront[]);
-      await postFreeMeetGreet(
-        user?.id ?? '',
-        construirPerfil.prestador.offersFreeMeetAndGreet as boolean,
-      );
-      setNotification({
-        message: 'Tarifas guardadas exitosamente',
-        severity: 'success',
-        open: true,
-      });
-      setConstruirPerfil((prev) => ({
-        ...prev,
-        loading: false,
-      }));
-    } catch (error) {
-      console.log({ error });
-      setNotification({
-        message: 'Hubo un error guardando las tarifas',
-        severity: 'error',
-        open: true,
-      });
-      setConstruirPerfil((prev) => ({ ...prev, loading: false }));
-    }
-  };
-
   useEffect(() => {
     setConstruirPerfil((prev) => ({ ...prev, loading: true }));
     if (user) {
@@ -426,7 +373,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
       getPrestador,
       getDisponibilidad,
       getComunas,
-      getTarifas,
       handleEditDisponibilidad,
       handleToggleDisponibilidadDay,
       handleTimeChange,
@@ -437,8 +383,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
       handleUpdatePrestadorComunas,
       handleSearchComunaOnChange,
       handleVerPerfil,
-      handleChangeTarifa,
-      handleSaveTarifas,
     },
   ];
 };

@@ -1,11 +1,10 @@
-import { CreateUserParams, ForWhom } from '@/api/auth';
 import useRecibeApoyo from '@/store/recibeApoyo';
+import { notificationState } from '@/store/snackbar';
+import { Comuna } from '@/types';
 import { ChangeEvent, useEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthNew } from '@/hooks';
-import { Comuna } from '@/types';
 import { useSetRecoilState } from 'recoil';
-import { notificationState } from '@/store/snackbar';
+import { useAuth } from '../../hooks';
 
 export type Patient = {
   name: string;
@@ -19,7 +18,6 @@ type FormState = {
   error: string;
   nombre: string;
   apellido: string;
-  paraQuien: ForWhom;
   nombrePaciente: string;
   rut: string;
   correo: string;
@@ -83,11 +81,11 @@ const reducer = (state: FormState, action: FormActions) => {
 };
 
 const RegistrarUsuarioController = () => {
-  const { createUser, user, prestador } = useAuthNew();
+  const { signUpWithEmail, cliente, proveedor } = useAuth();
   const navigate = useNavigate();
   const setNotification = useSetRecoilState(notificationState);
 
-  const [{ forWhom, comuna, servicio, especialidad }] = useRecibeApoyo();
+  const [{ comuna, servicio, especialidad }] = useRecibeApoyo();
 
   const initialState = localStorage.getItem('formState')
     ? JSON.parse(localStorage.getItem('formState') || '{}')
@@ -95,7 +93,6 @@ const RegistrarUsuarioController = () => {
         error: '',
         nombre: '',
         apellido: '',
-        paraQuien: forWhom,
         nombrePaciente: '',
         rut: '',
         correo: '',
@@ -103,8 +100,6 @@ const RegistrarUsuarioController = () => {
         confirmarContrasena: '',
         acceptedTerms: false,
       };
-
-  initialState.paraQuien = forWhom;
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -133,7 +128,7 @@ const RegistrarUsuarioController = () => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!emailRegex.test(correo)) {
       dispatch({
         type: 'ERROR',
@@ -165,7 +160,7 @@ const RegistrarUsuarioController = () => {
       });
       navigate('/recibe-apoyo');
     } else {
-      let newUser: CreateUserParams = {
+      let newUser = {
         nombre,
         apellido,
         contrasena,
@@ -188,19 +183,16 @@ const RegistrarUsuarioController = () => {
       } else {
         newUser = {
           ...newUser,
-          pacientes: [
-            {
-              name: patientName!,
-              age: Number(patientAge!),
-              rut: patientRut!,
-              service: servicio.serviceName,
-              speciality: especialidad?.especialidadName,
-            },
-          ],
         };
       }
       try {
-        createUser(newUser);
+        await signUpWithEmail({
+          email: correo,
+          password: contrasena,
+          nombre: `${nombre} ${apellido}`,
+          type: 'cliente',
+          telefono: '123456789', // You might want to add this to the form
+        });
       } catch (error) {
         dispatch({
           type: 'ERROR',
@@ -231,18 +223,18 @@ const RegistrarUsuarioController = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.email) {
+    if (cliente?.usuario?.email) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (prestador?.email) {
+    if (proveedor?.usuario?.email) {
       navigate('/prestador-dashboard');
       return;
     }
-  }, [user, prestador]);
+  }, [cliente, proveedor, navigate]);
 
   useEffect(() => {
-    if (!servicio || !comuna || !forWhom) {
+    if (!servicio || !comuna) {
       navigate('/recibe-apoyo');
     }
   }, [servicio, comuna]);

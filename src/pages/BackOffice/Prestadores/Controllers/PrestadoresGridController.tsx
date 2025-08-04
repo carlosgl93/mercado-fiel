@@ -1,17 +1,16 @@
+import { verifyPrestadorMutation } from '@/api/prestadores';
+import { useGetPrestadores } from '@/hooks/useGetPrestadores';
+import { Prestador } from '@/store/auth/proveedor';
 import { prestadoresGridPaginationModelState } from '@/store/backoffice/prestadores';
-import { GridColDef, GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { notificationState } from '@/store/snackbar';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
-import { Prestador } from '@/store/auth/prestador';
+import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import dayjs from 'dayjs';
+import { useMemo } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useMemo } from 'react';
-import dayjs from 'dayjs';
-import { failedVerifyPrestadorMutation, verifyPrestadorMutation } from '@/api/prestadores';
-import { notificationState } from '@/store/snackbar';
-import { useGetPrestadores } from '@/hooks/useGetPrestadores';
 import { onSuccessVerifyPrestador } from './onSuccessVerifyPrestador';
-import { onSuccessFailedVerifyPrestador } from './onSuccessFailVerifyPrestador';
 
 type PrestadoresRow = Prestador;
 
@@ -34,12 +33,12 @@ export const PrestadoresGridController = () => {
     },
   );
 
-  const { mutate: failedVerifyPrestador, isLoading: isLoadingFailedVerifyPrestador } = useMutation(
-    failedVerifyPrestadorMutation,
-    {
-      onSuccess: (prestador) => onSuccessFailedVerifyPrestador(prestador, client, setNotification),
-    },
-  );
+  // const { mutate: failedVerifyPrestador, isLoading: isLoadingFailedVerifyPrestador } = useMutation(
+  //   failedVerifyPrestadorMutation,
+  //   {
+  //     onSuccess: (prestador) => onSuccessFailedVerifyPrestador(prestador, client, setNotification),
+  //   },
+  // );
 
   const columns = useMemo<GridColDef<PrestadoresRow>[]>(
     () => [
@@ -120,7 +119,7 @@ export const PrestadoresGridController = () => {
         ],
       },
     ],
-    [failedVerifyPrestador, verifyPrestador],
+    [verifyPrestador],
   );
 
   const handleVerifyPrestador = (prestador: Prestador) => {
@@ -128,7 +127,7 @@ export const PrestadoresGridController = () => {
   };
 
   const handleFailedVerifyPrestador = (prestador: Prestador) => {
-    failedVerifyPrestador(prestador);
+    // failedVerifyPrestador(prestador);
   };
 
   return {
@@ -140,6 +139,5 @@ export const PrestadoresGridController = () => {
     allPrestadoresLoading,
     isLoadingVerifyPrestador,
     isLoadingTotalPrestadores,
-    isLoadingFailedVerifyPrestador,
   };
 };

@@ -1,19 +1,19 @@
-import { NotLoggedInDrawerList } from './NotLoggedInDrawerList';
-import { BrandHomeLinkMobile } from './BrandHomeLinkMobile';
-import { UsuarioDrawerList } from './UsuarioDrawerList';
-import PrestadorDrawerList from './PrestadorDrawer';
-import { useAuthNew } from '@/hooks/useAuthNew';
 import { userState } from '@/store/auth/user';
-import Drawer from '@mui/material/Drawer';
 import useSidebar from '@/store/sidebar';
+import Drawer from '@mui/material/Drawer';
 import { useRecoilValue } from 'recoil';
+import { useAuth } from '../../hooks/useAuthSupabase';
+import { BrandHomeLinkMobile } from './BrandHomeLinkMobile';
+import { NotLoggedInDrawerList } from './NotLoggedInDrawerList';
+import PrestadorDrawerList from './PrestadorDrawer';
+import { UsuarioDrawerList } from './UsuarioDrawerList';
 
 function Sidebar() {
   const [isSidebarOpen, sidebarActions] = useSidebar();
-  const { prestador } = useAuthNew();
+  const { supplier } = useAuth();
   const user = useRecoilValue(userState);
 
-  const isLoggedIn = user?.isLoggedIn || prestador?.isLoggedIn;
+  const isLoggedIn = user !== null && user !== undefined;
 
   const closeDrawer = sidebarActions.close;
 
@@ -24,7 +24,7 @@ function Sidebar() {
         <NotLoggedInDrawerList closeDrawer={closeDrawer} />
       </Drawer>
     );
-  } else if (isLoggedIn && prestador?.id.length) {
+  } else if (isLoggedIn && supplier?.idUsuario) {
     return (
       <Drawer anchor="left" open={isSidebarOpen} onClose={closeDrawer}>
         <BrandHomeLinkMobile />

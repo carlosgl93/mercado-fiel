@@ -1,4 +1,5 @@
 import { getAllExperiences, saveExperiences } from '@/api/experience';
+import { proveedorState } from '@/store/auth/proveedor';
 import {
   aggregatedExperienceState,
   allExperiencesState,
@@ -9,11 +10,10 @@ import { notificationState } from '@/store/snackbar';
 import { AxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { prestadorState } from '@/store/auth/prestador';
 
 export const useExperiencia = () => {
   const [notification, setNotification] = useRecoilState(notificationState);
-  const [prestador, setPrestadorState] = useRecoilState(prestadorState);
+  const [prestador, setPrestadorState] = useRecoilState(proveedorState);
 
   const [aggregatedExperience, setAggregatedExperience] = useRecoilState(aggregatedExperienceState);
   const experienceOptions = useRecoilValue(allExperiencesState);

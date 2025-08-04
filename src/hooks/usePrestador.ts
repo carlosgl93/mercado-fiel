@@ -1,12 +1,11 @@
-import { Prestador } from '@/store/auth/prestador';
-import { notificationState } from '@/store/snackbar';
 import { db } from '@/firebase/firebase';
+import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
+import { Prestador } from '@/store/auth/proveedor';
+import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
+import { notificationState } from '@/store/snackbar';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { useQuery } from 'react-query';
 import { useSetRecoilState } from 'recoil';
-import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
-import { UserCreatedServicio } from '@/pages/ConstruirPerfil/Servicio/types';
-import { interactedPrestadorState } from '@/store/resultados/interactedPrestador';
 
 const dayOrder = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 
@@ -26,7 +25,7 @@ const getPrestadorByIdFirestore = async (id: string): Promise<Prestador> => {
   const availabilitySnapshot = await getDocs(availabilityRef);
   const servicesSnapshot = await getDocs(servicesRef);
   const availability = availabilitySnapshot.docs.map((doc) => doc.data()) as AvailabilityData[];
-  const services = servicesSnapshot.docs.map((d) => d.data()) as UserCreatedServicio[];
+  const services = servicesSnapshot.docs.map((d) => d.data());
   prestador.availability = sortedAvailability(availability);
   prestador.createdServicios = services;
   return prestador;
@@ -34,7 +33,7 @@ const getPrestadorByIdFirestore = async (id: string): Promise<Prestador> => {
 
 export const usePrestador = (prestadorId: string) => {
   const setNotification = useSetRecoilState(notificationState);
-  const setInteractedPrestador = useSetRecoilState(interactedPrestadorState);
+  const setInteractedPrestador = useSetRecoilState(interactedProveedorState);
 
   const {
     data: prestador,

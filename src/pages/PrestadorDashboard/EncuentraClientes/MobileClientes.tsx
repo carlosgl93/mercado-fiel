@@ -1,23 +1,12 @@
-import { Suspense, createElement } from 'react';
-import { Box, useTheme, Button, ListItem, List, styled } from '@mui/material';
-import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import Loading from '@/components/Loading';
-import { Text, Title } from '@/components/StyledComponents';
-import { Link } from 'react-router-dom';
-import { useComunas, useServicios, useSupportRequests } from '@/hooks';
-import { Apoyo } from '@/api/supportRequests';
-import { getRecurrencyText } from '@/utils/getRecurrencyText';
-import { capitalizeFirst } from '../../../utils/capitalizeFirstLetter';
 import { FlexBox } from '@/components/styled';
-import LoupeIcon from '@mui/icons-material/Loupe';
-import EventRepeatIcon from '@mui/icons-material/EventRepeat';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { useComunas } from '@/hooks';
+import { Box, List, styled, useTheme } from '@mui/material';
+import { Suspense } from 'react';
 
 export const MobileClientes = () => {
-  const { infiniteSupportRequests } = useSupportRequests();
-  const { getServiceIcon } = useServicios();
   const { getComunasNamesById } = useComunas();
-  const supportRequests = infiniteSupportRequests?.pages.map((page) => page.supportRequests);
+  // const supportRequests = infiniteSupportRequests?.pages.map((page) => page.supportRequests);
   const theme = useTheme();
   return (
     <>
@@ -38,7 +27,7 @@ export const MobileClientes = () => {
               p: 0,
             }}
           >
-            {(supportRequests || []).length > 0 ? (
+            {/* {(supportRequests || []).length > 0 ? (
               supportRequests?.map((page, pageIndex) => {
                 return (
                   <div key={pageIndex}>
@@ -152,7 +141,7 @@ export const MobileClientes = () => {
               >
                 <Text>Aún no hay usuarios buscando apoyo para tu servicio y/o comuna</Text>
               </Box>
-            )}
+            )} */}
           </List>
         </Suspense>
       </Box>

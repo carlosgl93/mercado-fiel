@@ -2,22 +2,18 @@ import Loading from '@/components/Loading';
 import Meta from '@/components/Meta';
 import { Text, TextContainer, Title } from '@/components/StyledComponents';
 import { FlexBox, FullSizeCenteredFlexBox } from '@/components/styled';
-import { useAuthNew } from '@/hooks/useAuthNew';
-import useRecibeApoyo from '@/store/recibeApoyo';
 import { Box, Button, Checkbox, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks';
 import RegistrarUsuarioController from './RegistrarUsuarioController';
-import { StyledInput } from './StyledInput';
-import { selfPatient, withPatientInputs } from './formInputs';
 
 function RegistrarUsuario() {
-  const [{ forWhom }] = useRecibeApoyo();
   const { state, handleChange, handleSubmit, handleAcceptTerms } = RegistrarUsuarioController();
   const theme = useTheme();
 
-  const { createUserLoading, createUserError } = useAuthNew();
+  const { signUpLoading, signUpError } = useAuth();
 
-  if (createUserLoading) return <Loading />;
+  if (signUpLoading) return <Loading />;
 
   const shouldDisable =
     state.nombre === '' ||
@@ -28,10 +24,7 @@ function RegistrarUsuario() {
     state.error !== '' ||
     state.rut === '' ||
     !state.acceptedTerms ||
-    createUserLoading ||
-    !!createUserError ||
-    (forWhom === 'tercero' &&
-      (state.patientName === '' || state.patientAge === '' || state.patientRut === ''));
+    signUpLoading;
 
   return (
     <>
@@ -84,27 +77,6 @@ function RegistrarUsuario() {
               </Typography>
             </TextContainer>
           )}
-          {forWhom === 'paciente'
-            ? selfPatient.map((input, i) => {
-                return (
-                  <StyledInput
-                    key={i}
-                    input={input}
-                    handleChange={handleChange}
-                    value={state[input?.inputName] as string}
-                  />
-                );
-              })
-            : withPatientInputs.map((input, i) => {
-                return (
-                  <StyledInput
-                    key={i}
-                    input={input}
-                    handleChange={handleChange}
-                    value={state[input?.inputName] as string}
-                  />
-                );
-              })}
           {/* TODO: ADD CAPTCHA */}
           <FlexBox
             sx={{
@@ -145,14 +117,14 @@ function RegistrarUsuario() {
               alignItems: 'center',
             }}
           >
-            {createUserError && (
+            {signUpError && (
               <Box>
                 <Text
                   sx={{
                     color: 'red',
                   }}
                 >
-                  Hubo un error al crear tu cuenta. {createUserError.message}
+                  Hubo un error al crear tu cuenta. {signUpError?.message}
                 </Text>
               </Box>
             )}

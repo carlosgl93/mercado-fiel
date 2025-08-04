@@ -1,12 +1,11 @@
 import Reviews from '@/components/Reviews';
 import { Text, Title } from '@/components/StyledComponents';
-import useAuth from '@/store/auth';
 import useRecibeApoyo from '@/store/recibeApoyo';
 import { Especialidad, Servicio } from '@/types/Servicio';
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import { Box } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ProfileGrid,
@@ -23,58 +22,39 @@ import {
 } from './DesktopPerfilPrestadorStyledComponents';
 import { styles } from './styles';
 
-import Loading from '@/components/Loading';
-import { useAuthNew } from '@/hooks';
-import { Prestador } from '@/types';
+import { useAuth } from '../../hooks';
 
 export const PreviewDesktopProfile = () => {
-  const { prestador, isLoggedIn } = useAuthNew();
-  const [, { updateRedirectToAfterLogin }] = useAuth();
-
-  const {
-    id,
-    firstname,
-    lastname,
-    imageUrl,
-    servicio,
-    especialidad,
-    averageReviews,
-    totalReviews,
-    description,
-  } = prestador as Prestador;
+  const { proveedor } = useAuth();
 
   const [{ allServicios }] = useRecibeApoyo();
   const [prestadorServicio, setPrestadorServicio] = useState({} as Servicio);
   const [prestadorEspecialidad, setPrestadorEspecialidad] = useState({} as Especialidad);
   const navigate = useNavigate();
+  if (!proveedor) {
+    return <span>No hay proveedor disponible</span>;
+  }
+  const {
+    idProveedor: id,
+    nombreNegocio: firstname,
+    descripcion,
+    profileImageUrl: imageUrl,
+    averageReviews,
+    totalReviews,
+  } = proveedor;
 
   const handleContact = () => {
-    if (isLoggedIn && prestador) {
-      navigate(`/chat/${id}`);
+    if (proveedor) {
+      navigate(`/chat/${proveedor.id}`);
       return;
     }
 
-    updateRedirectToAfterLogin(`/perfil-prestador/${id}`);
+    // updateRedirectToAfterLogin(`/perfil-prestador/${id}`);
     navigate('/registrar-usuario');
     return;
   };
 
-  useEffect(() => {
-    const thisPrestadorServicio = allServicios?.find((s) => s.serviceName === servicio);
-    if (thisPrestadorServicio) {
-      setPrestadorServicio(thisPrestadorServicio);
-    }
-
-    const thisPrestadorEspecialidad = thisPrestadorServicio?.especialidades?.find(
-      (e) => e.especialidadName === especialidad,
-    ) as Especialidad;
-
-    if (thisPrestadorEspecialidad) {
-      setPrestadorEspecialidad(thisPrestadorEspecialidad);
-    }
-  }, [allServicios, servicio, especialidad]);
-
-  if (!prestador) return <Loading />;
+  if (!proveedor) return <span>No hay proveedor disponible</span>;
 
   return (
     <>
@@ -95,9 +75,7 @@ export const PreviewDesktopProfile = () => {
             <StyledAvatar alt={`Imagen de perfil de ${firstname}`} src={imageUrl} />
           </Box>
           <Box>
-            <StyledName>
-              {firstname} {lastname}
-            </StyledName>
+            <StyledName>{firstname}</StyledName>
             <Reviews average={averageReviews || 0} total_reviews={totalReviews || 0} />
 
             <StyledServicio>
@@ -125,7 +103,7 @@ export const PreviewDesktopProfile = () => {
               fontSize: '1.3rem',
             }}
           >
-            Acerca de {firstname} {lastname && lastname[0]?.toUpperCase() + '.'}
+            Acerca de {firstname}
           </Title>
         </Box>
         <Box>
@@ -137,7 +115,7 @@ export const PreviewDesktopProfile = () => {
               fontWeight: '600',
             }}
           >
-            {description}
+            {descripcion}
           </Text>
         </Box>
       </StyledAbout>

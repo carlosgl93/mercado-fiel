@@ -1,6 +1,3 @@
-import { useQuery } from 'react-query';
-import { interactedPrestadorState } from '../store/resultados/interactedPrestador';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
   getAllAppointments,
   getAppointmentByIdQuery,
@@ -9,19 +6,22 @@ import {
   getTotalAppointmentsQuery,
   getUserAppointments,
 } from '@/api/appointments';
-import { useAuthNew } from './useAuthNew';
+import { providerAppointmentsState } from '@/store/appointments/providerAppointmentsState';
 import {
   searchedAppointmentState,
   userAppointmentsState,
 } from '@/store/appointments/userAppointmentsState';
-import { notificationState } from '@/store/snackbar';
-import { providerAppointmentsState } from '@/store/appointments/providerAppointmentsState';
 import { paymentsGridPaginationModelState } from '@/store/backoffice/payments';
-import { useState } from 'react';
+import { notificationState } from '@/store/snackbar';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { useState } from 'react';
+import { useQuery } from 'react-query';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { interactedProveedorState } from '../store/resultados/interactedPrestador';
+import { useAuth } from './useAuth';
 
 export const useAppointments = (appointmentsIds?: string) => {
-  const interactedPrestador = useRecoilValue(interactedPrestadorState);
+  const interactedPrestador = useRecoilValue(interactedProveedorState);
   const setUserAppointments = useSetRecoilState(userAppointmentsState);
   const setPrestadorAppointments = useSetRecoilState(providerAppointmentsState);
   const appointmentId = useRecoilValue(searchedAppointmentState);
@@ -31,8 +31,8 @@ export const useAppointments = (appointmentsIds?: string) => {
   );
 
   const setNotification = useSetRecoilState(notificationState);
-  const { user, prestador } = useAuthNew();
-  const providerId = interactedPrestador?.id ?? prestador?.id;
+  const { user, proveedor } = useAuth();
+  const providerId = interactedPrestador?.id ?? proveedor?.id;
   const userId = user?.id;
 
   const {

@@ -1,5 +1,7 @@
 import { getCuentaBancaria } from '@/api/cuentaBancaria/getCuentaBancaria';
+import { postCuentaBancaria } from '@/api/cuentaBancaria/postCuentaBancaria';
 import { CuentaBancariaInputs } from '@/pages/ConstruirPerfil/CuentaBancaria/CuentaBancaria';
+import { Prestador, proveedorState } from '@/store/auth/proveedor';
 import { construirPerfilState } from '@/store/construirPerfil';
 import { notificationState } from '@/store/snackbar';
 import { CuentaBancaria } from '@/types/CuentaBancaria';
@@ -8,16 +10,15 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import { useAuthNew } from './useAuthNew';
-import { postCuentaBancaria } from '@/api/cuentaBancaria/postCuentaBancaria';
-import { Prestador, prestadorState } from '@/store/auth/prestador';
+import { useAuth } from './useAuth';
 
 export const useCuentaBancaria = () => {
   const [notification, setNotification] = useRecoilState(notificationState);
   const [, setConstruirPerfil] = useRecoilState(construirPerfilState);
-  const [prestador, setPrestador] = useRecoilState(prestadorState);
+  const { proveedor } = useAuth();
+  const [prestador, setPrestador] = useRecoilState(proveedorState);
 
-  const { user } = useAuthNew();
+  const { user } = useAuth();
   const searchedId = prestador?.id ?? user?.id ?? '';
 
   const router = useNavigate();
@@ -94,7 +95,7 @@ export const useCuentaBancaria = () => {
   );
 
   useEffect(() => {
-    if (!prestador?.id.length) {
+    if (!proveedor?.idProveedor) {
       router('/ingresar');
     }
   }, []);

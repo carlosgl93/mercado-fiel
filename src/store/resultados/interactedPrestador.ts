@@ -1,7 +1,7 @@
 import { atom } from 'recoil';
-import { Prestador } from '../auth/prestador';
+import { Supplier } from '../../models';
 
-export const interactedPrestadorState = atom<Prestador | null>({
-  key: 'interactedPrestadorState',
+export const interactedProveedorState = atom<Supplier | null>({
+  key: 'interactedProveedorState',
   default: null,
 });

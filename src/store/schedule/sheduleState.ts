@@ -1,4 +1,3 @@
-import { UserCreatedServicio } from '@/pages/ConstruirPerfil/Servicio/types';
 import dayjs from 'dayjs';
 import { atom, useRecoilState } from 'recoil';
 
@@ -6,7 +5,6 @@ export type TScheduleState = {
   isMultiple: boolean;
   howManySessionsToConfirm: number;
   howManySessionsToSchedule: number;
-  selectedService?: UserCreatedServicio;
   selectedTimes: {
     [x: number]: dayjs.Dayjs;
     length?: number | undefined;
@@ -28,7 +26,6 @@ export const defaultScheduleState: TScheduleState = {
   isMultiple: false,
   howManySessionsToConfirm: 1,
   howManySessionsToSchedule: 1,
-  selectedService: undefined,
   selectedTimes: null,
   selectedDates: null,
 };
@@ -46,12 +43,5 @@ export const scheduleState = atom<TScheduleState>({
 export const useSchedule = () => {
   const [schedule, setSchedule] = useRecoilState(scheduleState);
 
-  const handleSetService = (service: UserCreatedServicio) => {
-    setSchedule((prev) => ({
-      ...prev,
-      selectedService: service,
-    }));
-  };
-
-  return { schedule, handleSetService };
+  return { schedule };
 };

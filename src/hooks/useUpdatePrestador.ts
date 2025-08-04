@@ -1,5 +1,5 @@
 // useUpdatePrestador.ts
-import { Prestador } from '@/store/auth/prestador';
+import { Prestador } from '@/store/auth/proveedor';
 import { useEffect, useState } from 'react';
 
 export const useUpdatePrestador = (initialPrestador: Prestador | null) => {

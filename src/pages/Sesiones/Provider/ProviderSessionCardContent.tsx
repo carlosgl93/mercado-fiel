@@ -1,16 +1,16 @@
-import { ProviderAppointmentController } from './ProviderAppointmentController';
-import { Box, Button, CardContent } from '@mui/material';
 import { Appointment } from '@/api/appointments';
-import PaymentIcon from '@mui/icons-material/Payment';
+import Loading from '@/components/Loading';
+import { FlexBox } from '@/components/styled';
 import { Text } from '@/components/StyledComponents';
+import { chatState } from '@/store/chat/chatStore';
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
+import PaymentIcon from '@mui/icons-material/Payment';
 import PersonIcon from '@mui/icons-material/Person';
 import WorkIcon from '@mui/icons-material/Work';
-import { FlexBox } from '@/components/styled';
-import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
+import { Box, Button, CardContent } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Loading from '@/components/Loading';
 import { useSetRecoilState } from 'recoil';
-import { chatState } from '@/store/chat/chatStore';
+import { ProviderAppointmentController } from './ProviderAppointmentController';
 
 type SessionCardContentProps = {
   appointment: Appointment;
@@ -19,7 +19,7 @@ type SessionCardContentProps = {
 export const ProviderSessionCardContent = ({ appointment }: SessionCardContentProps) => {
   const navigate = useNavigate();
   const setChatState = useSetRecoilState(chatState);
-  const { customer, servicio, isPaid, status } = appointment;
+  const { customer, isPaid, status } = appointment;
   const { firstname, lastname, email } = customer;
   const { isPast, appointmentDoneLoading, handleAppointmentDone } =
     ProviderAppointmentController(appointment);
@@ -45,7 +45,7 @@ export const ProviderSessionCardContent = ({ appointment }: SessionCardContentPr
           }}
         />
         <Text variant="body2" color="textSecondary">
-          {servicio?.name}
+          {/* {servicio?.name} */}
         </Text>
       </FlexBoxAlignCenter>
 
@@ -79,7 +79,7 @@ export const ProviderSessionCardContent = ({ appointment }: SessionCardContentPr
             onClick={() => {
               setChatState({
                 providerId: appointment?.provider?.id,
-                userId: appointment?.customer?.id,
+                userId: appointment?.customer?.id || '',
                 providerName: appointment.provider.firstname ?? '',
                 username: appointment.customer.firstname ?? '',
                 id: '',

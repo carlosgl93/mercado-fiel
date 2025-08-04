@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from 'react-query';
 import { useSetRecoilState } from 'recoil';
 
 export function ProviderAppointmentController(appointment: Appointment) {
-  const { provider, customer, scheduledDate, scheduledTime, servicio } = appointment;
+  const { provider, customer, scheduledDate, scheduledTime } = appointment;
   const setNotification = useSetRecoilState(notificationState);
 
   const client = useQueryClient();
@@ -34,7 +34,7 @@ export function ProviderAppointmentController(appointment: Appointment) {
           customerName: customer.firstname,
           providerName: provider.firstname,
           templateName: 'sesion-realizada.html',
-          serviceName: servicio.name,
+          // serviceName: servicio.name,
           options: {
             from: 'Mercado Fiel <contacto@mercadofiel.cl>',
             to: customer.email,

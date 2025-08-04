@@ -1,11 +1,8 @@
 import Reviews from '@/components/Reviews';
+import { ScheduleController } from '@/components/Schedule/ScheduleController';
+import { Prestador } from '@/store/auth/proveedor';
+import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import { Box, styled } from '@mui/material';
-import PerfilBackButton from './PerfilBackButton';
-import {
-  StyledContactButton,
-  StyledShortListButton,
-} from './DesktopPerfilPrestadorStyledComponents';
-import { Prestador } from '@/store/auth/prestador';
 import { DateCalendar } from '@mui/x-date-pickers';
 import {
   AboutContainer,
@@ -19,10 +16,12 @@ import {
   StyledServicio,
   StyledTitle,
   Wrapper,
-} from '../PerfilPrestador/MobilePerfilPrestadorStyledComponents';
-import { ServiciosCarousel } from '../PerfilPrestador/ServiciosCarousel';
-import { ScheduleController } from '@/components/Schedule/ScheduleController';
-import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
+} from '../PerfilProveedor/MobilePerfilPrestadorStyledComponents';
+import {
+  StyledContactButton,
+  StyledShortListButton,
+} from './DesktopPerfilPrestadorStyledComponents';
+import PerfilBackButton from './PerfilBackButton';
 
 const SectionContainer = styled(Box)(() => ({
   display: 'flex',
@@ -105,7 +104,7 @@ export const PreviewMobileProfile = ({ fullProvider }: PreviewMobileProfileProps
         }}
       >
         <SectionTitle>Servicios</SectionTitle>
-        <ServiciosCarousel createdServicios={createdServicios} />
+        {/* <ServiciosCarousel createdServicios={createdServicios} /> */}
       </SectionContainer>
       <AboutContainer>
         <SectionTitle>Disponibilidad</SectionTitle>

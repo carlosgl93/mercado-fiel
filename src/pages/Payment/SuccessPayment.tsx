@@ -1,8 +1,8 @@
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { Text, Title } from '@/components/StyledComponents';
 import { Appointment } from '@/api/appointments';
-import { Box, Button, styled, Theme } from '@mui/material';
+import { Text, Title } from '@/components/StyledComponents';
 import { formatDate } from '@/utils/formatDate';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import { Box, Button, styled, Theme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 type FailedPaymentProps = {
@@ -59,9 +59,7 @@ export const SuccessPayment = ({ appointments, theme }: FailedPaymentProps) => {
         confirmarlas en el futuro.
       </Text>
       {appDateFormatted === 'Hoy' ? sameDayAppointmetNode : differentDayAppointmentNode}
-      <Text>
-        Servicio: <b>{appointment.servicio.name}</b>
-      </Text>
+      <Text>{/* Servicio: <b>{appointment.servicio.name}</b> */}</Text>
       <Text>
         Proveedor:{' '}
         <b>

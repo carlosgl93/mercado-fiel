@@ -11,14 +11,14 @@ import { useNavigate } from 'react-router-dom';
 function SearchBar() {
   const [comunasState, setComunasState] = useState<Comuna[]>([]);
 
-  const { selectedComunas, allComunas, handleSelectComuna, handleRemoveComuna } = useComunas();
+  const { selectedComunas, allComunas, handleSelectComuna } = useComunas();
   const [, { addComuna }] = useRecibeApoyo();
   const router = useNavigate();
 
   const clickComunaHandler = (c: Comuna) => {
     const textInput = document.getElementById('searchByComuna') as HTMLInputElement;
     if (selectedComunas.find((co: Comuna) => co.id === c.id)) {
-      handleRemoveComuna(c);
+      // handleRemoveComuna(c);
     } else {
       handleSelectComuna(c);
       addComuna(c);

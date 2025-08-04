@@ -1,14 +1,14 @@
-import { useAuthNew } from '@/hooks';
 import { notificationState } from '@/store/snackbar';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
+import { useAuth } from '../../hooks';
 
 export const usePrestadorDashboard = () => {
-  const { prestador } = useAuthNew();
+  const { proveedor } = useAuth();
   const setNotification = useSetRecoilState(notificationState);
 
   const shouldDisableEncuentraClientes =
-    !prestador?.settings.servicios || !prestador?.profileImageUrl;
+    !proveedor?.settings?.servicios || !proveedor?.profileImageUrl;
   const router = useNavigate();
 
   const handleConstruirPerfil = () => {
@@ -33,7 +33,7 @@ export const usePrestadorDashboard = () => {
 
   return {
     shouldDisableEncuentraClientes,
-    prestador,
+    prestador: proveedor,
     handleSesiones,
     handleConstruirPerfil,
     handleEncuentraClientes,

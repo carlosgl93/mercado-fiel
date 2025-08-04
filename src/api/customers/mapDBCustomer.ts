@@ -5,6 +5,7 @@
  *
  */
 
+import { mapDBUser } from '../../models';
 import { Customer, CustomerDB } from '../../models/Customer';
 
 export function mapDBCustomer(dbCustomer: CustomerDB): Customer {
@@ -18,16 +19,7 @@ export function mapDBCustomer(dbCustomer: CustomerDB): Customer {
     updatedAt: dbCustomer.updated_at,
     activo: dbCustomer.usuario?.activo ?? false,
     profilePictureUrl: dbCustomer.usuario?.profile_picture_url ?? null,
-    usuario: dbCustomer.usuario
-      ? {
-          idUsuario: dbCustomer.usuario.id_usuario,
-          nombre: dbCustomer.usuario.nombre,
-          email: dbCustomer.usuario.email,
-          activo: dbCustomer.usuario.activo,
-          fechaRegistro: dbCustomer.usuario.fecha_registro,
-          plan: dbCustomer.usuario.plan,
-        }
-      : undefined,
+    usuario: mapDBUser(dbCustomer.usuario),
     direccion: dbCustomer.direccion
       ? {
           idDireccion: dbCustomer.direccion.id_direccion,

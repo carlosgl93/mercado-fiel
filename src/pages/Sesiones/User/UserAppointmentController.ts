@@ -84,7 +84,7 @@ export function UserAppointmentController(appointment: Appointment) {
   const handleChat = () => {
     setChatState({
       providerId: appointment?.provider?.id,
-      userId: appointment?.customer?.id,
+      userId: appointment?.customer?.id || '',
       providerName: appointment.provider.firstname ?? '',
       username: appointment.customer.firstname ?? '',
       id: '',

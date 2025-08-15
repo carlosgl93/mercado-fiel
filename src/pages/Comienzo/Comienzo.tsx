@@ -44,7 +44,7 @@ function Comienzo() {
               mb: 2,
             }}
           >
-            ¿Qué buscas?
+            ¿Qué eres?
           </Title>
           <Text
             sx={{

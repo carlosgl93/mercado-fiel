@@ -47,7 +47,14 @@ const MobileHeaderContent = () => {
   }
 
   return (
-    <FlexBox sx={{ alignItems: 'center', justifyContent: 'start', gap: '1rem', width: '100%' }}>
+    <FlexBox
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'start',
+        gap: '1rem',
+        width: '100%',
+      }}
+    >
       <FlexBox>
         <IconButton
           onClick={sidebarActions.toggle}
@@ -55,7 +62,9 @@ const MobileHeaderContent = () => {
           edge="start"
           color="primary"
           aria-label="menu"
-          sx={{ mr: 1 }}
+          sx={{
+            mr: 1,
+          }}
         >
           <MenuIcon />
         </IconButton>
@@ -69,7 +78,15 @@ const MobileHeaderContent = () => {
           <HeaderIconImage src={`/images/mercadofiel.png`} alt="Mercado Fiel logo" />
         </Link>
       </FlexBox>
-      <SubTitle variant="body1">Mercado Fiel</SubTitle>
+      <SubTitle
+        variant="body1"
+        sx={{
+          p: 1,
+          borderRadius: '8px',
+        }}
+      >
+        Mercado Fiel
+      </SubTitle>
     </FlexBox>
   );
 };

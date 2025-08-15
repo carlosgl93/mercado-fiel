@@ -4,12 +4,12 @@ import { Title } from './StyledComponents';
 
 const content = [
   {
-    title: 'Conecta con más clientes y proveedores',
+    title: 'Conecta con clientes y proveedores',
     smImage: `/images/exposicion-oportunidad-sm.jpg`,
     mdImage: `/images/exposicion-oportunidad-md-lg.jpg`,
   },
   {
-    title: 'Ahorra comprando en grupo',
+    title: 'Ahorra en compras grupales',
     smImage: `/images/ahorra-comprando-en-grupo-sm.jpg`,
     mdImage: `/images/ahorra-comprando-en-grupo-md-lg.jpg`,
   },
@@ -47,7 +47,7 @@ function Servicios() {
       }}
     >
       <Title variant="h2" fontWeight="bold" textAlign="center">
-        Porque usar Mercado Fiel
+        ¿Por qué usar Mercado Fiel?
       </Title>
       <Box
         sx={{

@@ -10,21 +10,21 @@ function PerfilProveedor() {
   const { id } = useParams();
   // const { prestador, isLoading } = usePrestador(id ?? '');
   const location = useLocation();
-  console.log({ location });
-  const { proveedor } = location.state;
+  const { supplier } = location.state;
+  console.log({ location, supplier });
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!proveedor) {
+    if (!supplier) {
       navigate('/resultados');
     }
-  }, [proveedor, navigate]);
+  }, [supplier, navigate]);
 
   return (
     <Suspense fallback={<Loading />}>
       <Meta title="Perfil Proveedor" />
-      <MobileProfile proveedor={proveedor as SupplierWithProducts} />
+      <MobileProfile proveedor={supplier as SupplierWithProducts} />
     </Suspense>
   );
 }

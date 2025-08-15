@@ -1,8 +1,10 @@
 import { Email, LocationOn, Phone } from '@mui/icons-material';
 import { Box, Divider, Grid, Link, Typography, useTheme } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function Footer() {
   const theme = useTheme();
+  const navigate = useNavigate();
   return (
     <Box
       sx={{
@@ -33,18 +35,38 @@ function Footer() {
             Enlaces
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Link href="/" color="inherit" underline="hover">
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/')}
+            >
               Inicio
-            </Link>
-            <Link href="/nosotros" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/nosotros')}
+            >
               Nosotros
-            </Link>
-            <Link href="/contacto" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/contacto')}
+            >
               Contacto
-            </Link>
-            <Link href="/preguntas-frecuentes" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/preguntas-frecuentes')}
+            >
               FAQ
-            </Link>
+            </Typography>
           </Box>
         </Grid>
 
@@ -54,18 +76,38 @@ function Footer() {
             Servicios
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Link href="/recibe-apoyo" color="inherit" underline="hover">
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/recibe-apoyo')}
+            >
               Comprar
-            </Link>
-            <Link href="/entrega-apoyo" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/entrega-apoyo')}
+            >
               Vender
-            </Link>
-            <Link href="/registrar-usuario" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/registrar-usuario')}
+            >
               Registro Comprador
-            </Link>
-            <Link href="/registrar-prestador" color="inherit" underline="hover">
+            </Typography>
+            <Typography
+              variant="body2"
+              color="inherit"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate('/registrar-prestador')}
+            >
               Registro Vendedor
-            </Link>
+            </Typography>
           </Box>
         </Grid>
 

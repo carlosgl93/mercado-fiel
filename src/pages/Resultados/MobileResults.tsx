@@ -23,7 +23,7 @@ const MobileResults = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  if (isLoadingSuppliers || isLoadingCustomers) {
+  if (isLoading) {
     return <Loading />;
   }
 

@@ -28,6 +28,7 @@ const HeaderIconImage = styled('img')({
   width: 'auto',
   height: '60px',
   margin: 4,
+  borderRadius: '8px',
 });
 
 export {

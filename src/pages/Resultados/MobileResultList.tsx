@@ -57,7 +57,7 @@ export const MobileResultList = ({
             return (
               <Link
                 key={idUsuario}
-                to={`/perfil-prestador/${idUsuario}`}
+                to={`/perfil-cliente/${idUsuario}`}
                 style={{ textDecoration: 'none' }}
                 state={{
                   customer,
@@ -170,7 +170,7 @@ export const MobileResultList = ({
             return (
               <Link
                 key={id}
-                to={`/perfil-cliente/${id}`}
+                to={`/perfil-proveedor/${id}`}
                 style={{ textDecoration: 'none' }}
                 state={{
                   supplier: s,

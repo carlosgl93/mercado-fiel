@@ -1,10 +1,10 @@
+import { useMediaQuery } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import { useMediaQuery } from '@mui/material';
 import { tablet } from '../../theme/breakpoints';
-import MobileHeaderContent from './MobileHeaderContent';
 import DesktopHeaderContent from './Desktop/DesktopHeaderContent';
+import MobileHeaderContent from './MobileHeaderContent';
 
 function Header() {
   const isTablet = useMediaQuery(tablet);
@@ -17,7 +17,7 @@ function Header() {
         sx={{
           borderBottom: '1px solid #e0e0e0',
           zIndex: 1000,
-          backgroundColor: 'white',
+          backgroundColor: '#fcf9f4',
           position: 'static',
         }}
       >

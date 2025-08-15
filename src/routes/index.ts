@@ -41,11 +41,14 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/Comienzo')),
     path: '/comienzo',
   },
+  [Pages.Beneficios]: {
+    component: asyncComponentLoader(() => import('@/pages/Beneficios')),
+    path: '/beneficios',
+  },
   [Pages.EntregaApoyo]: {
     component: asyncComponentLoader(() => import('@/pages/EntregaApoyo')),
     path: '/entrega-apoyo',
   },
-
   [Pages.Resultados]: {
     component: asyncComponentLoader(() => import('@/pages/Resultados')),
     path: '/resultados',
@@ -108,10 +111,10 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/UsuarioInbox')),
     path: '/usuario-inbox',
   },
-  // [Pages.PerfilCliente]: {
-  //   component: asyncComponentLoader(() => import('@/pages/PerfilCliente')),
-  //   path: '/perfil-cliente/:id',
-  // },
+  [Pages.PerfilCliente]: {
+    component: asyncComponentLoader(() => import('@/pages/PerfilCliente')),
+    path: '/perfil-cliente/:id',
+  },
   [Pages.UsuarioDashboard]: {
     component: asyncComponentLoader(() => import('@/pages/UsuarioDashboard')),
     path: '/usuario-dashboard',

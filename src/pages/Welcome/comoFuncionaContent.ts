@@ -12,7 +12,7 @@ export const comoFuncionaCardsContent: ComoFuncionaContent[] = [
     mdImage: `/images/comofunciona-md-lg.jpg`,
     imgAlt: 'Mercado Fiel clientes o proveedores',
     title: 'Encuentra clientes o proveedores',
-    text: 'Descubre nuevos proveedores o clientes en segundos. Filtra por comuna, categoría de producto y cantidad mínima para cerrar acuerdos más rápido y con mejores condiciones.',
+    text: 'Descubre nuevos proveedores o clientes en pocos segundos. Haz búsquedas según tus preferencias para lograr acuerdos más rápido y con las mejores condiciones',
   },
   {
     mdImage: `/images/secure-payment-md-lg.jpg`,

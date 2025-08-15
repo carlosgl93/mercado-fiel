@@ -116,7 +116,7 @@ const themes: Record<Themes, ThemeOptions> = {
         main: '#FF8A00',
       },
       success: {
-        main: '#B5E61D',
+        main: '#4CAF4F',
       },
       text: {
         primary: '#3A3A3A',

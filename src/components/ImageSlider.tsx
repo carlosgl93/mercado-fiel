@@ -27,7 +27,7 @@ const ImageSliderOverlay = styled(Box)({
   backgroundColor: 'rgba(0, 0, 0, 0.6)',
 });
 
-const ImageSliderText = styled(Typography)({
+export const ImageSliderText = styled(Typography)({
   color: 'white',
   zIndex: 1,
 });
@@ -106,9 +106,21 @@ function ImageSlider({ interval = 5000 }: ImageSliderProps) {
         }}
       >
         <ImageSliderText
-          variant="h1"
+          variant="h2"
           sx={{
             fontSize: '2.5rem',
+            mb: '1rem',
+            fontWeight: 'bold',
+            color: '#fcf9f4',
+            // backgroundColor: '#fcf9f4',
+          }}
+        >
+          Mercado Fiel{' '}
+        </ImageSliderText>
+        <ImageSliderText
+          variant="h2"
+          sx={{
+            fontSize: '2rem',
             mb: '1rem',
             fontWeight: 'bold',
             color: 'white',
@@ -122,23 +134,27 @@ function ImageSlider({ interval = 5000 }: ImageSliderProps) {
             color: 'white',
           }}
         >
-          Más clientes para tus productos, mejores precios para tus compras: juntos somos más
-          fuertes.
+          Más clientes para tus productos.
         </ImageSliderText>
-        <Typography
+        <ImageSliderText
+          variant="subtitle1"
           sx={{
-            mt: '1rem',
             color: 'white',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            zIndex: 1000,
           }}
         >
-          ¿Qué buscas?
-        </Typography>
+          Mejores precios para tus compras.
+        </ImageSliderText>
+        <ImageSliderText
+          variant="subtitle1"
+          sx={{
+            color: 'white',
+            fontWeight: 'bolder',
+          }}
+        >
+          Juntos somos más fuertes.
+        </ImageSliderText>
+
         <UserSearchesForCTAs />
-        {/* <CategoriesDropdown onCategorySelect={handleSelectCategory} /> */}
-        {/* <ComunasSearchBar /> */}
       </Box>
     </Box>
   );

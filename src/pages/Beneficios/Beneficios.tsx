@@ -1,17 +1,18 @@
-import { Box, Button, Container, Grid, Typography, useTheme } from '@mui/material';
+import { Box, Button, Container, Grid, Typography } from '@mui/material';
 import { DetailedHTMLProps, ImgHTMLAttributes, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserLookingFor } from '../../hooks';
-import { beneficiosConstants } from './beneficiosConstants';
+import { BeneficiosConstants } from './BeneficiosConstants';
 
 export const Beneficios = () => {
   const { translatedLookingFor } = useUserLookingFor();
-  const theme = useTheme();
   const navigate = useNavigate();
+
+  console.log({ lookingFor: translatedLookingFor() });
 
   const clientesSectionRef = useRef<HTMLDivElement>(null);
   const proveedoresSectionRef = useRef<HTMLDivElement>(null);
-  const { clientesBeneficios, proveedoresBeneficios, styles } = beneficiosConstants();
+  const { clientesBeneficios, proveedoresBeneficios, styles } = BeneficiosConstants();
 
   // Auto-scroll based on translatedLookingFor
   useEffect(() => {
@@ -59,7 +60,7 @@ export const Beneficios = () => {
             </Box>
           </Grid>
           <Grid item xs={12} md={6} order={{ xs: 1, md: 2 }}>
-            <Box sx={styles.gridImage}>
+            <Box sx={styles.gridImage1}>
               <img
                 src="/images/woman-with-groceries.jpeg"
                 alt="Mujer sonriente con bolsa de compras con productos frescos"
@@ -78,7 +79,7 @@ export const Beneficios = () => {
       <Container ref={proveedoresSectionRef} maxWidth="xl" sx={styles.sectionWhite}>
         <Grid container spacing={4} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Box sx={styles.gridImage}>
+            <Box sx={styles.gridImage2}>
               <img
                 src="/images/farmer-with-tomatoes.jpeg"
                 alt="Hombre sonriente con delantal verde sosteniendo caja de tomates"

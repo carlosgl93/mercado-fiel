@@ -17,15 +17,25 @@ const routes: Routes = {
     path: '/ingresar',
     title: 'Ingresar',
   },
-  [Pages.RegistrarPrestador]: {
+  [Pages.RegistrarProveedor]: {
     component: asyncComponentLoader(() => import('@/pages/RegistrarPrestador')),
-    path: '/registrar-prestador',
+    path: '/registrar-proveedor',
     title: 'Registrarse',
   },
   [Pages.RegistrarUsuario]: {
     component: asyncComponentLoader(() => import('@/pages/RegistrarUsuario')),
     path: '/registrar-usuario',
     title: 'Registrarse',
+  },
+  [Pages.EmailConfirmation]: {
+    component: asyncComponentLoader(() => import('@/pages/EmailConfirmation')),
+    path: '/email-confirmation',
+    title: 'Confirmar email',
+  },
+  [Pages.AuthCallback]: {
+    component: asyncComponentLoader(() => import('@/pages/AuthCallback')),
+    path: '/auth/callback',
+    title: 'Autenticando...',
   },
   [Pages.Prestador]: {
     component: asyncComponentLoader(() => import('@/pages/PersonaApoyo')),

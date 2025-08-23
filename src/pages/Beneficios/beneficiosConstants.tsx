@@ -10,6 +10,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { useMemo } from 'react';
+import { Beneficio } from './types';
 
 export const BeneficiosConstants = () => {
   const theme = useTheme();
@@ -17,15 +18,8 @@ export const BeneficiosConstants = () => {
   const styles = {
     root: { minHeight: '100vh', backgroundColor: '#f5f5f5' },
     benefitIcon: { fontSize: 40, color: theme.palette?.success.main },
-    section: { py: { xs: 6, md: 12 } },
+    section: { py: { xs: 6, md: 12 }, backgroundColor: 'white' },
     sectionWhite: { py: { xs: 6, md: 12 }, backgroundColor: 'white' },
-    gridImage: {
-      width: '100%',
-      height: { xs: 300, md: 500 },
-      borderRadius: 2,
-      overflow: 'hidden',
-      boxShadow: 3,
-    },
     gridTextBox: { pr: { md: 4 } },
     gridTextBoxRight: { pl: { md: 4 } },
     heading: {
@@ -69,6 +63,19 @@ export const BeneficiosConstants = () => {
         backgroundColor: theme.palette?.success.dark,
       },
     },
+    gridImage1: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 2,
+      overflow: 'hidden',
+    },
+    gridImage2: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 2,
+      overflow: 'hidden',
+      backgroundColor: 'white',
+    },
     image: {
       width: '100%',
       height: '100%',
@@ -76,7 +83,7 @@ export const BeneficiosConstants = () => {
     },
   };
 
-  const clientesBeneficios = useMemo(
+  const clientesBeneficios: Beneficio[] = useMemo(
     () => [
       {
         icon: <SellOutlined sx={styles.benefitIcon} />,
@@ -103,7 +110,7 @@ export const BeneficiosConstants = () => {
     [],
   );
 
-  const proveedoresBeneficios = useMemo(
+  const proveedoresBeneficios: Beneficio[] = useMemo(
     () => [
       {
         icon: <TrendingUp sx={styles.benefitIcon} />,

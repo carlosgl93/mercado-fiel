@@ -1,7 +1,7 @@
 import Loading from '@/components/Loading';
 import Meta from '@/components/Meta';
 import { useAuth, usePrestador } from '@/hooks';
-import '../PerfilPrestador/mobileProfile.css';
+import '@/pages/PerfilProveedor/mobileProfile.css';
 import { PreviewMobileProfile } from './PreviewMobileProfile';
 
 function PreviewPerfilPrestador() {

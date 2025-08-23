@@ -1,3 +1,3 @@
-import RegistrarPrestador from './RegistrarPrestador';
+import RegistrarProveedor from './RegistrarProveedor';
 
-export default RegistrarPrestador;
+export default RegistrarProveedor;

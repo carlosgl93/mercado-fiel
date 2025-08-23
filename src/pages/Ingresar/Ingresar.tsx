@@ -2,7 +2,7 @@ import Loading from '@/components/Loading';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
 import { Title } from '@/components/StyledComponents';
-import { useAuth } from '@/hooks';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,25 +11,37 @@ function Ingresar() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { signInWithEmail, signInLoading, cliente, proveedor } = useAuth();
+  const { signIn, isSigningIn, customer, supplier } = useAuth();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    signInWithEmail(email, password);
+    signIn({ email, password });
   };
 
   useEffect(() => {
-    if (cliente?.usuario?.email) {
+    console.log({
+      customer,
+      supplier,
+    });
+    if (customer?.email) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (proveedor?.usuario?.email) {
+    if (supplier?.email) {
       navigate('/prestador-dashboard');
       return;
     }
-  }, [cliente, proveedor, navigate]);
+  }, [customer, supplier, navigate]);
 
-  if (signInLoading) return <Loading />;
+  useEffect(() => {
+    if (import.meta.env.MODE === 'development') {
+      console.log('Running in development mode');
+      setEmail('cgumucio93@gmail.com');
+      setPassword('123456');
+    }
+  }, []);
+
+  if (isSigningIn) return <Loading />;
 
   return (
     <>

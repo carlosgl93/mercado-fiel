@@ -18,12 +18,12 @@ export const formInputs = [
     type: 'text',
     helperText: 'Ejemplo: 12345678-9. Sin puntos ',
   },
-  // {
-  //   inputName: 'telefono',
-  //   placeholder: 'Ingresa tu teléfono móvil',
-  //   label: 'Teléfono móvil (*)',
-  //   type: 'tel',
-  // },
+  {
+    inputName: 'telefono',
+    placeholder: 'Ingresa tu teléfono móvil',
+    label: 'Teléfono móvil (*)',
+    type: 'tel',
+  },
   {
     inputName: 'correo',
     placeholder: 'Ingresa tu email',
@@ -43,19 +43,16 @@ export const formInputs = [
     label: 'Confirma tu contraseña (*)',
     type: 'password',
   },
-  // {
-  //   inputName: 'comoEnteraste',
-  //   placeholder: 'Selecciona cómo te enteraste de Mercado Fiel',
-  //   label: 'Cómo te enteraste de Mercado Fiel (*)',
-  //   type: 'text',
-  //   options: [
-  //     'Google',
-  //     'Redes sociales',
-  //     'Radio/TV',
-  //     'Noticias',
-  //     'Personal del centro de salud',
-  //     'Me contó alguien cercano',
-  //     'Otra',
-  //   ],
-  // },
+  {
+    inputName: 'nombreNegocio',
+    placeholder: 'Nombre de tu negocio o empresa',
+    label: 'Nombre del negocio',
+    type: 'text',
+  },
+  {
+    inputName: 'descripcion',
+    placeholder: 'Describe tu negocio o servicios',
+    label: 'Descripción del negocio',
+    type: 'text',
+  },
 ];

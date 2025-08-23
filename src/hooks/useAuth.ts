@@ -103,10 +103,16 @@ export const useAuth = (): UseAuthReturn => {
   const setNotification = useSetRecoilState(notificationState);
   const { resetState: resetAppState } = useResetState();
 
+  console.log({
+    cliente,
+    proveedor,
+  });
+
   // Local state
   const [session, setSession] = useState<Session | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchingUserData, setFetchingUserData] = useState(false);
 
   // Navigation and query client
   const navigate = useNavigate();
@@ -120,83 +126,90 @@ export const useAuth = (): UseAuthReturn => {
   // Fetch user data from API
   const fetchUserData = useCallback(
     async (email: string) => {
+      if (fetchingUserData) return; // Prevent duplicate calls
+
       try {
-        // First, try to get usuario data
-        const usuarioResponse = await api.get(`/usuarios/email/${email}`);
-        const usuarioData: UsuarioFromAPI = usuarioResponse.data.data;
+        setFetchingUserData(true);
+        // Get user data with client and supplier profiles
+        const usuarioResponse = await api.get(`/auth/user/${email}`);
+        const userData = usuarioResponse.data.data;
 
         // Map the user data
         const mappedUser: User = mapDBUser({
-          id_usuario: usuarioData.id_usuario,
-          nombre: usuarioData.nombre,
-          email: usuarioData.email,
+          id_usuario: userData.id_usuario,
+          nombre: userData.nombre,
+          email: userData.email,
           contrasena_hash: '', // We don't need the hash on frontend
-          fecha_registro: usuarioData.fecha_registro,
-          activo: usuarioData.activo,
-          profile_picture_url: usuarioData.profile_picture_url,
-          id_plan: usuarioData.id_plan,
-          created_at: usuarioData.created_at,
-          updated_at: usuarioData.updated_at,
+          fecha_registro: userData.fecha_registro,
+          activo: userData.activo,
+          profile_picture_url: userData.profile_picture_url,
+          id_plan: userData.id_plan,
+          created_at: userData.created_at,
+          updated_at: userData.updated_at,
         });
 
         // Check if user is a cliente
-        try {
-          const clienteResponse = await api.get(`/customers/usuario/${usuarioData.id_usuario}`);
-          const clienteData: ClienteFromAPI = clienteResponse.data.data;
-
+        if (userData.cliente) {
           const mappedCliente: Customer = {
-            idCliente: clienteData.cliente.id_cliente,
-            idUsuario: usuarioData.id_usuario,
-            idDireccion: clienteData.cliente.id_direccion,
-            telefono: clienteData.cliente.telefono,
-            fechaRegistro: clienteData.fecha_registro,
-            createdAt: clienteData.cliente.created_at,
-            updatedAt: clienteData.cliente.updated_at,
-            activo: usuarioData.activo,
+            idCliente: userData.cliente.id_cliente,
+            idUsuario: userData.id_usuario,
+            idDireccion: userData.cliente.id_direccion,
+            telefono: userData.cliente.telefono,
+            fechaRegistro: userData.fecha_registro,
+            createdAt: userData.cliente.created_at,
+            updatedAt: userData.cliente.updated_at,
+            activo: userData.activo,
             usuario: mappedUser,
-            profilePictureUrl: usuarioData.profile_picture_url,
+            profilePictureUrl: userData.profile_picture_url,
           };
 
           setCliente(mappedCliente);
-        } catch (error) {
-          // User is not a cliente, that's okay
+        } else {
           setCliente(null);
         }
 
         // Check if user is a proveedor
-        try {
-          const proveedorResponse = await api.get(`/suppliers/usuario/${usuarioData.id_usuario}`);
-          const proveedorData: ProveedorFromAPI = proveedorResponse.data.data;
-
+        if (userData.proveedor) {
           const mappedProveedor: Supplier = {
-            idProveedor: proveedorData.proveedor.id_proveedor,
-            nombreNegocio: proveedorData.proveedor.nombre_negocio,
-            descripcion: proveedorData.proveedor.descripcion,
-            telefonoContacto: proveedorData.proveedor.telefono_contacto,
-            latitud: proveedorData.proveedor.latitud,
-            longitud: proveedorData.proveedor.longitud,
-            destacado: proveedorData.proveedor.destacado,
-            email: proveedorData.proveedor.email,
-            createdAt: proveedorData.proveedor.created_at,
-            updatedAt: proveedorData.proveedor.updated_at,
+            idProveedor: userData.proveedor.id_proveedor,
+            nombreNegocio: userData.proveedor.nombre_negocio,
+            descripcion: userData.proveedor.descripcion,
+            telefonoContacto: userData.proveedor.telefono_contacto,
+            latitud: userData.proveedor.latitud,
+            longitud: userData.proveedor.longitud,
+            destacado: userData.proveedor.destacado,
+            email: userData.proveedor.email,
+            createdAt: userData.proveedor.created_at,
+            updatedAt: userData.proveedor.updated_at,
             usuario: mappedUser,
           };
 
           setProveedor(mappedProveedor);
-        } catch (error) {
-          // User is not a proveedor, that's okay
+        } else {
           setProveedor(null);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        setNotification({
-          open: true,
-          message: 'Error al cargar datos del usuario',
-          severity: 'error',
-        });
+        // Don't show notification for 404 errors - user might not exist in DB yet
+        if (
+          error instanceof Error &&
+          'response' in error &&
+          (error as any)?.response?.status !== 404
+        ) {
+          setNotification({
+            open: true,
+            message: 'Error al cargar datos del usuario',
+            severity: 'error',
+          });
+        }
+        // Clear user data when user is not found
+        setCliente(null);
+        setProveedor(null);
+      } finally {
+        setFetchingUserData(false);
       }
     },
-    [setCliente, setProveedor, setNotification],
+    [setCliente, setProveedor, setNotification, fetchingUserData],
   );
 
   // Initialize auth state
@@ -214,6 +227,7 @@ export const useAuth = (): UseAuthReturn => {
           setSupabaseUser(session?.user ?? null);
 
           if (session?.user?.email) {
+            console.log('Fetching user data for email:', session.user.email);
             await fetchUserData(session.user.email);
           }
 
@@ -245,6 +259,11 @@ export const useAuth = (): UseAuthReturn => {
         setProveedor(null);
         resetAppState();
         queryClient.clear();
+      } else if (event === 'TOKEN_REFRESHED' && session?.user?.email) {
+        // Only fetch user data if we don't already have it
+        if (!cliente && !proveedor) {
+          await fetchUserData(session.user.email);
+        }
       }
 
       setLoading(false);
@@ -254,7 +273,7 @@ export const useAuth = (): UseAuthReturn => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserData, resetAppState, queryClient]);
+  }, []);
 
   // Sign in mutation
   const signInMutation = useMutation({
@@ -267,20 +286,22 @@ export const useAuth = (): UseAuthReturn => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setNotification({
         open: true,
         message: 'Sesión iniciada exitosamente',
         severity: 'success',
       });
 
+      // fetch the user from the db:
+      const dbUser = await api.get(`/auth/user/${supabaseUser?.email}`);
+      console.log('DB USER: ', dbUser);
+
       // Navigate based on user type
       if (isProveedor) {
         navigate('/prestador-dashboard');
-      } else if (isCliente) {
-        navigate('/usuario-dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/usuario-dashboard');
       }
     },
     onError: (error: AuthError) => {
@@ -305,6 +326,8 @@ export const useAuth = (): UseAuthReturn => {
     mutationFn: async (params: SignUpParams) => {
       const { email, password, nombre, type, ...extraData } = params;
 
+      console.log('Starting sign up process for:', email, type);
+
       // First, create Supabase user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.toLowerCase(),
@@ -317,23 +340,39 @@ export const useAuth = (): UseAuthReturn => {
         },
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Supabase auth error:', authError);
+        throw authError;
+      }
+
+      console.log('Supabase user created successfully:', authData.user?.id);
 
       // Then create user in our database via API
-      if (type === 'cliente') {
-        await api.post('/customers', {
-          email: email.toLowerCase(),
-          nombre,
-          telefono: extraData.telefono,
-        });
-      } else if (type === 'proveedor') {
-        await api.post('/suppliers', {
-          email: email.toLowerCase(),
-          nombre,
-          nombre_negocio: extraData.nombre_negocio,
-          descripcion: extraData.descripcion,
-          telefono_contacto: extraData.telefono,
-        });
+      try {
+        if (type === 'cliente') {
+          console.log('Creating customer profile...');
+          const response = await api.post('/auth/signup/customer', {
+            email: email.toLowerCase(),
+            nombre,
+            telefono: extraData.telefono,
+          });
+          console.log('Customer created:', response.data);
+        } else if (type === 'proveedor') {
+          console.log('Creating supplier profile...');
+          const response = await api.post('/auth/signup/supplier', {
+            email: email.toLowerCase(),
+            nombre,
+            nombre_negocio: extraData.nombre_negocio,
+            descripcion: extraData.descripcion,
+            telefono_contacto: extraData.telefono,
+          });
+          console.log('Supplier created:', response.data);
+        }
+      } catch (dbError) {
+        console.error('Database creation error:', dbError);
+        // If database creation fails, we should still allow the user to continue
+        // They can complete their profile later
+        console.warn('User created in Supabase but database profile creation failed');
       }
 
       return authData;

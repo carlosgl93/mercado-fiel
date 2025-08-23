@@ -1,31 +1,24 @@
-import { Comuna } from '@/types';
+import useEntregaApoyo from '@/store/entregaApoyo';
+import { notificationState } from '@/store/snackbar';
 import { ChangeEvent, useEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useUserLookingFor } from '../../hooks';
-
-export type Patient = {
-  name: string;
-  age: number;
-  rut: string;
-  service?: string;
-  speciality?: string;
-};
+import { useRecoilState } from 'recoil';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 type FormState = {
   error: string;
   nombre: string;
   apellido: string;
-  nombrePaciente: string;
   rut: string;
   telefono: string;
   correo: string;
   contrasena: string;
   confirmarContrasena: string;
+  nombreNegocio: string;
+  descripcion: string;
+  comoEnteraste: string;
   acceptedTerms: boolean;
-  patientName?: string;
-  patientAge?: string;
-  patientRut?: string;
-  [key: string]: string | null | boolean | Comuna | undefined;
+  [key: string]: string | boolean;
 };
 
 type FormActions =
@@ -57,7 +50,6 @@ const reducer = (state: FormState, action: FormActions) => {
         ...state,
         [action.payload.name]: action.payload.value,
       };
-
     case 'ACCEPT TERMS':
       return {
         ...state,
@@ -78,38 +70,38 @@ const reducer = (state: FormState, action: FormActions) => {
   }
 };
 
-const RegistrarUsuarioController = () => {
-  const { signUpWithEmail, cliente, proveedor } = useAuth();
-  const navigate = useNavigate();
-  const { translatedLookingFor } = useUserLookingFor();
+const RegistrarPrestadorController = () => {
+  const [notification, setNotification] = useRecoilState(notificationState);
+  const { signUp, isSigningUp, supplier, customer } = useAuth();
+  const [{ selectedComunas, selectedServicio, selectedEspecialidad }] = useEntregaApoyo();
 
-  const initialState = localStorage.getItem('formState')
-    ? JSON.parse(localStorage.getItem('formState') || '{}')
+  const navigate = useNavigate();
+
+  const initialState = localStorage.getItem('prestadorFormState')
+    ? JSON.parse(localStorage.getItem('prestadorFormState') || '{}')
     : {
         error: '',
         nombre: '',
         apellido: '',
-        nombrePaciente: '',
         rut: '',
         telefono: '',
         correo: '',
         contrasena: '',
         confirmarContrasena: '',
+        nombreNegocio: '',
+        descripcion: '',
+        comoEnteraste: '',
+        comunas: selectedComunas,
+        servicio: selectedServicio,
+        especialidad: selectedEspecialidad,
         acceptedTerms: false,
       };
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  initialState.comunas = selectedComunas;
+  initialState.servicio = selectedServicio;
+  initialState.especialidad = selectedEspecialidad;
 
-  const {
-    nombre,
-    apellido,
-    rut,
-    telefono,
-    correo,
-    contrasena,
-    confirmarContrasena,
-    acceptedTerms,
-  } = state;
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -124,12 +116,31 @@ const RegistrarUsuarioController = () => {
   const rutRegex = /^[0-9]+-[0-9kK]{1}$/;
 
   const handleSubmit = async () => {
+    const {
+      correo,
+      rut,
+      contrasena,
+      confirmarContrasena,
+      nombre,
+      apellido,
+      telefono,
+      nombreNegocio,
+      descripcion,
+      acceptedTerms,
+    } = state;
+
     if (!emailRegex.test(correo)) {
       dispatch({
         type: 'ERROR',
         payload: {
           error: 'Email inválido',
         },
+      });
+      setNotification({
+        ...notification,
+        open: true,
+        message: 'Email inválido',
+        severity: 'error',
       });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else if (!rutRegex.test(rut)) {
@@ -139,6 +150,12 @@ const RegistrarUsuarioController = () => {
           error: 'RUT inválido. Formato: 12345678-9',
         },
       });
+      setNotification({
+        ...notification,
+        open: true,
+        message: 'RUT inválido. Formato: 12345678-9',
+        severity: 'error',
+      });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else if (confirmarContrasena !== contrasena) {
       dispatch({
@@ -146,6 +163,12 @@ const RegistrarUsuarioController = () => {
         payload: {
           error: 'Las contraseñas no coinciden',
         },
+      });
+      setNotification({
+        ...notification,
+        open: true,
+        message: 'Las contraseñas no coinciden',
+        severity: 'error',
       });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else if (contrasena.length < 6) {
@@ -155,6 +178,12 @@ const RegistrarUsuarioController = () => {
           error: 'La contraseña debe tener al menos 6 caracteres',
         },
       });
+      setNotification({
+        ...notification,
+        open: true,
+        message: 'La contraseña debe tener al menos 6 caracteres',
+        severity: 'error',
+      });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else if (!telefono) {
       dispatch({
@@ -163,24 +192,32 @@ const RegistrarUsuarioController = () => {
           error: 'El teléfono es requerido',
         },
       });
+      setNotification({
+        ...notification,
+        open: true,
+        message: 'El teléfono es requerido',
+        severity: 'error',
+      });
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else {
       try {
-        await signUpWithEmail({
+        await signUp({
           email: correo,
           password: contrasena,
           nombre: `${nombre} ${apellido}`,
-          type: 'cliente',
-          telefono: telefono,
+          type: 'supplier',
+          telefono_contacto: telefono,
+          nombre_negocio: nombreNegocio || `${nombre} ${apellido}`,
+          descripcion: descripcion || '',
         });
 
         // Clear form after successful registration
-        localStorage.removeItem('formState');
+        localStorage.removeItem('prestadorFormState');
       } catch (error) {
         dispatch({
           type: 'ERROR',
           payload: {
-            error: 'Error al crear usuario',
+            error: 'Error al crear cuenta de proveedor',
           },
         });
       }
@@ -194,42 +231,27 @@ const RegistrarUsuarioController = () => {
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('formState', JSON.stringify(state));
+    localStorage.setItem('prestadorFormState', JSON.stringify(state));
   }, [state]);
 
   // Load state from localStorage on component mount
   useEffect(() => {
-    const savedState = localStorage.getItem('formState');
+    const savedState = localStorage.getItem('prestadorFormState');
     if (savedState) {
       dispatch({ type: 'SET_STATE', payload: JSON.parse(savedState) });
     }
   }, []);
 
   useEffect(() => {
-    if (cliente?.usuario?.email) {
+    if (customer?.email) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (proveedor?.usuario?.email) {
+    if (supplier?.email) {
       navigate('/prestador-dashboard');
       return;
     }
-  }, [cliente, proveedor, navigate]);
-
-  useEffect(() => {
-    if (!translatedLookingFor) {
-      navigate('/beneficios');
-    }
-  }, [translatedLookingFor]);
-
-  useEffect(() => {
-    // reset the error state after 5 seconds
-    const timer = setTimeout(() => {
-      dispatch({ type: 'ERROR', payload: { error: '' } });
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [state.error, dispatch]);
+  }, [customer, supplier, navigate]);
 
   return {
     state,
@@ -237,7 +259,8 @@ const RegistrarUsuarioController = () => {
     handleSubmit,
     handleSelect,
     handleAcceptTerms,
+    signUpLoading: isSigningUp,
   };
 };
 
-export default RegistrarUsuarioController;
+export default RegistrarPrestadorController;

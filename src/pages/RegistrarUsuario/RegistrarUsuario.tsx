@@ -2,7 +2,7 @@ import Loading from '@/components/Loading';
 import Meta from '@/components/Meta';
 import { Text, TextContainer, Title } from '@/components/StyledComponents';
 import { FlexBox, FullSizeCenteredFlexBox } from '@/components/styled';
-import { Box, Button, Checkbox, Typography, useTheme } from '@mui/material';
+import { Box, Button, Checkbox, TextField, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks';
 import RegistrarUsuarioController from './RegistrarUsuarioController';
@@ -23,6 +23,7 @@ function RegistrarUsuario() {
     state.confirmarContrasena === '' ||
     state.error !== '' ||
     state.rut === '' ||
+    state.telefono === '' ||
     !state.acceptedTerms ||
     signUpLoading;
 
@@ -77,6 +78,91 @@ function RegistrarUsuario() {
               </Typography>
             </TextContainer>
           )}
+
+          {/* Form Fields */}
+          <TextField
+            label="Nombre"
+            name="nombre"
+            variant="outlined"
+            fullWidth
+            required
+            value={state.nombre}
+            onChange={handleChange}
+            margin="normal"
+          />
+
+          <TextField
+            label="Apellido"
+            name="apellido"
+            variant="outlined"
+            fullWidth
+            required
+            value={state.apellido}
+            onChange={handleChange}
+            margin="normal"
+          />
+
+          <TextField
+            label="RUT (ej: 12345678-9)"
+            name="rut"
+            variant="outlined"
+            fullWidth
+            required
+            value={state.rut}
+            onChange={handleChange}
+            margin="normal"
+            placeholder="12345678-9"
+          />
+
+          <TextField
+            label="Teléfono"
+            name="telefono"
+            variant="outlined"
+            fullWidth
+            required
+            value={state.telefono}
+            onChange={handleChange}
+            margin="normal"
+            placeholder="+56 9 1234 5678"
+          />
+
+          <TextField
+            label="Correo electrónico"
+            name="correo"
+            variant="outlined"
+            fullWidth
+            required
+            type="email"
+            value={state.correo}
+            onChange={handleChange}
+            margin="normal"
+          />
+
+          <TextField
+            label="Contraseña"
+            name="contrasena"
+            variant="outlined"
+            fullWidth
+            required
+            type="password"
+            value={state.contrasena}
+            onChange={handleChange}
+            margin="normal"
+            helperText="Mínimo 6 caracteres"
+          />
+
+          <TextField
+            label="Confirmar contraseña"
+            name="confirmarContrasena"
+            variant="outlined"
+            fullWidth
+            required
+            type="password"
+            value={state.confirmarContrasena}
+            onChange={handleChange}
+            margin="normal"
+          />
+
           {/* TODO: ADD CAPTCHA */}
           <FlexBox
             sx={{
@@ -146,47 +232,3 @@ function RegistrarUsuario() {
 }
 
 export default RegistrarUsuario;
-// if (forWhom === 'tercero') {
-//               return (
-//                 <>
-//                   <Button>Crear paciente</Button>
-//                   {creatingNewPatient && (
-//                     <>
-//                       <StyledInput
-//                         input={{
-//                           label: 'Nombre del paciente',
-//                           inputName: 'name',
-//                           placeholder: 'Nombre del paciente',
-//                           type: 'text',
-//                         }}
-//                         value={newPatient.name}
-//                         handleChange={handleChangePatient}
-//                       />
-//                       <StyledInput
-//                         input={{
-//                           label: 'Edad del paciente',
-//                           inputName: 'age',
-//                           placeholder: 'Edad del paciente',
-//                           type: 'number',
-//                         }}
-//                         value={newPatient.age.toString()}
-//                         handleChange={handleChangePatient}
-//                       />
-//                       <StyledInput
-//                         input={{
-//                           label: 'Rut del paciente',
-//                           inputName: 'rut',
-//                           placeholder: 'Rut del paciente',
-//                           type: 'number',
-//                         }}
-//                         value={newPatient.rut.toString()}
-//                         handleChange={handleChangePatient}
-//                       />
-//                       <Box>
-//                         <em>Despues podrás agregar más pacientes.</em>
-//                       </Box>
-//                     </>
-//                   )}
-//                 </>
-//               );
-//             } else {

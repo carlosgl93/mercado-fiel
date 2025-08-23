@@ -16,11 +16,10 @@ import { styled } from '@mui/system';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { useAuth } from '../../../hooks/useAuthSupabase';
-import { Customer, Supplier } from '../../../models';
-import { AuthCustomer, AuthSupplier } from '../../../types/auth';
+import { AuthUser } from '../../../types/auth';
 
 const DesktopHeaderContent = () => {
-  const { user, supplier, signOut, customer } = useAuth();
+  const { user, signOut } = useAuth();
   const [, sidebarActions] = useSidebar();
   const chats = useRecoilValue(chatState);
   const username = chats?.username;
@@ -55,7 +54,11 @@ const DesktopHeaderContent = () => {
             }}
           >
             Chateando con{' '}
-            {prestadorName ? prestadorName : supplier?.nombre ? supplier?.nombre : supplier?.email}
+            {prestadorName
+              ? prestadorName
+              : user?.data?.proveedor?.nombre_negocio
+              ? user?.data?.proveedor?.nombre_negocio
+              : user?.data?.nombre}
           </ChatTitle>
         </Box>
       </FlexBox>
@@ -105,11 +108,7 @@ const DesktopHeaderContent = () => {
           alignItems: 'center',
         }}
       >
-        <BurgerIconWithLogo
-          supplier={supplier}
-          toggle={sidebarActions.toggle}
-          customer={customer}
-        />
+        <BurgerIconWithLogo user={user} toggle={sidebarActions.toggle} />
         <Button
           variant="outlined"
           sx={{
@@ -123,62 +122,20 @@ const DesktopHeaderContent = () => {
           Mercado Fiel
         </Button>
       </FlexBox>
-      {/* <List
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-        }}
-      >
-        {user?.role !== 'admin' &&
-          Object.values(routes)
-            .filter((route) => route.title)
-            .map(({ path, title, icon: Icon }) =>
-              routesToExcludeInHeader.includes(path) ? null : (
-                <div
-                  key={path}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ListItem>
-                    <ListItemButton
-                      component={Link}
-                      to={path as string}
-                      sx={{
-                        backgroundColor: '#FFF',
-                        '&:hover': {
-                          backgroundColor: '#FFF',
-                        },
-                      }}
-                    >
-                      {Icon && (
-                        <ListItemIcon>
-                          <Icon />
-                        </ListItemIcon>
-                      )}
 
-                      <ListItemText
-                        sx={{
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {title}
-                      </ListItemText>
-                    </ListItemButton>
-                  </ListItem>
-                </div>
-              ),
-            )}
-        {customer?.email ? (
-          <UserHeaderContent />
-        ) : supplier?.email ? (
-          <ProviderHeaderContent />
+      {/* Authentication buttons */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {user?.data?.isLoggedIn &&
+        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) ? (
+          user?.data?.cliente ? (
+            <UserHeaderContent />
+          ) : (
+            <ProviderHeaderContent />
+          )
         ) : (
-          <AdminHeaderContent />
+          <UnauthenticatedHeaderContent />
         )}
-      </List> */}
+      </Box>
     </FlexBox>
   );
 };
@@ -186,26 +143,26 @@ const DesktopHeaderContent = () => {
 export default DesktopHeaderContent;
 
 type BurgerIconWithLogoProps = {
-  customer: AuthCustomer | Customer | null;
-  supplier: AuthSupplier | Supplier | null;
+  user: AuthUser | null;
   toggle: () => void;
 };
 
-const BurgerIconWithLogo = ({ customer: user, supplier, toggle }: BurgerIconWithLogoProps) => {
+const BurgerIconWithLogo = ({ user, toggle }: BurgerIconWithLogoProps) => {
   return (
     <FlexBox>
-      {(user?.email || supplier?.email) && (
-        <IconButton
-          onClick={toggle}
-          size="large"
-          edge="start"
-          color="primary"
-          aria-label="menu"
-          sx={{ mr: 1 }}
-        >
-          <MenuIcon />
-        </IconButton>
-      )}
+      {user?.data?.isLoggedIn &&
+        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) && (
+          <IconButton
+            onClick={toggle}
+            size="large"
+            edge="start"
+            color="primary"
+            aria-label="menu"
+            sx={{ mr: 1 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
 
       <Link
         to="/"
@@ -270,53 +227,19 @@ const UserHeaderContent = () => {
   const { signOut } = useAuth();
   return (
     <>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/resultados"
-          variant="contained"
-          sx={{
-            backgroundColor: theme.palette.secondary.main,
-            color: theme.palette.primary.main,
-            '&:hover': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.secondary.main,
-            },
-          }}
-        >
-          Buscar
-        </Button>
-      </ListItem>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/usuario-dashboard"
-          variant="contained"
-          sx={{
-            backgroundColor: theme.palette.secondary.main,
-            color: theme.palette.primary.main,
-            '&:hover': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.secondary.main,
-            },
-          }}
-        >
-          Perfil
-        </Button>
-      </ListItem>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          onClick={() => signOut()}
-          variant="contained"
-          sx={{
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
-          Salir
-        </Button>
-      </ListItem>
+      <Button
+        onClick={() => signOut()}
+        variant="contained"
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: '#FFFFFF',
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+      >
+        Salir
+      </Button>
     </>
   );
 };
@@ -326,36 +249,19 @@ const ProviderHeaderContent = () => {
   const { signOut } = useAuth();
   return (
     <>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/prestador-dashboard"
-          variant="contained"
-          sx={{
-            backgroundColor: theme.palette.secondary.main,
-            color: theme.palette.primary.main,
-            '&:hover': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.secondary.main,
-            },
-          }}
-        >
-          Perfil
-        </Button>
-      </ListItem>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          onClick={() => signOut()}
-          variant="contained"
-          sx={{
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
-          Salir
-        </Button>
-      </ListItem>
+      <Button
+        onClick={() => signOut()}
+        variant="contained"
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: '#FFFFFF',
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+      >
+        Salir
+      </Button>
     </>
   );
 };
@@ -365,51 +271,20 @@ const UnauthenticatedHeaderContent = () => {
 
   return (
     <>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/ingresar"
-          variant="contained"
-          sx={{
-            backgroundColor: theme.palette.secondary.main,
-            color: '#FFFFFF',
-            '&:hover': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.background.paper,
-            },
-          }}
-        >
-          Ingresar
-        </Button>
-      </ListItem>
-      <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/resultados"
-          variant="contained"
-          sx={{
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
-          Explorar
-        </Button>
-      </ListItem>
-      {/* <ListItem sx={{ mx: 'auto' }}>
-        <Button
-          component={Link}
-          to="/comienzo"
-          variant="contained"
-          sx={{
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
-          Comenzar
-        </Button>
-      </ListItem> */}
+      <Button
+        component={Link}
+        to="/beneficios"
+        variant="contained"
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: '#FFFFFF',
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+      >
+        Regístrate
+      </Button>
     </>
   );
 };

@@ -18,8 +18,25 @@ export const apiClient: ApiClient = {
 
 // Auth-related API calls
 export const authApi = {
-  getCurrentUser: async (userId: number): Promise<AuthUser> => {
-    const response = await apiClient.get(`/users/${userId}`);
+  getCurrentUser: async (email: string): Promise<AuthUser> => {
+    console.log('Fetching user with ID:', email);
+    const response = await apiClient.get(`auth/user/${email}`);
+    return response.data;
+  },
+
+  createCustomer: async (data: { email: string; nombre: string; telefono?: string }) => {
+    const response = await apiClient.post('/auth/signup/customer', data);
+    return response.data;
+  },
+
+  createSupplier: async (data: {
+    email: string;
+    nombre: string;
+    nombre_negocio?: string;
+    descripcion?: string;
+    telefono_contacto?: string;
+  }) => {
+    const response = await apiClient.post('/auth/signup/supplier', data);
     return response.data;
   },
 

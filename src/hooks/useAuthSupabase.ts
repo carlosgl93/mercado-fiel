@@ -24,7 +24,14 @@ interface SignInCredentials {
 interface SignUpData {
   email: string;
   password: string;
-  nombre?: string;
+  nombre: string;
+  type: 'customer' | 'supplier';
+  // Customer specific
+  telefono?: string;
+  // Supplier specific
+  nombre_negocio?: string;
+  descripcion?: string;
+  telefono_contacto?: string;
 }
 
 export const useAuth = () => {
@@ -45,35 +52,64 @@ export const useAuth = () => {
     async (supabaseUser: User) => {
       try {
         setIsLoading(true);
-
+        console.log('Loading user profile for: ', supabaseUser.email);
         // Get user data from database using email
-        const userResponse = await authApi.getCurrentUser(parseInt(supabaseUser.id) || 0);
+        const userResponse = await authApi.getCurrentUser(supabaseUser.email || '');
+        console.log('User profile loaded FROM DB:', userResponse);
 
         if (userResponse) {
+          // The API response structure matches the AuthUser type you provided
           const authUser: AuthUser = {
-            ...userResponse,
+            success: userResponse.success,
+            data: {
+              ...userResponse.data,
+              isLoggedIn: true,
+            },
             isLoggedIn: true,
           };
 
           setUser(authUser);
 
-          // Load customer profile if exists
-          const customerProfile = await authApi.getCustomerProfile(authUser.idUsuario);
-          if (customerProfile) {
-            setCustomer(customerProfile);
+          // Set customer and supplier based on the data in the response
+          let customerData = null;
+          let supplierData = null;
+
+          if (authUser.data.cliente) {
+            customerData = {
+              ...authUser.data,
+              idCliente: authUser.data.cliente.id_cliente,
+              telefono: authUser.data.cliente.telefono || undefined,
+              idDireccion: authUser.data.cliente.id_direccion || undefined,
+              isLoggedIn: true,
+            };
+            setCustomer(customerData);
           }
 
-          // Load supplier profile if exists
-          const supplierProfile = await authApi.getSupplierProfile(authUser.idUsuario);
-          if (supplierProfile) {
-            setSupplier(supplierProfile);
+          if (authUser.data.proveedor) {
+            supplierData = {
+              ...authUser.data,
+              idProveedor: authUser.data.proveedor.id_proveedor,
+              nombreNegocio: authUser.data.proveedor.nombre_negocio,
+              descripcion: authUser.data.proveedor.descripcion,
+              telefonoContacto: authUser.data.proveedor.telefono_contacto,
+              idDireccion: authUser.data.proveedor.id_direccion || undefined,
+              latitud: authUser.data.proveedor.latitud,
+              longitud: authUser.data.proveedor.longitud,
+              destacado: authUser.data.proveedor.destacado,
+              emailNegocio: authUser.data.proveedor.email,
+              radioEntregaKm: authUser.data.proveedor.radio_entrega_km,
+              cobraEnvio: authUser.data.proveedor.cobra_envio,
+              envioGratisDesde: authUser.data.proveedor.envio_gratis_desde,
+              isLoggedIn: true,
+            };
+            setSupplier(supplierData);
           }
 
           // Update auth state
           setAuth({
             user: authUser,
-            customer: customerProfile,
-            supplier: supplierProfile,
+            customer: customerData,
+            supplier: supplierData,
             isInitialized: true,
             isLoading: false,
           });
@@ -118,6 +154,7 @@ export const useAuth = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        console.log('Initial session:', session);
 
         if (session?.user && mounted) {
           await loadUserProfile(session.user);
@@ -145,6 +182,7 @@ export const useAuth = () => {
       console.log('Auth state changed:', event, session);
 
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('inside here');
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         clearAuthState();
@@ -187,32 +225,80 @@ export const useAuth = () => {
 
   // Sign up mutation
   const signUpMutation = useMutation({
-    mutationFn: async ({ email, password, nombre }: SignUpData) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
+    mutationFn: async ({ email, password, nombre, type, ...extraData }: SignUpData) => {
+      console.log('Starting sign up process for:', email, type);
+
+      // First, create Supabase user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.toLowerCase(),
         password,
         options: {
           data: {
-            nombre: nombre,
+            nombre,
+            user_type: type,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) throw error;
-      return data;
+      if (authError) {
+        console.error('Supabase auth error:', authError);
+        throw authError;
+      }
+
+      console.log('Supabase user created successfully:', authData.user?.id);
+
+      // Then create user in our database via API
+      try {
+        if (type === 'customer') {
+          console.log('Creating customer profile...');
+          const response = await authApi.createCustomer({
+            email: email.toLowerCase(),
+            nombre,
+            telefono: extraData.telefono,
+          });
+          console.log('Customer created:', response);
+        } else if (type === 'supplier') {
+          console.log('Creating supplier profile...');
+          const response = await authApi.createSupplier({
+            email: email.toLowerCase(),
+            nombre,
+            nombre_negocio: extraData.nombre_negocio || nombre,
+            descripcion: extraData.descripcion || '',
+            telefono_contacto: extraData.telefono_contacto,
+          });
+          console.log('Supplier created:', response);
+        }
+      } catch (dbError) {
+        console.error('Database creation error:', dbError);
+        // If database creation fails, we should still allow the user to continue
+        // They can complete their profile later
+        console.warn('User created in Supabase but database profile creation failed');
+      }
+
+      return authData;
     },
     onSuccess: () => {
       setNotification({
         open: true,
-        message: 'Check your email to confirm your account!',
+        message: 'Cuenta creada exitosamente. Por favor confirma tu email.',
         severity: 'success',
       });
+      navigate('/email-confirmation');
     },
     onError: (error: AuthError) => {
       console.error('Sign up error:', error);
+      let message = 'Error al crear la cuenta';
+
+      if (error.message.includes('User already registered')) {
+        message = 'El email ya está registrado';
+      } else if (error.message.includes('Password should be')) {
+        message = 'La contraseña debe tener al menos 6 caracteres';
+      }
+
       setNotification({
         open: true,
-        message: error.message || 'Failed to sign up',
+        message,
         severity: 'error',
       });
     },
@@ -246,7 +332,7 @@ export const useAuth = () => {
   // Helper functions
   const isCustomer = useCallback(() => !!customer, [customer]);
   const isSupplier = useCallback(() => !!supplier, [supplier]);
-  const isAuthenticated = useCallback(() => !!user?.isLoggedIn, [user]);
+  const isAuthenticated = useCallback(() => !!user?.data?.isLoggedIn, [user]);
 
   const getUserRole = useCallback(() => {
     if (isCustomer()) return 'customer';

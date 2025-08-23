@@ -1,25 +1,62 @@
-// Enhanced auth state types
-export interface AuthUser {
-  idUsuario: number;
+// Enhanced auth state types matching API response
+export interface AuthCliente {
+  id_cliente: number;
+  id_usuario: number;
+  id_direccion: number | null;
+  telefono: string | null;
+  fecha_registro: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthProveedor {
+  id_proveedor: number;
+  id_usuario: number;
+  nombre_negocio: string;
+  descripcion?: string;
+  telefono_contacto?: string;
+  id_direccion?: number | null;
+  latitud?: string;
+  longitud?: string;
+  destacado: boolean;
+  email?: string;
+  radio_entrega_km?: number;
+  cobra_envio: boolean;
+  envio_gratis_desde?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthUserData {
+  id_usuario: number;
   nombre: string;
   email: string;
-  fechaRegistro: string;
+  fecha_registro: string;
   activo: boolean;
-  profilePictureUrl?: string;
-  idPlan?: number;
-  createdAt: string;
-  updatedAt: string;
+  profile_picture_url: string | null;
+  id_plan: number | null;
+  created_at: string;
+  updated_at: string;
+  cliente: AuthCliente | null;
+  proveedor: AuthProveedor | null;
   isLoggedIn: boolean;
 }
 
-export interface AuthCustomer extends AuthUser {
+export interface AuthUser {
+  success: boolean;
+  data: AuthUserData;
+  isLoggedIn: boolean;
+}
+
+// Legacy types for backward compatibility
+export interface AuthCustomer extends AuthUserData {
   idCliente: number;
   telefono?: string;
   idDireccion?: number;
-  // Add other customer-specific fields
+  isLoggedIn: boolean;
 }
 
-export interface AuthSupplier extends AuthUser {
+export interface AuthSupplier extends AuthUserData {
   idProveedor: number;
   nombreNegocio: string;
   descripcion?: string;
@@ -32,7 +69,7 @@ export interface AuthSupplier extends AuthUser {
   radioEntregaKm?: number;
   cobraEnvio: boolean;
   envioGratisDesde?: string;
-  // Add other supplier-specific fields
+  isLoggedIn: boolean;
 }
 
 export interface AuthState {

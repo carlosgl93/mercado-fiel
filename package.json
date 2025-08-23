@@ -31,7 +31,7 @@
     "prepare": "husky install",
     "deploy": "pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app",
     "emulators": "firebase emulators:start --only functions,hosting",
-    "supabaseEmulators": "supabase start emulators && cd ./functions && npm run seed-db",
+    "supabaseEmulators": "supabase start emulators && cd ./functions && node ./lib/seed.js",
     "env:setup": "chmod +x ./scripts/env-manager.sh && ./scripts/env-manager.sh setup",
     "env:dev": "./scripts/env-manager.sh dev",
     "env:prod": "./scripts/env-manager.sh prod",

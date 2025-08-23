@@ -167,6 +167,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
 // GET /users/:id - Get specific user
 router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log('Fetching user with ID:', req.params.id);
     const { id } = req.params;
 
     const user = await prisma.usuarios.findUnique({

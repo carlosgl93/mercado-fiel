@@ -3,6 +3,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { errorHandler } from '../middlewares';
 import { loggerMiddleware } from '../middlewares/logger';
 import {
+  authRouter,
   categoriesRouter,
   customersRouter,
   productosRouter,
@@ -19,7 +20,7 @@ app.use(express.json());
 app.use(loggerMiddleware);
 
 // Add a health check endpoint
-app.get('/', (req, res) => {
+app.get('/status', (_req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'API is running',
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+app.use('/auth', authRouter);
 app.use('/status', statusRouter);
 app.use('/usuarios', usersRouter);
 app.use('/suppliers', suppliersRouter);

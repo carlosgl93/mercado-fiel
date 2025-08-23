@@ -29,7 +29,7 @@
     "preview": "vite preview",
     "https-preview": "serve dist",
     "prepare": "husky install",
-    "deploy": "pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app",
+    "deploy": "./scripts/env-manager.sh prod && pnpm run build && firebase deploy && curl -X PURGE https://mercado-fiel.web.app/*",
     "emulators": "firebase emulators:start --only functions,hosting",
     "supabaseEmulators": "supabase start emulators && cd ./functions && node ./lib/seed.js",
     "env:setup": "chmod +x ./scripts/env-manager.sh && ./scripts/env-manager.sh setup",

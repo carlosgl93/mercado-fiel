@@ -13,6 +13,7 @@ lerna-debug.log*
 .env.development
 .env.production
 .env.test
+.env.secrets
 
 # Firebase Service Account Keys
 **/firebase-adminsdk*.json
@@ -20,8 +21,6 @@ lerna-debug.log*
 
 # Supabase Local Config
 **/supabase/.env
-.env.development
-.env.production
 
 .firebase
 .firebase/hosting.*

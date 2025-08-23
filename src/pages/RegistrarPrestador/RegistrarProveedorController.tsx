@@ -242,6 +242,42 @@ const RegistrarPrestadorController = () => {
     }
   }, []);
 
+  // Prefill form with dummy data in development mode
+  useEffect(() => {
+    if (import.meta.env.VITE_ENV === 'development' || process.env.NODE_ENV === 'development') {
+      console.log('🔧 Development mode detected - checking if form should be prefilled');
+
+      const dummyData = {
+        nombre: 'Carlos',
+        apellido: 'García',
+        rut: '12345678-9',
+        telefono: '+56912345678',
+        correo: `proveedor.${Date.now()}@example.com`, // Unique email to avoid conflicts
+        contrasena: '123456',
+        confirmarContrasena: '123456',
+        nombreNegocio: 'Verdulería Don Carlos',
+        descripcion:
+          'Verdulería familiar con más de 20 años de experiencia ofreciendo productos frescos y de calidad.',
+        comoEnteraste: 'Redes sociales',
+      };
+
+      // Only prefill if form is empty (to avoid overwriting saved data)
+      const isFormEmpty = !state.nombre && !state.apellido && !state.correo;
+      if (isFormEmpty) {
+        console.log('📝 Prefilling form with dummy data');
+        // Update each field individually to avoid type issues
+        Object.entries(dummyData).forEach(([key, value]) => {
+          dispatch({
+            type: 'CHANGE',
+            payload: { name: key, value },
+          });
+        });
+      } else {
+        console.log('📋 Form already has data, skipping prefill');
+      }
+    }
+  }, []); // Empty dependency array to run only once on mount
+
   useEffect(() => {
     if (customer?.email) {
       navigate('/usuario-dashboard');

@@ -9,7 +9,7 @@ import { getDuePayments } from '@/api/payments';
 import { notificationState } from '@/store/snackbar';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useSetRecoilState } from 'recoil';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export const PaymentController = (appointment?: ScheduleAppointmentParams) => {
   const setNotification = useSetRecoilState(notificationState);
@@ -28,11 +28,11 @@ export const PaymentController = (appointment?: ScheduleAppointmentParams) => {
           from: 'Mercado Fiel <contacto@mercadofiel.cl>',
           to: 'contacto@mercadofiel.cl',
           subject: 'Usuario ha pagado una cita',
-          text: `${user?.email} claimed to have paid for appointment ${appointment?.id}.`,
-          html: `<p>${user?.email} claimed to have paid for appointment ${appointment?.id}.</p>`,
+          text: `${user?.data?.email} claimed to have paid for appointment ${appointment?.id}.`,
+          html: `<p>${user?.data?.email} claimed to have paid for appointment ${appointment?.id}.</p>`,
         },
       });
-      client.invalidateQueries(['userAppointments', user?.id]);
+      client.invalidateQueries(['userAppointments', user?.data?.id_usuario]);
       setNotification({
         open: true,
         message: 'Confirmaremos tu sesion en breve',

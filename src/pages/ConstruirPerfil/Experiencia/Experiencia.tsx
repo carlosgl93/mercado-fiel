@@ -1,10 +1,17 @@
 import BackButton from '@/components/BackButton';
+import Loading from '@/components/Loading';
+import { SaveButton } from '@/components/SaveButton';
+import { CenteredFlexBox } from '@/components/styled';
+import { Text } from '@/components/StyledComponents';
+import { useExperiencia } from '@/hooks/useExperiencia';
 import {
   Container,
   StyledTitle,
   SubTitle,
   Wrapper,
-} from '@/pages/PrestadorDashboard/StyledPrestadorDashboardComponents';
+} from '@/pages/ProveedorDashboard/StyledPrestadorDashboardComponents';
+import { ExperienceType } from '@/store/construirPerfil/experiencia';
+import { ArrowDropDownCircleOutlined } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -15,14 +22,7 @@ import {
   Grid,
 } from '@mui/material';
 import { experienceType } from './experienciaOptions';
-import { useExperiencia } from '@/hooks/useExperiencia';
-import { Text } from '@/components/StyledComponents';
 import { StyledExperienceTypeContainer } from './StyledExperienciaComponents';
-import { ExperienceType } from '@/store/construirPerfil/experiencia';
-import { ArrowDropDownCircleOutlined } from '@mui/icons-material';
-import Loading from '@/components/Loading';
-import { SaveButton } from '@/components/SaveButton';
-import { CenteredFlexBox } from '@/components/styled';
 
 export const Experiencia = () => {
   const {

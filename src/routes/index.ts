@@ -20,22 +20,27 @@ const routes: Routes = {
   [Pages.RegistrarProveedor]: {
     component: asyncComponentLoader(() => import('@/pages/RegistrarPrestador')),
     path: '/registrar-proveedor',
-    title: 'Registrarse',
+    // title: 'Registrarse',
+  },
+  [Pages.ProveedorPerfil]: {
+    component: asyncComponentLoader(() => import('@/pages/ProveedorPerfil')),
+    path: '/proveedor-perfil',
+    // title: 'Registrarse',
   },
   [Pages.RegistrarUsuario]: {
     component: asyncComponentLoader(() => import('@/pages/RegistrarUsuario')),
     path: '/registrar-usuario',
-    title: 'Registrarse',
+    // title: 'Registrarse',
   },
   [Pages.EmailConfirmation]: {
     component: asyncComponentLoader(() => import('@/pages/EmailConfirmation')),
     path: '/email-confirmation',
-    title: 'Confirmar email',
+    // title: 'Confirmar email',
   },
   [Pages.AuthCallback]: {
     component: asyncComponentLoader(() => import('@/pages/AuthCallback')),
     path: '/auth/callback',
-    title: 'Autenticando...',
+    // title: 'Autenticando...',
   },
   [Pages.Prestador]: {
     component: asyncComponentLoader(() => import('@/pages/PersonaApoyo')),
@@ -137,9 +142,9 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/EmailVerificadoPrestador')),
     path: '/email-verificado-prestador',
   },
-  [Pages.PrestadorDashboard]: {
-    component: asyncComponentLoader(() => import('@/pages/PrestadorDashboard')),
-    path: '/prestador-dashboard',
+  [Pages.ProveedorDashboard]: {
+    component: asyncComponentLoader(() => import('@/pages/ProveedorDashboard')),
+    path: '/proveedor-dashboard',
   },
   [Pages.Sesiones]: {
     component: asyncComponentLoader(() => import('@/pages/Sesiones')),
@@ -175,7 +180,7 @@ const routes: Routes = {
   },
 
   [Pages.EncuentraClientes]: {
-    component: asyncComponentLoader(() => import('@/pages/PrestadorDashboard/EncuentraClientes')),
+    component: asyncComponentLoader(() => import('@/pages/ProveedorDashboard/EncuentraClientes')),
     path: '/encuentra-clientes',
   },
 
@@ -188,6 +193,12 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/PreguntasFrecuentes')),
     path: '/preguntas-frecuentes',
     title: 'Preguntas Frecuentes',
+  },
+
+  [Pages.MisProductos]: {
+    component: asyncComponentLoader(() => import('@/pages/MisProductos')),
+    path: '/mis-productos',
+    title: 'Mis Productos',
   },
 
   [Pages.NotFound]: {
@@ -220,6 +231,7 @@ export const protectedRoutes = [
   '/encuentra-clientes',
   '/ver-apoyo',
   '/mis-apoyos',
+  '/mis-productos',
 ];
 
 export default routes;

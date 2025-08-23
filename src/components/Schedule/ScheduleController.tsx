@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import { SupplierWithProducts } from '../../models';
 
 export const ScheduleController = () => {
@@ -268,10 +268,10 @@ export const ScheduleController = () => {
         email: prestador.email,
       };
       const customer = {
-        id: user.id,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
+        id: String(user.data.id_usuario),
+        firstname: user.data.nombre.split(' ')[0] || '',
+        lastname: user.data.nombre.split(' ')[1] || '',
+        email: user.data.email,
       };
 
       scheduleServiceMutate(
@@ -319,7 +319,7 @@ export const ScheduleController = () => {
     scheduleService,
     {
       onSettled: async () => {
-        client.invalidateQueries(['userAppointments', user?.id]);
+        client.invalidateQueries(['userAppointments', user?.data.id_usuario]);
         client.invalidateQueries(['providerAppointments', prestador?.id]);
       },
       onSuccess: async (data: Appointment[]) => {
@@ -337,7 +337,7 @@ export const ScheduleController = () => {
           howManySessionsToConfirm: 1,
         });
         setValue(null);
-        client.invalidateQueries(['userAppointments', user?.id]);
+        client.invalidateQueries(['userAppointments', user?.data.id_usuario]);
         client.invalidateQueries(['providerAppointments', prestador?.id]);
         handleSendUserToPayku(paykuParams);
         setLoading(false);

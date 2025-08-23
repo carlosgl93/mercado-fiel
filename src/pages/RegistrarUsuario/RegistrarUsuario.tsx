@@ -4,16 +4,16 @@ import { Text, TextContainer, Title } from '@/components/StyledComponents';
 import { FlexBox, FullSizeCenteredFlexBox } from '@/components/styled';
 import { Box, Button, Checkbox, TextField, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import RegistrarUsuarioController from './RegistrarUsuarioController';
 
 function RegistrarUsuario() {
   const { state, handleChange, handleSubmit, handleAcceptTerms } = RegistrarUsuarioController();
   const theme = useTheme();
 
-  const { signUpLoading, signUpError } = useAuth();
+  const { isSigningUp, signUpError } = useAuth();
 
-  if (signUpLoading) return <Loading />;
+  if (isSigningUp) return <Loading />;
 
   const shouldDisable =
     state.nombre === '' ||
@@ -25,7 +25,7 @@ function RegistrarUsuario() {
     state.rut === '' ||
     state.telefono === '' ||
     !state.acceptedTerms ||
-    signUpLoading;
+    isSigningUp;
 
   return (
     <>

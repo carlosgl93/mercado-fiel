@@ -3,12 +3,12 @@ import { chatState } from '@/store/chat/chatStore';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export const usePrestadorInbox = () => {
-  const { proveedor } = useAuth();
+  const { supplier } = useAuth();
   const setMessages = useSetRecoilState(chatState);
-  const providerId = proveedor?.id;
+  const providerId = supplier?.idProveedor;
 
   const router = useNavigate();
 
@@ -19,7 +19,7 @@ export const usePrestadorInbox = () => {
 
   const { data: fetchProvidersChat, isLoading: isLoadingProvidersChats } = useQuery(
     ['providerMessages', providerId],
-    () => getProviderInboxMessages({ providerId: providerId ?? '' }),
+    () => getProviderInboxMessages({ providerId: String(providerId ?? '') }),
   );
 
   return {

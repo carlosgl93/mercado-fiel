@@ -1,4 +1,6 @@
 import { Text } from '@/components/StyledComponents';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { IconButton, Tooltip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   ButtonCTA,
@@ -6,8 +8,6 @@ import {
   StyledTitle,
   SubTitle,
 } from '../pages/UsuarioDashboard/StyledComponents';
-import { IconButton, Tooltip } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 type DashboardTileProps = {
   goToPath: string;
@@ -48,9 +48,12 @@ export const DashboardTile = ({
       </SubTitle>
       {!isMobile && <Text>{text}</Text>}
 
-      <ButtonCTA variant="contained" onClick={handleGoTo} disabled={ctaDisabled}>
-        {ctaText}
-      </ButtonCTA>
+      {!ctaDisabled && (
+        <ButtonCTA variant="contained" onClick={handleGoTo} disabled={ctaDisabled}>
+          {ctaText}
+        </ButtonCTA>
+      )}
+
       {ctaDisabled && disabledText && (
         <Tooltip
           title={disabledText}
@@ -61,20 +64,12 @@ export const DashboardTile = ({
             },
           }}
           arrow
-          slotProps={{
-            popper: {
-              modifiers: [
-                {
-                  name: 'offset',
-                  options: {
-                    offset: [0, -25],
-                  },
-                },
-              ],
-            },
-          }}
         >
-          <IconButton>
+          <IconButton
+            sx={{
+              backgroundColor: 'secondary.main',
+            }}
+          >
             <HelpOutlineIcon
               sx={{
                 color: 'secondary.contrastText',

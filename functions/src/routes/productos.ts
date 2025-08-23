@@ -13,6 +13,11 @@ interface CreateProductoRequest {
   precio_unitario: number;
   imagen_url?: string;
   disponible?: boolean;
+  descuentos_cantidad?: {
+    cantidad_minima: number;
+    descuento_porcentaje?: number;
+    precio_descuento?: number;
+  }[];
 }
 
 interface UpdateProductoRequest {
@@ -116,6 +121,10 @@ productosRouter.get('/', async (req: Request, res: Response, next: NextFunction)
               nombre: true,
             },
           },
+          descuentos_cantidad: {
+            where: { activo: true },
+            orderBy: { cantidad_minima: 'asc' },
+          },
           _count: {
             select: {
               comentarios: true,
@@ -171,6 +180,10 @@ productosRouter.get(
           },
         },
         categoria: true,
+        descuentos_cantidad: {
+          where: { activo: true },
+          orderBy: { cantidad_minima: 'asc' },
+        },
         _count: {
           select: {
             comentarios: true,
@@ -252,6 +265,7 @@ productosRouter.post(
         precio_unitario,
         imagen_url,
         disponible = true,
+        descuentos_cantidad = [],
       } = req.body;
 
       // Validation
@@ -289,33 +303,73 @@ productosRouter.post(
         return;
       }
 
-      const producto = await prisma.productos.create({
-        data: {
-          id_proveedor,
-          id_categoria,
-          nombre_producto,
-          descripcion,
-          precio_unitario,
-          imagen_url,
-          disponible,
-        },
-        include: {
-          proveedor: {
-            select: {
-              nombre_negocio: true,
-              usuario: {
-                select: {
-                  nombre: true,
+      const producto = await prisma.$transaction(async (tx) => {
+        // Create the product
+        const newProduct = await tx.productos.create({
+          data: {
+            id_proveedor,
+            id_categoria,
+            nombre_producto,
+            descripcion,
+            precio_unitario,
+            imagen_url,
+            disponible,
+          },
+        });
+
+        // Create quantity discounts if provided
+        if (descuentos_cantidad.length > 0) {
+          const validDiscounts = descuentos_cantidad
+            .filter(
+              (descuento) =>
+                descuento.descuento_porcentaje !== undefined ||
+                descuento.precio_descuento !== undefined,
+            )
+            .map((descuento) => {
+              const data: any = {
+                id_producto: newProduct.id_producto,
+                cantidad_minima: descuento.cantidad_minima,
+              };
+
+              if (descuento.descuento_porcentaje !== undefined) {
+                data.descuento_porcentaje = descuento.descuento_porcentaje;
+              }
+
+              if (descuento.precio_descuento !== undefined) {
+                data.precio_descuento = descuento.precio_descuento;
+              }
+
+              return data;
+            });
+
+          if (validDiscounts.length > 0) {
+            await tx.descuentos_cantidad.createMany({
+              data: validDiscounts,
+            });
+          }
+        }
+
+        // Return product with all relations
+        return await tx.productos.findUnique({
+          where: { id_producto: newProduct.id_producto },
+          include: {
+            proveedor: {
+              select: {
+                nombre_negocio: true,
+                usuario: {
+                  select: {
+                    nombre: true,
+                  },
                 },
               },
             },
-          },
-          categoria: {
-            select: {
-              nombre: true,
+            categoria: {
+              select: {
+                nombre: true,
+              },
             },
           },
-        },
+        });
       });
 
       res.status(201).json({
@@ -552,6 +606,184 @@ productosRouter.get(
           counts: stats._count,
           reviews: reviewStats,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// POST /productos/:id/descuentos - Add quantity discounts to product
+productosRouter.post(
+  '/:id/descuentos',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { descuentos } = req.body;
+
+      if (!descuentos || !Array.isArray(descuentos)) {
+        res.status(400).json({
+          success: false,
+          message: 'Se requiere un array de descuentos',
+        });
+        return;
+      }
+
+      // Check if product exists
+      const producto = await prisma.productos.findUnique({
+        where: { id_producto: parseInt(id) },
+      });
+
+      if (!producto) {
+        res.status(404).json({
+          success: false,
+          message: 'Producto no encontrado',
+        });
+        return;
+      }
+
+      // Validate discounts
+      for (const descuento of descuentos) {
+        if (!descuento.cantidad_minima || descuento.cantidad_minima < 1) {
+          res.status(400).json({
+            success: false,
+            message: 'La cantidad mínima debe ser mayor a 0',
+          });
+          return;
+        }
+
+        if (!descuento.descuento_porcentaje && !descuento.precio_descuento) {
+          res.status(400).json({
+            success: false,
+            message: 'Debe especificar descuento_porcentaje o precio_descuento',
+          });
+          return;
+        }
+      }
+
+      const nuevosDescuentos = await prisma.descuentos_cantidad.createMany({
+        data: descuentos.map((descuento: any) => {
+          const data: any = {
+            id_producto: parseInt(id),
+            cantidad_minima: descuento.cantidad_minima,
+          };
+
+          if (descuento.descuento_porcentaje !== undefined) {
+            data.descuento_porcentaje = descuento.descuento_porcentaje;
+          }
+
+          if (descuento.precio_descuento !== undefined) {
+            data.precio_descuento = descuento.precio_descuento;
+          }
+
+          return data;
+        }),
+      });
+
+      res.status(201).json({
+        success: true,
+        data: nuevosDescuentos,
+        message: 'Descuentos por cantidad agregados exitosamente',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// GET /productos/:id/descuentos - Get quantity discounts for product
+productosRouter.get(
+  '/:id/descuentos',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const descuentos = await prisma.descuentos_cantidad.findMany({
+        where: { id_producto: parseInt(id) },
+        orderBy: { cantidad_minima: 'asc' },
+      });
+
+      res.json({
+        success: true,
+        data: descuentos,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// PUT /productos/:id/descuentos/:descuentoId - Update quantity discount
+productosRouter.put(
+  '/:id/descuentos/:descuentoId',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, descuentoId } = req.params;
+      const { cantidad_minima, descuento_porcentaje, precio_descuento, activo } = req.body;
+
+      const descuento = await prisma.descuentos_cantidad.findUnique({
+        where: {
+          id_descuento: parseInt(descuentoId),
+        },
+      });
+
+      if (!descuento || descuento.id_producto !== parseInt(id)) {
+        res.status(404).json({
+          success: false,
+          message: 'Descuento no encontrado',
+        });
+        return;
+      }
+
+      const updateData: any = {};
+      if (cantidad_minima !== undefined) updateData.cantidad_minima = cantidad_minima;
+      if (descuento_porcentaje !== undefined)
+        updateData.descuento_porcentaje = descuento_porcentaje;
+      if (precio_descuento !== undefined) updateData.precio_descuento = precio_descuento;
+      if (activo !== undefined) updateData.activo = activo;
+
+      const descuentoActualizado = await prisma.descuentos_cantidad.update({
+        where: { id_descuento: parseInt(descuentoId) },
+        data: updateData,
+      });
+
+      res.json({
+        success: true,
+        data: descuentoActualizado,
+        message: 'Descuento actualizado exitosamente',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// DELETE /productos/:id/descuentos/:descuentoId - Delete quantity discount
+productosRouter.delete(
+  '/:id/descuentos/:descuentoId',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, descuentoId } = req.params;
+
+      const descuento = await prisma.descuentos_cantidad.findUnique({
+        where: { id_descuento: parseInt(descuentoId) },
+      });
+
+      if (!descuento || descuento.id_producto !== parseInt(id)) {
+        res.status(404).json({
+          success: false,
+          message: 'Descuento no encontrado',
+        });
+        return;
+      }
+
+      await prisma.descuentos_cantidad.delete({
+        where: { id_descuento: parseInt(descuentoId) },
+      });
+
+      res.json({
+        success: true,
+        message: 'Descuento eliminado exitosamente',
       });
     } catch (error) {
       next(error);

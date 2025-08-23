@@ -12,7 +12,7 @@ import { Box, styled } from '@mui/material';
 import { useRecoilValue } from 'recoil';
 import { formatCLP } from '../../utils/formatCLP';
 import { StyledAvatar } from '../PerfilProveedor/MobilePerfilPrestadorStyledComponents';
-import { Container } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
+import { Container } from '../ProveedorDashboard/StyledPrestadorDashboardComponents';
 import { ButtonCTA } from '../UsuarioDashboard/StyledComponents';
 
 function BookingConfirmation() {

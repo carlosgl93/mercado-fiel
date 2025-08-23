@@ -1,8 +1,8 @@
-import { SubTitle } from '@/pages/PrestadorDashboard/StyledPrestadorDashboardComponents';
-import { Box, List, ListItem, styled } from '@mui/material';
-import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import { Text } from '@/components/StyledComponents';
+import { SubTitle } from '@/pages/ProveedorDashboard/StyledPrestadorDashboardComponents';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
+import { Box, List, ListItem, styled } from '@mui/material';
 
 const StyledListItem = styled(ListItem)(() => ({
   width: '100%',

@@ -1,6 +1,6 @@
 import { AuthChangeEvent, AuthError, Session, User } from '@supabase/supabase-js';
 import { useCallback, useEffect } from 'react';
-import { useMutation, useQueryClient } from 'react-query';
+import { CancelledError, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { authApi } from '../api/authApi';
@@ -52,10 +52,8 @@ export const useAuth = () => {
     async (supabaseUser: User) => {
       try {
         setIsLoading(true);
-        console.log('Loading user profile for: ', supabaseUser.email);
         // Get user data from database using email
         const userResponse = await authApi.getCurrentUser(supabaseUser.email || '');
-        console.log('User profile loaded FROM DB:', userResponse);
 
         if (userResponse) {
           // The API response structure matches the AuthUser type you provided
@@ -116,11 +114,11 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error loading user profile:', error);
-        setNotification({
-          open: true,
-          message: 'Error loading user profile',
-          severity: 'error',
-        });
+        // setNotification({
+        //   open: true,
+        //   message: 'Error al cargar el perfil del usuario',
+        //   severity: 'error',
+        // });
       } finally {
         setIsLoading(false);
       }
@@ -154,7 +152,6 @@ export const useAuth = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        console.log('Initial session:', session);
 
         if (session?.user && mounted) {
           await loadUserProfile(session.user);
@@ -179,10 +176,7 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return;
 
-      console.log('Auth state changed:', event, session);
-
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('inside here');
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         clearAuthState();
@@ -209,7 +203,7 @@ export const useAuth = () => {
     onSuccess: (data: any) => {
       setNotification({
         open: true,
-        message: 'Successfully signed in!',
+        message: '¡Iniciaste sesión exitosamente!',
         severity: 'success',
       });
     },
@@ -217,7 +211,7 @@ export const useAuth = () => {
       console.error('Sign in error:', error);
       setNotification({
         open: true,
-        message: error.message || 'Failed to sign in',
+        message: error.message || 'Error al iniciar sesión',
         severity: 'error',
       });
     },
@@ -226,7 +220,7 @@ export const useAuth = () => {
   // Sign up mutation
   const signUpMutation = useMutation({
     mutationFn: async ({ email, password, nombre, type, ...extraData }: SignUpData) => {
-      console.log('Starting sign up process for:', email, type);
+      console.log('Starting signup process for:', email, type);
 
       // First, create Supabase user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -237,7 +231,6 @@ export const useAuth = () => {
             nombre,
             user_type: type,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -246,34 +239,39 @@ export const useAuth = () => {
         throw authError;
       }
 
-      console.log('Supabase user created successfully:', authData.user?.id);
+      console.log('Supabase user created successfully:', authData.user?.email);
 
       // Then create user in our database via API
       try {
+        let apiResponse;
         if (type === 'customer') {
-          console.log('Creating customer profile...');
-          const response = await authApi.createCustomer({
+          console.log('Creating customer in database...');
+          apiResponse = await authApi.createCustomer({
             email: email.toLowerCase(),
             nombre,
             telefono: extraData.telefono,
           });
-          console.log('Customer created:', response);
+          console.log('Customer created in database:', apiResponse);
+          navigate('/usuario-dashboard');
         } else if (type === 'supplier') {
-          console.log('Creating supplier profile...');
-          const response = await authApi.createSupplier({
+          console.log('Creating supplier in database...');
+          apiResponse = await authApi.createSupplier({
             email: email.toLowerCase(),
             nombre,
             nombre_negocio: extraData.nombre_negocio || nombre,
             descripcion: extraData.descripcion || '',
             telefono_contacto: extraData.telefono_contacto,
           });
-          console.log('Supplier created:', response);
+          console.log('Supplier created in database:', apiResponse);
+          navigate('/proveedor-dashboard');
         }
       } catch (dbError) {
         console.error('Database creation error:', dbError);
-        // If database creation fails, we should still allow the user to continue
-        // They can complete their profile later
-        console.warn('User created in Supabase but database profile creation failed');
+        setNotification({
+          open: true,
+          message: 'Error al crear el perfil en la base de datos',
+          severity: 'error',
+        });
       }
 
       return authData;
@@ -281,10 +279,9 @@ export const useAuth = () => {
     onSuccess: () => {
       setNotification({
         open: true,
-        message: 'Cuenta creada exitosamente. Por favor confirma tu email.',
+        message: '¡Cuenta creada exitosamente!',
         severity: 'success',
       });
-      navigate('/email-confirmation');
     },
     onError: (error: AuthError) => {
       console.error('Sign up error:', error);
@@ -294,6 +291,10 @@ export const useAuth = () => {
         message = 'El email ya está registrado';
       } else if (error.message.includes('Password should be')) {
         message = 'La contraseña debe tener al menos 6 caracteres';
+      } else if (error.message.includes('Invalid email')) {
+        message = 'Email inválido';
+      } else if (error.message.includes('weak password')) {
+        message = 'La contraseña es muy débil';
       }
 
       setNotification({
@@ -315,15 +316,25 @@ export const useAuth = () => {
       navigate('/');
       setNotification({
         open: true,
-        message: 'Successfully signed out!',
+        message: '¡Cerraste sesión exitosamente!',
         severity: 'success',
       });
     },
-    onError: (error: AuthError) => {
+    onError: (error: AuthError | CancelledError) => {
+      // Don't show error for cancellation - this happens during navigation
+      const isCancelledError =
+        'revert' in error ||
+        'silent' in error ||
+        (error as any)?.name === 'CancelledError2' ||
+        (error as any)?.name === 'CancelledError';
+
+      if (isCancelledError) {
+        return;
+      }
       console.error('Sign out error:', error);
       setNotification({
         open: true,
-        message: error.message || 'Failed to sign out',
+        message: (error as AuthError).message || 'Error al cerrar sesión',
         severity: 'error',
       });
     },
@@ -362,7 +373,7 @@ export const useAuth = () => {
 
   // Sign out wrapper
   const signOut = useCallback(() => {
-    return signOutMutation.mutate();
+    signOutMutation.mutate();
   }, [signOutMutation]);
 
   return {

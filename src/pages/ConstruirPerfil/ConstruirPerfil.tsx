@@ -1,4 +1,7 @@
-import './styles.css';
+import BackButton from '@/components/BackButton';
+import Loading from '@/components/Loading';
+import { useConstruirPerfilNew } from '@/hooks/useConstruirPerfilNew';
+import useConstruirPerfil from '@/store/construirPerfil';
 import { Button, List } from '@mui/material';
 import {
   BackButtonContainer,
@@ -6,7 +9,7 @@ import {
   StyledTitle,
   SubTitle,
   Wrapper,
-} from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
+} from '../ProveedorDashboard/StyledPrestadorDashboardComponents';
 import { construirPerfilOpciones } from './construirPerfilOpciones';
 import {
   Container,
@@ -17,10 +20,7 @@ import {
   StyledText,
   StyledUncheckedIcon,
 } from './StyledConstruirPerfilComponents';
-import BackButton from '@/components/BackButton';
-import useConstruirPerfil from '@/store/construirPerfil';
-import Loading from '@/components/Loading';
-import { useConstruirPerfilNew } from '@/hooks/useConstruirPerfilNew';
+import './styles.css';
 
 export const ConstruirPerfil = () => {
   const [construirPerfil, { handleVerPerfil }] = useConstruirPerfil();

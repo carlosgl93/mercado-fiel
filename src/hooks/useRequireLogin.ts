@@ -1,63 +1,89 @@
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { protectedRoutes } from '@/routes';
 import { redirectToAfterLoginState } from '@/store/auth';
-import { proveedorState } from '@/store/auth/proveedor';
-import { userState } from '@/store/auth/user';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 
 export function useRequireLogin() {
   const [redirectAfterLogin, setRedirectAfterLogin] = useRecoilState(redirectToAfterLoginState);
-  const prestador = useRecoilValue(proveedorState);
-  const user = useRecoilValue(userState);
+  const { user, customer, supplier, isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const prestadorId = prestador?.id?.length;
-  const userId = user?.id?.length;
+  const isCustomer = !!customer?.idCliente;
+  const isSupplier = !!supplier?.idProveedor;
+  const isLoggedIn = isAuthenticated();
 
   useEffect(() => {
-    // case where the user is logged in as a user and tries to access the backoffice
-    if (location.pathname.includes('/backoffice') && user?.role === 'user') {
-      // setRedirectAfterLogin(location.pathname);
+    // Don't run redirects until auth is initialized
+    if (!isInitialized) return;
+
+    // case where the user is logged in as a customer and tries to access the backoffice
+    if (location.pathname.includes('/backoffice') && isCustomer) {
       navigate('/usuario-dashboard');
       return;
     }
 
-    if (location.pathname.includes('/backoffice') && user === null) {
+    if (location.pathname.includes('/backoffice') && !isLoggedIn) {
       navigate('/backoffice/login');
       return;
     }
 
-    if (!prestadorId && !userId && protectedRoutes?.includes(location.pathname)) {
+    // If not logged in and trying to access protected route, redirect to login
+    if (!isLoggedIn && protectedRoutes?.includes(location.pathname)) {
       setRedirectAfterLogin(location.pathname);
       navigate('/ingresar');
+      return;
     }
 
-    if (prestadorId && !userId && location.pathname.includes('/ingresar')) {
+    // If supplier is logged in and tries to access login page, redirect to supplier dashboard
+    if (isSupplier && location.pathname.includes('/ingresar')) {
       navigate('/prestador-dashboard');
+      return;
     }
 
-    if (userId && !prestadorId && location.pathname.includes('/ingresar')) {
+    // If customer is logged in and tries to access login page, redirect to customer dashboard
+    if (isCustomer && location.pathname.includes('/ingresar')) {
+      console.log('navigating to usuario dashboard');
       navigate('/usuario-dashboard');
+      return;
     }
 
-    if (!userId && (location.pathname.includes('/chat') || redirectAfterLogin === '/chat')) {
+    // Chat redirects for customers
+    if (!isCustomer && (location.pathname.includes('/chat') || redirectAfterLogin === '/chat')) {
       navigate('/usuario-inbox');
+      return;
     }
 
+    // Chat redirects for suppliers
     if (
-      !prestadorId &&
+      !isSupplier &&
       (location.pathname.includes('/prestador-chat') || redirectAfterLogin === '/prestador-chat')
     ) {
       navigate('/prestador-inbox');
+      return;
     }
+
+    // General protected route check
     if (
-      !userId &&
-      !prestadorId &&
+      !isCustomer &&
+      !isSupplier &&
       protectedRoutes.find((route) => location.pathname.includes(route))
     ) {
+      console.log('navigating to login - no auth');
       navigate('/ingresar');
+      return;
     }
-  }, [prestadorId, userId, protectedRoutes, location.pathname]);
+  }, [
+    isCustomer,
+    isSupplier,
+    isLoggedIn,
+    isInitialized,
+    protectedRoutes,
+    location.pathname,
+    navigate,
+    setRedirectAfterLogin,
+    redirectAfterLogin,
+  ]);
 }

@@ -103,10 +103,7 @@ export const useAuth = (): UseAuthReturn => {
   const setNotification = useSetRecoilState(notificationState);
   const { resetState: resetAppState } = useResetState();
 
-  console.log({
-    cliente,
-    proveedor,
-  });
+  console.log('using useAuth - NOT FROM SUPABASE');
 
   // Local state
   const [session, setSession] = useState<Session | null>(null);

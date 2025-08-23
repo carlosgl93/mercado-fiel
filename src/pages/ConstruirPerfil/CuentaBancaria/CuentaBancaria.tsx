@@ -8,7 +8,7 @@ import {
   StyledTitle,
   SubTitle,
   Wrapper,
-} from '@/pages/PrestadorDashboard/StyledPrestadorDashboardComponents';
+} from '@/pages/ProveedorDashboard/StyledPrestadorDashboardComponents';
 import LockIcon from '@mui/icons-material/Lock';
 import { Box, TextField, styled } from '@mui/material';
 import { useEffect } from 'react';

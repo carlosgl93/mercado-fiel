@@ -1,7 +1,8 @@
 import { Comuna } from '@/types';
 import { ChangeEvent, useEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useUserLookingFor } from '../../hooks';
+import { useUserLookingFor } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export type Patient = {
   name: string;
@@ -79,7 +80,7 @@ const reducer = (state: FormState, action: FormActions) => {
 };
 
 const RegistrarUsuarioController = () => {
-  const { signUpWithEmail, cliente, proveedor } = useAuth();
+  const { signUp, customer, supplier } = useAuth();
   const navigate = useNavigate();
   const { translatedLookingFor } = useUserLookingFor();
 
@@ -166,11 +167,11 @@ const RegistrarUsuarioController = () => {
       setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
     } else {
       try {
-        await signUpWithEmail({
+        await signUp({
           email: correo,
           password: contrasena,
           nombre: `${nombre} ${apellido}`,
-          type: 'cliente',
+          type: 'customer',
           telefono: telefono,
         });
 
@@ -206,15 +207,15 @@ const RegistrarUsuarioController = () => {
   }, []);
 
   useEffect(() => {
-    if (cliente?.usuario?.email) {
+    if (customer?.idCliente) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (proveedor?.usuario?.email) {
+    if (supplier?.idProveedor) {
       navigate('/prestador-dashboard');
       return;
     }
-  }, [cliente, proveedor, navigate]);
+  }, [customer, supplier, navigate]);
 
   useEffect(() => {
     if (!translatedLookingFor) {

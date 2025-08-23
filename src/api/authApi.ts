@@ -19,7 +19,6 @@ export const apiClient: ApiClient = {
 // Auth-related API calls
 export const authApi = {
   getCurrentUser: async (email: string): Promise<AuthUser> => {
-    console.log('Fetching user with ID:', email);
     const response = await apiClient.get(`auth/user/${email}`);
     return response.data;
   },

@@ -1,17 +1,17 @@
+import BackButton from '@/components/BackButton';
+import Loading from '@/components/Loading';
+import { useDisponibilidadNew } from '@/hooks/useDisponibilidadNew';
 import {
   BackButtonContainer,
   Container,
   StyledTitle,
   Wrapper,
-} from '@/pages/PrestadorDashboard/StyledPrestadorDashboardComponents';
-import BackButton from '@/components/BackButton';
-import { StyledText } from '../StyledConstruirPerfilComponents';
-import { Box, Button } from '@mui/material';
+} from '@/pages/ProveedorDashboard/StyledPrestadorDashboardComponents';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import { ListAvailableDays } from './ListAvailableDays';
+import { Box, Button } from '@mui/material';
+import { StyledText } from '../StyledConstruirPerfilComponents';
 import { EditAvailableDays } from './EditAvailableDays';
-import { useDisponibilidadNew } from '@/hooks/useDisponibilidadNew';
-import Loading from '@/components/Loading';
+import { ListAvailableDays } from './ListAvailableDays';
 
 export const Disponibilidad = () => {
   const { availability, isLoading, editDisponibilidad, handleEditDisponibilidad } =

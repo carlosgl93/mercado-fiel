@@ -476,6 +476,122 @@ suppliersRouter.post(
   },
 );
 
+// PATCH /suppliers/:id/business - Update business information only
+suppliersRouter.patch(
+  '/:id/business',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const {
+        nombre_negocio,
+        descripcion,
+        telefono_contacto,
+        email,
+        radio_entrega_km,
+        cobra_envio,
+        envio_gratis_desde,
+      } = req.body;
+
+      // Validation
+      if (!nombre_negocio || !nombre_negocio.trim()) {
+        res.status(400).json({
+          success: false,
+          message: 'El nombre del negocio es requerido',
+        });
+        return;
+      }
+
+      // Check if supplier exists
+      const existingSupplier = await prisma.proveedores.findUnique({
+        where: { id_proveedor: parseInt(id) },
+      });
+
+      if (!existingSupplier) {
+        res.status(404).json({
+          success: false,
+          message: 'Proveedor no encontrado',
+        });
+        return;
+      }
+
+      // Check if business name is unique (only if it's different from current name)
+      if (nombre_negocio.trim() !== existingSupplier.nombre_negocio) {
+        const businessNameExists = await prisma.proveedores.findFirst({
+          where: {
+            nombre_negocio: nombre_negocio.trim(),
+            id_proveedor: { not: parseInt(id) },
+          },
+        });
+
+        if (businessNameExists) {
+          res.status(400).json({
+            success: false,
+            message: 'Ya existe un negocio con este nombre',
+          });
+          return;
+        }
+      }
+
+      // Check if business email is unique (if provided and different from current)
+      if (email && email.trim() && email !== existingSupplier.email) {
+        const emailExists = await prisma.proveedores.findFirst({
+          where: {
+            email: email.trim(),
+            id_proveedor: { not: parseInt(id) },
+          },
+        });
+
+        if (emailExists) {
+          res.status(400).json({
+            success: false,
+            message: 'Ya existe un negocio con este email de contacto',
+          });
+          return;
+        }
+      }
+
+      // Build update data
+      const updateData: any = {
+        nombre_negocio: nombre_negocio.trim(),
+      };
+
+      if (descripcion !== undefined) updateData.descripcion = descripcion?.trim() || null;
+      if (telefono_contacto !== undefined)
+        updateData.telefono_contacto = telefono_contacto?.trim() || null;
+      if (email !== undefined) updateData.email = email?.trim() || null;
+      if (radio_entrega_km !== undefined)
+        updateData.radio_entrega_km = parseInt(radio_entrega_km) || 10;
+      if (cobra_envio !== undefined) updateData.cobra_envio = Boolean(cobra_envio);
+      if (envio_gratis_desde !== undefined)
+        updateData.envio_gratis_desde = parseFloat(envio_gratis_desde) || null;
+
+      // Update supplier
+      const updatedSupplier = await prisma.proveedores.update({
+        where: { id_proveedor: parseInt(id) },
+        data: updateData,
+        include: {
+          usuario: {
+            select: {
+              id_usuario: true,
+              nombre: true,
+              email: true,
+            },
+          },
+          direccion: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: updatedSupplier,
+        message: 'Información del negocio actualizada exitosamente',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // PUT /suppliers/:id - Update supplier
 suppliersRouter.put(
   '/:id',
@@ -547,6 +663,24 @@ suppliersRouter.put(
           res.status(400).json({
             success: false,
             message: 'Ya existe un proveedor con este email de negocio',
+          });
+          return;
+        }
+      }
+
+      // Check business name uniqueness if changing
+      if (nombre_negocio && nombre_negocio.trim() !== existingSupplier.nombre_negocio) {
+        const businessNameExists = await prisma.proveedores.findFirst({
+          where: {
+            nombre_negocio: nombre_negocio.trim(),
+            id_proveedor: { not: parseInt(id) },
+          },
+        });
+
+        if (businessNameExists) {
+          res.status(400).json({
+            success: false,
+            message: 'Ya existe un negocio con este nombre',
           });
           return;
         }

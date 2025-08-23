@@ -23,11 +23,13 @@ function Ingresar() {
       customer,
       supplier,
     });
-    if (customer?.email) {
+
+    // Only navigate if user is authenticated and we have clear role data
+    if (customer && customer.idCliente) {
       navigate('/usuario-dashboard');
       return;
     }
-    if (supplier?.email) {
+    if (supplier && supplier.idProveedor) {
       navigate('/prestador-dashboard');
       return;
     }

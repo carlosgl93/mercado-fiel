@@ -10,6 +10,7 @@ enum Pages {
   Beneficios,
   RegistrarUsuario,
   RegistrarProveedor,
+  ProveedorPerfil,
   EmailConfirmation,
   AuthCallback,
   Comenzar,
@@ -22,7 +23,7 @@ enum Pages {
   EmailVerificado,
   PerfilCliente,
   EmailVerificadoPrestador,
-  PrestadorDashboard,
+  ProveedorDashboard,
   Chat,
   UsuarioDashboard,
   ConstruirPerfil,
@@ -52,6 +53,7 @@ enum Pages {
   // CrearApoyo,
   Contacto,
   PreguntasFrecuentes,
+  MisProductos,
 }
 
 type PathRouteCustomProps = {

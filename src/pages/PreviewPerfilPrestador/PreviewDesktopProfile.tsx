@@ -22,30 +22,30 @@ import {
 } from './DesktopPerfilPrestadorStyledComponents';
 import { styles } from './styles';
 
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export const PreviewDesktopProfile = () => {
-  const { proveedor } = useAuth();
+  const { supplier } = useAuth();
 
   const [{ allServicios }] = useRecibeApoyo();
   const [prestadorServicio, setPrestadorServicio] = useState({} as Servicio);
   const [prestadorEspecialidad, setPrestadorEspecialidad] = useState({} as Especialidad);
   const navigate = useNavigate();
-  if (!proveedor) {
+  if (!supplier) {
     return <span>No hay proveedor disponible</span>;
   }
   const {
     idProveedor: id,
     nombreNegocio: firstname,
     descripcion,
-    profileImageUrl: imageUrl,
-    averageReviews,
-    totalReviews,
-  } = proveedor;
+    profile_picture_url: imageUrl,
+    // averageReviews,
+    // totalReviews,
+  } = supplier;
 
   const handleContact = () => {
-    if (proveedor) {
-      navigate(`/chat/${proveedor.id}`);
+    if (supplier) {
+      navigate(`/chat/${supplier.idProveedor}`);
       return;
     }
 
@@ -54,7 +54,7 @@ export const PreviewDesktopProfile = () => {
     return;
   };
 
-  if (!proveedor) return <span>No hay proveedor disponible</span>;
+  if (!supplier) return <span>No hay proveedor disponible</span>;
 
   return (
     <>
@@ -72,11 +72,11 @@ export const PreviewDesktopProfile = () => {
         </Box>
         <StyledHeroContent>
           <Box>
-            <StyledAvatar alt={`Imagen de perfil de ${firstname}`} src={imageUrl} />
+            <StyledAvatar alt={`Imagen de perfil de ${firstname}`} src={imageUrl || ''} />
           </Box>
           <Box>
             <StyledName>{firstname}</StyledName>
-            <Reviews average={averageReviews || 0} total_reviews={totalReviews || 0} />
+            <Reviews average={0} total_reviews={0} />
 
             <StyledServicio>
               {prestadorServicio?.serviceName} / {prestadorEspecialidad?.especialidadName}

@@ -212,8 +212,25 @@ model productos {
   campanas_colectivas compras_colectivas[]
   items_pedido        ItemPedido[]
   lista_deseos        lista_deseos[]
+  descuentos_cantidad descuentos_cantidad[]
 
   @@map("productos")
+}
+
+// Quantity discounts for individual products
+model descuentos_cantidad {
+  id_descuento        Int       @id @default(autoincrement())
+  id_producto         Int
+  producto            productos @relation(fields: [id_producto], references: [id_producto])
+  cantidad_minima     Int       // Minimum quantity for this discount tier
+  descuento_porcentaje Decimal  @db.Decimal(5, 2) // Discount percentage (e.g., 10.50 for 10.5%)
+  precio_descuento    Decimal?  @db.Decimal(10, 2) // Alternative: fixed discounted price
+  activo              Boolean   @default(true)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@unique([id_producto, cantidad_minima]) // One discount per quantity level per product
+  @@map("descuentos_cantidad")
 }
 
 // Comments/Reviews table

@@ -3,7 +3,7 @@ import { Text } from '@/components/StyledComponents';
 import { formatDate } from '@/utils/formatDate';
 import { Box, List, ListItem, styled } from '@mui/material';
 import { StyledAvatar } from '../PerfilProveedor/MobilePerfilPrestadorStyledComponents';
-import { StyledTitle, Wrapper } from '../PrestadorDashboard/StyledPrestadorDashboardComponents';
+import { StyledTitle, Wrapper } from '../ProveedorDashboard/StyledPrestadorDashboardComponents';
 import { useUsuarioInbox } from './useUsuarioInbox';
 
 const TitleContainer = styled(Box)(() => ({

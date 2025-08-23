@@ -1,15 +1,15 @@
 import { useAppointments } from '@/hooks/useAppointments';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export const SessionController = () => {
   const { userAppointments, userAppointmentsLoading } = useAppointments();
-  const { user, proveedor } = useAuth();
+  const { user, supplier } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.email && proveedor?.email) {
+    if (user?.data?.email && supplier?.email) {
       navigate('/ingresar');
     }
   }, []);

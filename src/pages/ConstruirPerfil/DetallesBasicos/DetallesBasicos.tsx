@@ -1,15 +1,15 @@
-import { TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { styled } from '@mui/system';
-import { SaveButton } from '@/components/SaveButton';
-import { useDetallesBasicos } from './useDetallesBasicos';
-import Loading from '@/components/Loading';
 import BackButton from '@/components/BackButton';
+import Loading from '@/components/Loading';
+import { SaveButton } from '@/components/SaveButton';
 import {
   BackButtonContainer,
   Container,
   Wrapper,
-} from '@/pages/PrestadorDashboard/StyledPrestadorDashboardComponents';
+} from '@/pages/ProveedorDashboard/StyledPrestadorDashboardComponents';
+import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { styled } from '@mui/system';
+import { useForm } from 'react-hook-form';
+import { useDetallesBasicos } from './useDetallesBasicos';
 
 export interface IDetallesBasicosInputs {
   email: string;

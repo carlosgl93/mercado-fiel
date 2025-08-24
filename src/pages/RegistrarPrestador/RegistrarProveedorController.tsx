@@ -244,7 +244,13 @@ const RegistrarPrestadorController = () => {
 
   // Prefill form with dummy data in development mode
   useEffect(() => {
-    if (import.meta.env.VITE_ENV === 'development' || process.env.NODE_ENV === 'development') {
+    // Only prefill in development environment (local development only)
+    const isDevEnvironment = import.meta.env.VITE_ENV === 'development';
+    const isLocalhost =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Double-check: only prefill if BOTH conditions are true
+    if (isDevEnvironment && isLocalhost) {
       console.log('🔧 Development mode detected - checking if form should be prefilled');
 
       const dummyData = {
@@ -275,6 +281,13 @@ const RegistrarPrestadorController = () => {
       } else {
         console.log('📋 Form already has data, skipping prefill');
       }
+    } else {
+      console.log('🚀 Production mode - skipping form prefill', {
+        VITE_ENV: import.meta.env.VITE_ENV,
+        hostname: window.location.hostname,
+        isDevEnvironment,
+        isLocalhost,
+      });
     }
   }, []); // Empty dependency array to run only once on mount
 

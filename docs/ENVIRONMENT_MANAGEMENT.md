@@ -5,25 +5,30 @@ This project uses a secure environment management system that prevents hardcoded
 ## Initial Setup
 
 1. **Run the setup command:**
+
    ```bash
    ./scripts/env-manager.sh setup
    ```
 
 2. **Create your secrets file:**
+
    ```bash
    cp .env.secrets.template .env.secrets
    ```
 
 3. **Fill in your real secrets in `.env.secrets`:**
-   
+
    ### Development Secrets (Already Provided)
+
    The development secrets use Supabase emulator defaults and are safe to use as-is.
-   
+
    ### Production Secrets (You Need to Fill These)
+
    - **Supabase**: Get from your Supabase project dashboard → Settings → API
    - **Firebase**: Get from Firebase console → Project Settings → General
 
 4. **Create environment files:**
+
    ```bash
    ./scripts/env-manager.sh create-env
    ```
@@ -31,6 +36,7 @@ This project uses a secure environment management system that prevents hardcoded
 ## Usage
 
 ### Development
+
 ```bash
 # Switch to development environment
 ./scripts/env-manager.sh dev
@@ -40,6 +46,7 @@ This project uses a secure environment management system that prevents hardcoded
 ```
 
 ### Production
+
 ```bash
 # Switch to production environment
 ./scripts/env-manager.sh prod
@@ -49,6 +56,7 @@ This project uses a secure environment management system that prevents hardcoded
 ```
 
 ### Utilities
+
 ```bash
 # Check current environment
 ./scripts/env-manager.sh status
@@ -78,16 +86,21 @@ This project uses a secure environment management system that prevents hardcoded
 ## Troubleshooting
 
 ### Missing secrets error
+
 If you get "Missing .env.secrets file!", follow the setup steps above.
 
 ### Permission denied
+
 Make sure the script is executable:
+
 ```bash
 chmod +x scripts/env-manager.sh
 ```
 
 ### Wrong environment
+
 Check your current environment:
+
 ```bash
 ./scripts/env-manager.sh status
 ```

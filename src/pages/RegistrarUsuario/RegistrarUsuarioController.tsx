@@ -212,7 +212,7 @@ const RegistrarUsuarioController = () => {
       return;
     }
     if (supplier?.idProveedor) {
-      navigate('/prestador-dashboard');
+      navigate('/proveedor-dashboard');
       return;
     }
   }, [customer, supplier, navigate]);

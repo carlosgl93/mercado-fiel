@@ -39,7 +39,7 @@ export function useRequireLogin() {
 
     // If supplier is logged in and tries to access login page, redirect to supplier dashboard
     if (isSupplier && location.pathname.includes('/ingresar')) {
-      navigate('/prestador-dashboard');
+      navigate('/proveedor-dashboard');
       return;
     }
 
@@ -59,9 +59,9 @@ export function useRequireLogin() {
     // Chat redirects for suppliers
     if (
       !isSupplier &&
-      (location.pathname.includes('/prestador-chat') || redirectAfterLogin === '/prestador-chat')
+      (location.pathname.includes('/proveedor-chat') || redirectAfterLogin === '/proveedor-chat')
     ) {
-      navigate('/prestador-inbox');
+      navigate('/proveedor-inbox');
       return;
     }
 

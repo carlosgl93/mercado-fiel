@@ -5,7 +5,7 @@ import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 export const prestadorDrawerOptions = [
   {
     title: 'Panel',
-    path: '/prestador-dashboard',
+    path: '/proveedor-dashboard',
     icon: HomeOutlinedIcon,
   },
   {
@@ -30,7 +30,7 @@ export const prestadorDrawerOptions = [
   // },
   {
     title: 'Inbox',
-    path: '/prestador-inbox',
+    path: '/proveedor-inbox',
     icon: MailOutlinedIcon,
   },
   // {

@@ -1,14 +1,14 @@
-import { atom, useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
+import { atom, useRecoilState } from 'recoil';
 
-import type { Actions } from './types';
-import { User } from '@/types/User';
-import { useEffect } from 'react';
 import api from '@/api/api';
-import { AxiosError } from 'axios';
-import { notificationState } from '../snackbar';
-import { Prestador } from '@/types/Prestador';
 import { postPrestador } from '@/api/prestadores/postPrestador';
+import { Prestador } from '@/types/Prestador';
+import { User } from '@/types/User';
+import { AxiosError } from 'axios';
+import { useEffect } from 'react';
+import { notificationState } from '../snackbar';
+import type { Actions } from './types';
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -66,7 +66,7 @@ function useAuth(): [AuthState, Actions] {
             token: loginUserResponse.data.token,
           }),
         );
-        navigate('/prestador-dashboard');
+        navigate('/proveedor-dashboard');
       } else {
         setUser((prev) => ({
           ...prev,
@@ -84,7 +84,7 @@ function useAuth(): [AuthState, Actions] {
       setUser((prev) => ({ ...prev, loading: false }));
 
       if (redirectToAfterLogin === '/' && isAlsoPrestador) {
-        navigate('/prestador-dashboard');
+        navigate('/proveedor-dashboard');
       } else if (redirectToAfterLogin === '/' && userData) {
         navigate('/usuario-dashboard');
       } else {
@@ -181,7 +181,7 @@ function useAuth(): [AuthState, Actions] {
           message: 'Cuenta creada con exito, no olvides confirmar tu email',
           severity: 'success',
         });
-        navigate(`/prestador-dashboard/`);
+        navigate(`/proveedor-dashboard/`);
       } else {
         setNotification({
           open: true,

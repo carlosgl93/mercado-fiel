@@ -296,7 +296,7 @@ export const useAuth = (): UseAuthReturn => {
 
       // Navigate based on user type
       if (isProveedor) {
-        navigate('/prestador-dashboard');
+        navigate('/proveedor-dashboard');
       } else {
         navigate('/usuario-dashboard');
       }

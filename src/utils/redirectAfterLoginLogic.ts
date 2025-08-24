@@ -42,16 +42,16 @@ export function determineRedirectAfterLogin(
     },
     '/ingresar': {
       user: '/usuario-dashboard',
-      provider: '/prestador-dashboard',
+      provider: '/proveedor-dashboard',
     },
     '/usuario-dashboard': {
       user: '/usuario-dashboard',
-      provider: '/prestador-dashboard',
+      provider: '/proveedor-dashboard',
       admin: '/backoffice',
     },
-    '/prestador-dashboard': {
+    '/proveedor-dashboard': {
       user: '/usuario-dashboard',
-      provider: '/prestador-dashboard',
+      provider: '/proveedor-dashboard',
       admin: '/backoffice',
     },
     '/construir-perfil': {

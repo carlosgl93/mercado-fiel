@@ -30,7 +30,7 @@ function Ingresar() {
       return;
     }
     if (supplier && supplier.idProveedor) {
-      navigate('/prestador-dashboard');
+      navigate('/proveedor-dashboard');
       return;
     }
   }, [customer, supplier, navigate]);

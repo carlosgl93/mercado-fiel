@@ -1,5 +1,6 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { useCategories } from '../../hooks/useCategories';
+import { Category } from '../../types/api/categories';
 
 type CategoriesDropdownProps = {
   onCategorySelect?: (categoryId: string) => void;
@@ -13,7 +14,7 @@ function CategoriesDropdown({
 }: CategoriesDropdownProps) {
   const { getCategories, selectedCategory, handleSelectCategory } = useCategories();
 
-  const categories = getCategories();
+  const categories = getCategories;
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value as string;
@@ -75,10 +76,10 @@ function CategoriesDropdown({
           },
         }}
       >
-        {categories?.map((cat: { id: string; name: string }) => (
+        {categories?.map((cat: Category) => (
           <MenuItem
-            key={cat.id}
-            value={cat.id}
+            key={cat.idCategoria}
+            value={cat.idCategoria.toString()}
             sx={{
               borderRadius: '1rem',
               mx: 1,
@@ -88,7 +89,7 @@ function CategoriesDropdown({
               fontWeight: 400,
             }}
           >
-            {cat.name}
+            {cat.nombre}
           </MenuItem>
         ))}
       </Select>

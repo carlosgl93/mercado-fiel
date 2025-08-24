@@ -29,7 +29,7 @@ export const ConstruirPerfil = () => {
   return (
     <Wrapper>
       <BackButtonContainer>
-        <BackButton displayText to="/prestador-dashboard" />
+        <BackButton displayText to="/proveedor-dashboard" />
       </BackButtonContainer>
       <SectionTitleContainer>
         <StyledTitle>Mi perfil</StyledTitle>

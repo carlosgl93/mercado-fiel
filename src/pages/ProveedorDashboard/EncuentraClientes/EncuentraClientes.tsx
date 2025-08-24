@@ -20,7 +20,7 @@ export const EncuentraClientes = () => {
   //           pt: '1rem',
   //         }}
   //       >
-  //         <BackButton displayText to="/prestador-dashboard" />
+  //         <BackButton displayText to="/proveedor-dashboard" />
   //       </BackButtonContainer>
   //     </FlexBox>
   //     <EncuentraClientesHeader />

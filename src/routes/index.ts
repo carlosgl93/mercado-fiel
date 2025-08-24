@@ -208,7 +208,7 @@ const routes: Routes = {
 };
 
 export const protectedRoutes = [
-  '/prestador-dashboard',
+  '/proveedor-dashboard',
   '/construir-perfil',
   '/construir-perfil/disponibilidad',
   '/construir-perfil/comunas',
@@ -220,13 +220,13 @@ export const protectedRoutes = [
   '/construir-perfil/detallesBasicos',
   '/construir-perfil/servicios',
   '/chat',
-  '/prestador-chat',
-  '/prestador-inbox',
+  '/proveedor-chat',
+  '/proveedor-inbox',
   '/usuario-inbox',
   '/perfil-usuario',
   '/usuario-dashboard',
   '/sesiones',
-  '/preview-perfil-prestador',
+  '/preview-perfil-proveedor',
   '/post-support',
   '/encuentra-clientes',
   '/ver-apoyo',

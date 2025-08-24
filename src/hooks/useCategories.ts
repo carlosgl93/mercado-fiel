@@ -1,7 +1,8 @@
 import { useQuery } from 'react-query';
 import { useRecoilState } from 'recoil';
-import { getCategories } from '../api/categories';
+import { categoriesApi } from '../api';
 import { categoryState } from '../store/categories/categoriesStore';
+import { Category as ApiCategory } from '../types/api/categories';
 
 export type Category = {
   id: string;
@@ -11,14 +12,18 @@ export type Category = {
 export const useCategories = () => {
   const [selectedCategory, setSelectedCategory] = useRecoilState(categoryState);
 
-  const { data: categories, isLoading: isLoadingCategories } = useQuery('categories', () =>
-    getCategories(),
+  const { data: categoriesResponse, isLoading: isLoadingCategories } = useQuery('categories', () =>
+    categoriesApi.getCategories(),
   );
 
+  const categories: ApiCategory[] = categoriesResponse?.data || [];
+
   const handleSelectCategory = (categoryId: string) => {
-    const category = categories.find((cat: Category) => cat.id === categoryId);
+    const category = categories.find(
+      (cat: ApiCategory) => cat.idCategoria.toString() === categoryId,
+    );
     if (category) {
-      setSelectedCategory(category);
+      setSelectedCategory({ id: category.idCategoria.toString(), name: category.nombre });
     } else {
       setSelectedCategory({ id: '', name: '' });
     }

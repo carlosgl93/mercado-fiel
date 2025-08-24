@@ -7,7 +7,7 @@ import FiltersSearchBar from './FiltersSearchBar';
 
 import Loading from '../../components/Loading';
 import { useCategories, useComunas, UserLookingFor, useUserLookingFor } from '../../hooks';
-import { Category } from '../../models/Category';
+import { Category } from '../../types/api/categories';
 
 const DesktopFilters = () => {
   const { userLookingFor, handleSelectLookingFor } = useUserLookingFor();
@@ -118,8 +118,8 @@ const DesktopFilters = () => {
               <option>Selecciona una categoría</option>
               {getCategories.map((category: Category) => {
                 return (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+                  <option key={category.idCategoria} value={category.idCategoria}>
+                    {category.nombre}
                   </option>
                 );
               })}

@@ -1,11 +1,17 @@
 import { productsApi } from '@/api';
+import { categoriesApi } from '@/api/categories';
+import { CLPCurrencyInput, NumberInput, PercentageInput } from '@/components/NumberInput';
 import { useAuth } from '@/hooks/useAuthSupabase';
-import { Category, CreateProductRequest } from '@/types/products';
+import { Category } from '@/types/api/categories';
+import { CreateProductRequest } from '@/types/products';
+import { uploadImageToSupabase } from '@/utils/supabaseStorage';
 import {
   Add as AddIcon,
   Close as CloseIcon,
+  CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
+  Image as ImageIcon,
 } from '@mui/icons-material';
 import {
   Accordion,
@@ -39,8 +45,8 @@ interface CreateProductModalProps {
 
 interface QuantityDiscountForm {
   cantidadMinima: number;
-  descuentoPorcentaje?: number;
-  precioDescuento?: number;
+  descuentoPorcentaje: number | undefined;
+  precioDescuento: number | undefined;
 }
 
 export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, onClose }) => {
@@ -60,11 +66,14 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
 
   const [discounts, setDiscounts] = useState<QuantityDiscountForm[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
-  // Query for categories
+  // Query for categories using axios api
   const { data: categoriesResponse } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => fetch('/api/categories').then((res) => res.json()),
+    queryFn: () => categoriesApi.getCategories(),
     enabled: open,
   });
 
@@ -93,6 +102,9 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     });
     setDiscounts([]);
     setErrors({});
+    setSelectedImage(null);
+    setImagePreview(null);
+    setImageUploading(false);
     onClose();
   };
 
@@ -100,9 +112,15 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     (field: keyof CreateProductRequest) =>
     (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
       const value = event.target.value;
+
       setFormData((prev) => ({
         ...prev,
-        [field]: field === 'precioUnitario' ? Number(value) || 0 : value,
+        [field]:
+          field === 'precioUnitario'
+            ? value === ''
+              ? 0
+              : Number(value) || prev.precioUnitario
+            : value,
       }));
 
       // Clear error when user starts typing
@@ -132,12 +150,66 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
       }));
     };
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors((prev) => ({ ...prev, imagen: 'Por favor selecciona una imagen válida' }));
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, imagen: 'La imagen debe ser menor a 5MB' }));
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Clear any previous errors
+      if (errors.imagen) {
+        setErrors((prev) => ({ ...prev, imagen: '' }));
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setFormData((prev) => ({ ...prev, imagenUrl: '' }));
+  };
+
+  const uploadProductImage = async (file: File): Promise<string> => {
+    setImageUploading(true);
+
+    try {
+      const result = await uploadImageToSupabase(file, 'product-images', 'products');
+
+      if (!result.success) {
+        throw new Error(result.error || 'Error al subir la imagen');
+      }
+
+      return result.url!;
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const addDiscount = () => {
     setDiscounts((prev) => [
       ...prev,
       {
         cantidadMinima: 1,
-        descuentoPorcentaje: 0,
+        descuentoPorcentaje: undefined,
+        precioDescuento: undefined,
       },
     ]);
   };
@@ -149,14 +221,23 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
   const updateDiscount = (
     index: number,
     field: keyof QuantityDiscountForm,
-    value: string | number,
+    value: number | undefined,
   ) => {
     setDiscounts((prev) =>
-      prev.map((discount, i) =>
-        i === index
-          ? { ...discount, [field]: typeof value === 'string' ? Number(value) || 0 : value }
-          : discount,
-      ),
+      prev.map((discount, i) => {
+        if (i === index) {
+          const updatedDiscount = { ...discount, [field]: value };
+          
+          // If updating percentage discount, automatically calculate fixed price
+          if (field === 'descuentoPorcentaje' && value && formData.precioUnitario > 0) {
+            const discountAmount = (formData.precioUnitario * value) / 100;
+            updatedDiscount.precioDescuento = formData.precioUnitario - discountAmount;
+          }
+          
+          return updatedDiscount;
+        }
+        return discount;
+      }),
     );
   };
 
@@ -175,9 +256,18 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
       newErrors.precioUnitario = 'El precio debe ser mayor a 0';
     }
 
+    // Validate image if selected
+    if (selectedImage) {
+      if (!selectedImage.type.startsWith('image/')) {
+        newErrors.imagen = 'Por favor selecciona una imagen válida';
+      } else if (selectedImage.size > 5 * 1024 * 1024) {
+        newErrors.imagen = 'La imagen debe ser menor a 5MB';
+      }
+    }
+
     // Validate discounts
     discounts.forEach((discount, index) => {
-      if (discount.cantidadMinima <= 0) {
+      if (!discount.cantidadMinima || discount.cantidadMinima <= 0) {
         newErrors[`discount_${index}_cantidad`] = 'La cantidad mínima debe ser mayor a 0';
       }
 
@@ -203,17 +293,38 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    const productData: CreateProductRequest = {
-      ...formData,
-      descuentosCantidad: discounts.filter(
-        (discount) => discount.descuentoPorcentaje || discount.precioDescuento,
-      ),
-    };
+    try {
+      let imagenUrl = formData.imagenUrl;
 
-    createProductMutation.mutate(productData);
+      // Upload image if one is selected
+      if (selectedImage) {
+        imagenUrl = await uploadProductImage(selectedImage);
+      }
+
+      const productData: CreateProductRequest = {
+        ...formData,
+        imagenUrl,
+        descuentosCantidad: discounts
+          .filter((discount) => discount.descuentoPorcentaje || discount.precioDescuento)
+          .map((discount) => ({
+            cantidadMinima: discount.cantidadMinima,
+            descuentoPorcentaje: discount.descuentoPorcentaje,
+            precioDescuento: discount.precioDescuento,
+          })),
+      };
+
+      createProductMutation.mutate(productData);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setErrors((prev) => ({
+        ...prev,
+        imagen:
+          error instanceof Error ? error.message : 'Error al subir la imagen. Inténtalo de nuevo.',
+      }));
+    }
   };
 
   const categories: Category[] = categoriesResponse?.data || [];
@@ -274,18 +385,15 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
+            <CLPCurrencyInput
               fullWidth
               label="Precio Unitario"
-              type="number"
               value={formData.precioUnitario}
-              onChange={handleInputChange('precioUnitario')}
+              onChange={(value) => setFormData((prev) => ({ ...prev, precioUnitario: value || 0 }))}
               error={!!errors.precioUnitario}
               helperText={errors.precioUnitario}
-              InputProps={{
-                startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-              }}
               required
+              min={0}
             />
           </Grid>
 
@@ -301,13 +409,100 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
           </Grid>
 
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="URL de Imagen"
-              value={formData.imagenUrl}
-              onChange={handleInputChange('imagenUrl')}
-              helperText="URL de la imagen del producto (opcional)"
-            />
+            <Box>
+              <Typography variant="body1" gutterBottom>
+                Imagen del Producto (Opcional)
+              </Typography>
+
+              {!imagePreview ? (
+                <Box
+                  sx={{
+                    border: '2px dashed',
+                    borderColor: errors.imagen ? 'error.main' : 'grey.300',
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <CloudUploadIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                  <Typography variant="body1" gutterBottom>
+                    Haz clic para seleccionar una imagen
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Formatos soportados: JPG, PNG, WebP (máx. 5MB)
+                  </Typography>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                  />
+                </Box>
+              ) : (
+                <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Box
+                    component="img"
+                    src={imagePreview}
+                    alt="Preview"
+                    sx={{
+                      width: '100%',
+                      maxWidth: 300,
+                      height: 200,
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: 'grey.300',
+                    }}
+                  />
+                  <IconButton
+                    onClick={handleRemoveImage}
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      },
+                    }}
+                    size="small"
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                  <Box sx={{ mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      startIcon={<ImageIcon />}
+                    >
+                      Cambiar imagen
+                    </Button>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: 'none' }}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              {errors.imagen && (
+                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                  {errors.imagen}
+                </Typography>
+              )}
+            </Box>
           </Grid>
 
           <Grid item xs={12}>
@@ -355,52 +550,43 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
 
                       <Grid container spacing={2}>
                         <Grid item xs={12} sm={4}>
-                          <TextField
+                          <NumberInput
                             fullWidth
                             label="Cantidad Mínima"
-                            type="number"
                             value={discount.cantidadMinima}
-                            onChange={(e) =>
-                              updateDiscount(index, 'cantidadMinima', e.target.value)
+                            onChange={(value) =>
+                              updateDiscount(index, 'cantidadMinima', value || 1)
                             }
                             error={!!errors[`discount_${index}_cantidad`]}
                             helperText={errors[`discount_${index}_cantidad`]}
-                            inputProps={{ min: 1 }}
+                            min={1}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={4}>
-                          <TextField
+                          <PercentageInput
                             fullWidth
                             label="Descuento %"
-                            type="number"
-                            value={discount.descuentoPorcentaje || ''}
-                            onChange={(e) =>
-                              updateDiscount(index, 'descuentoPorcentaje', e.target.value)
+                            value={discount.descuentoPorcentaje}
+                            onChange={(value) =>
+                              updateDiscount(index, 'descuentoPorcentaje', value)
                             }
                             error={!!errors[`discount_${index}_percentage`]}
                             helperText={errors[`discount_${index}_percentage`]}
-                            inputProps={{ min: 0, max: 99 }}
-                            InputProps={{
-                              endAdornment: <Typography>%</Typography>,
-                            }}
+                            maxPercentage={99}
+                            minPercentage={0}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={4}>
-                          <TextField
+                          <CLPCurrencyInput
                             fullWidth
                             label="Precio Fijo"
-                            type="number"
-                            value={discount.precioDescuento || ''}
-                            onChange={(e) =>
-                              updateDiscount(index, 'precioDescuento', e.target.value)
-                            }
+                            value={discount.precioDescuento}
+                            onChange={(value) => updateDiscount(index, 'precioDescuento', value)}
                             error={!!errors[`discount_${index}_price`]}
                             helperText={errors[`discount_${index}_price`]}
-                            InputProps={{
-                              startAdornment: <Typography>$</Typography>,
-                            }}
+                            min={0}
                           />
                         </Grid>
 
@@ -435,9 +621,13 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={createProductMutation.isLoading}
+          disabled={createProductMutation.isLoading || imageUploading}
         >
-          {createProductMutation.isLoading ? 'Creando...' : 'Crear Producto'}
+          {imageUploading
+            ? 'Subiendo imagen...'
+            : createProductMutation.isLoading
+            ? 'Creando...'
+            : 'Crear Producto'}
         </Button>
       </DialogActions>
     </Dialog>

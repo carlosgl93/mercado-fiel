@@ -297,7 +297,7 @@ const RegistrarPrestadorController = () => {
       return;
     }
     if (supplier?.email) {
-      navigate('/prestador-dashboard');
+      navigate('/proveedor-dashboard');
       return;
     }
   }, [customer, supplier, navigate]);

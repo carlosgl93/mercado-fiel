@@ -69,3 +69,12 @@ export const mapQuantityDiscountFromApi = (discount: any) => {
 export const mapQuantityDiscountToApi = (discount: any) => {
   return objectToSnakeCase(discount);
 };
+
+// Category mapping functions
+export const mapCategoryFromApi = (category: any) => {
+  return objectToCamelCase(category);
+};
+
+export const mapCategoryToApi = (category: any) => {
+  return objectToSnakeCase(category);
+};

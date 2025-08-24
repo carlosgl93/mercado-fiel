@@ -239,13 +239,18 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
       prev.map((discount, i) => {
         if (i === index) {
           const updatedDiscount = { ...discount, [field]: value };
-          
+
           // If updating percentage discount, automatically calculate fixed price
-          if (field === 'descuentoPorcentaje' && value && formData.precioUnitario && formData.precioUnitario > 0) {
+          if (
+            field === 'descuentoPorcentaje' &&
+            value &&
+            formData.precioUnitario &&
+            formData.precioUnitario > 0
+          ) {
             const discountAmount = (formData.precioUnitario * value) / 100;
             updatedDiscount.precioDescuento = formData.precioUnitario - discountAmount;
           }
-          
+
           return updatedDiscount;
         }
         return discount;
@@ -295,7 +300,11 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
         newErrors[`discount_${index}_percentage`] = 'El porcentaje debe estar entre 1 y 99';
       }
 
-      if (discount.precioDescuento && formData.precioUnitario && discount.precioDescuento >= formData.precioUnitario) {
+      if (
+        discount.precioDescuento &&
+        formData.precioUnitario &&
+        discount.precioDescuento >= formData.precioUnitario
+      ) {
         newErrors[`discount_${index}_price`] =
           'El precio con descuento debe ser menor al precio original';
       }
@@ -328,14 +337,16 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
       if (discounts.length > 0) {
         // Get current discounts to delete them first
         try {
-          const currentDiscountsResponse = await productsApi.getQuantityDiscounts(product.idProducto);
-          
+          const currentDiscountsResponse = await productsApi.getQuantityDiscounts(
+            product.idProducto,
+          );
+
           // Delete existing discounts
           if (currentDiscountsResponse.data && currentDiscountsResponse.data.length > 0) {
             await Promise.all(
               currentDiscountsResponse.data.map((discount) =>
-                productsApi.deleteQuantityDiscount(product.idProducto, discount.idDescuento)
-              )
+                productsApi.deleteQuantityDiscount(product.idProducto, discount.idDescuento),
+              ),
             );
           }
         } catch (error) {
@@ -363,7 +374,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
     } catch (error) {
       console.error('Error updating product:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      
+
       if (errorMessage.includes('imagen')) {
         setErrors((prev) => ({
           ...prev,

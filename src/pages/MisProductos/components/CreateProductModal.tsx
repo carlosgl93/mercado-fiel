@@ -227,13 +227,13 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
       prev.map((discount, i) => {
         if (i === index) {
           const updatedDiscount = { ...discount, [field]: value };
-          
+
           // If updating percentage discount, automatically calculate fixed price
           if (field === 'descuentoPorcentaje' && value && formData.precioUnitario > 0) {
             const discountAmount = (formData.precioUnitario * value) / 100;
             updatedDiscount.precioDescuento = formData.precioUnitario - discountAmount;
           }
-          
+
           return updatedDiscount;
         }
         return discount;

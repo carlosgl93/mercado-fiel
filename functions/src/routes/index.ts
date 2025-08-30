@@ -1,4 +1,5 @@
 export * from './auth';
+export * from './carrito';
 export * from './categories';
 export * from './customers';
 export * from './health';

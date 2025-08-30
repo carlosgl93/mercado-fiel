@@ -3,7 +3,7 @@ import { Prestador, proveedorState } from '@/store/auth/proveedor';
 import { comunasState } from '@/store/construirPerfil/comunas';
 import { notificationState } from '@/store/snackbar';
 import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { getAllComunas } from '../api/comunas';
@@ -179,24 +179,24 @@ export const useComunas = () => {
   //   },
   // );
 
-  const { data: prestadorComunas, isLoading: fetchPrestadorComunasIsLoading } = useQuery(
-    ['providerComunas', proveedor?.id],
-    () => fetchProviderComunas(proveedor?.id),
-    {
-      enabled: !!proveedor?.id,
-      onSuccess(data) {
-        setSelectedComunas([...data]);
-      },
-      onError(error) {
-        console.error(error);
-        setNotification({
-          message: 'Error al cargar comunas',
-          severity: 'error',
-          open: true,
-        });
-      },
-    },
-  );
+  // const { data: prestadorComunas, isLoading: fetchPrestadorComunasIsLoading } = useQuery(
+  //   ['providerComunas', proveedor?.id],
+  //   () => fetchProviderComunas(proveedor?.id),
+  //   {
+  //     enabled: !!proveedor?.id,
+  //     onSuccess(data) {
+  //       setSelectedComunas([...data]);
+  //     },
+  //     onError(error) {
+  //       console.error(error);
+  //       setNotification({
+  //         message: 'Error al cargar comunas',
+  //         severity: 'error',
+  //         open: true,
+  //       });
+  //     },
+  //   },
+  // );
 
   const getComunasNamesById = (comunasIds: number[]) => {
     const comunasNames = (allComunas || []).filter((comuna: Comuna) =>
@@ -205,14 +205,14 @@ export const useComunas = () => {
     return comunasNames.map((comuna: Comuna) => comuna.name).join(', ');
   };
 
-  useEffect(() => {
-    if (prestadorComunas) {
-      setSelectedComunas(prestadorComunas);
-    }
-    if (user?.comuna) {
-      setSelectedComunas([user.comuna]);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (prestadorComunas) {
+  //     setSelectedComunas(prestadorComunas);
+  //   }
+  //   if (user?.comuna) {
+  //     setSelectedComunas([user.comuna]);
+  //   }
+  // }, []);
 
   return {
     allComunas,
@@ -221,8 +221,8 @@ export const useComunas = () => {
     selectedComunas,
     updateComunasisLoading,
     // removeComunaIsLoading,
-    fetchPrestadorComunasIsLoading,
-    prestadorComunas,
+    // fetchPrestadorComunasIsLoading,
+    // prestadorComunas,
     isLoadingAllComunas,
     getComunasNamesById,
     setComunasSearched,

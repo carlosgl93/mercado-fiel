@@ -4,26 +4,24 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Link } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
 
 import { FlexBox } from '@/components/styled';
-import { Prestador, proveedorState } from '@/store/auth/proveedor';
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import ListItemButton from '@mui/material/ListItemButton';
 import { useAuth } from '../../hooks/useAuthSupabase';
-import { generalOptionsDrawerList, prestadorDrawerOptions } from './prestadorDrawerOptions';
+import { generalOptionsDrawerList, supplierDrawerOptions } from './prestadorDrawerOptions';
 
 type PrestadorDrawerListProps = {
   closeDrawer: () => void;
 };
 
 function PrestadorDrawerList({ closeDrawer }: PrestadorDrawerListProps) {
-  const { signOut } = useAuth();
+  const { signOut, supplier } = useAuth();
 
-  const prestador = useRecoilValue(proveedorState) as Prestador;
+  if (!supplier) return null;
 
-  const { firstname, lastname, servicio, email } = prestador;
+  const { nombre, nombreNegocio } = supplier;
 
   return (
     <List
@@ -49,18 +47,13 @@ function PrestadorDrawerList({ closeDrawer }: PrestadorDrawerListProps) {
             ml: '1rem',
           }}
         >
-          {firstname && lastname ? (
-            <ListItemText>{firstname + ' ' + lastname}</ListItemText>
-          ) : (
-            <ListItemText>{email}</ListItemText>
-          )}
-
+          {nombre && <ListItemText>{nombre}</ListItemText>}
           <span
             style={{
               fontSize: '0.85rem',
             }}
           >
-            {servicio}
+            {nombreNegocio}
           </span>
         </Box>
       </ListItem>
@@ -87,7 +80,7 @@ function PrestadorDrawerList({ closeDrawer }: PrestadorDrawerListProps) {
           justifyContent: 'space-evenly',
         }}
       >
-        {prestadorDrawerOptions.map(({ path, title, icon: Icon }) => (
+        {supplierDrawerOptions.map(({ path, title, icon: Icon }) => (
           <ListItem sx={{ p: 'auto' }} key={path}>
             <ListItemButton component={Link} to={path as string} onClick={closeDrawer}>
               {Icon && (

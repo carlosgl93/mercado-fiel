@@ -89,6 +89,7 @@ model usuarios {
   pedidos             pedidos[]
   notificaciones      notificaciones[]
   lista_deseos        lista_deseos[]
+  carrito             carrito[]
 
   @@map("usuarios")
 }
@@ -213,6 +214,7 @@ model productos {
   items_pedido        ItemPedido[]
   lista_deseos        lista_deseos[]
   descuentos_cantidad descuentos_cantidad[]
+  carrito             carrito[]
 
   @@map("productos")
 }
@@ -498,4 +500,20 @@ model lista_deseos {
 
   @@unique([id_usuario, id_producto])
   @@map("lista_deseos")
+}
+
+// Shopping cart for temporary product storage
+model carrito {
+  id_carrito      Int       @id @default(autoincrement())
+  id_usuario      Int
+  usuario         usuarios  @relation(fields: [id_usuario], references: [id_usuario])
+  id_producto     Int
+  producto        productos @relation(fields: [id_producto], references: [id_producto])
+  cantidad        Int
+  precio_unitario Decimal   @db.Decimal(10, 2) // Price at time of adding to cart (with discounts)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@unique([id_usuario, id_producto])
+  @@map("carrito")
 }

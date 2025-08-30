@@ -4,6 +4,7 @@ import { errorHandler } from '../middlewares';
 import { loggerMiddleware } from '../middlewares/logger';
 import {
   authRouter,
+  carritoRouter,
   categoriesRouter,
   customersRouter,
   productosRouter,
@@ -37,6 +38,7 @@ app.use('/customers', customersRouter);
 app.use('/productos', productosRouter);
 app.use('/categories', categoriesRouter);
 app.use('/comunas', comunasRouter);
+app.use('/carrito', carritoRouter);
 
 // Error handler should be last
 app.use(errorHandler);

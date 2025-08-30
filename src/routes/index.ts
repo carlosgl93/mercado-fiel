@@ -201,6 +201,12 @@ const routes: Routes = {
     title: 'Mis Productos',
   },
 
+  [Pages.ExplorarProductos]: {
+    component: asyncComponentLoader(() => import('@/pages/ExplorarProductos')),
+    path: '/explorar-productos',
+    title: 'Explorar Productos',
+  },
+
   [Pages.NotFound]: {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),
     path: '*',

@@ -1,3 +1,4 @@
+import { carritoApi } from '@/api';
 import BackButton from '@/components/BackButton';
 import { FlexBox, HeaderIconImage } from '@/components/styled';
 import { ChatTitle } from '@/pages/Chat/StyledChatMensajes';
@@ -7,12 +8,15 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
-import { Box, Button, IconButton, useTheme } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { Badge, Box, Button, Drawer, IconButton, useTheme } from '@mui/material';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Theme } from '@mui/material/styles';
 import { styled } from '@mui/system';
+import { useState } from 'react';
+import { useQuery } from 'react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { useAuth } from '../../../hooks/useAuthSupabase';
@@ -26,7 +30,20 @@ const DesktopHeaderContent = () => {
   const prestadorName = chats?.providerName;
   const isUserChat = location.pathname === '/chat';
   const isProviderChat = location.pathname === '/prestador-chat';
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Fetch cart data for customers
+  const { data: cartResponse } = useQuery({
+    queryKey: ['carrito', user?.data?.cliente?.id_cliente],
+    queryFn: () => carritoApi.getCartItems(user?.data?.cliente?.id_cliente || 0),
+    enabled: !!user?.data?.cliente?.id_cliente,
+  });
+
+  const cartItems = cartResponse?.data?.items || [];
+
+  const getTotalCartItems = () => {
+    return cartItems.reduce((total: number, item: any) => total + item.cantidad, 0);
+  };
   if (isUserChat) {
     return (
       <FlexBox
@@ -123,19 +140,95 @@ const DesktopHeaderContent = () => {
         </Button>
       </FlexBox>
 
-      {/* Authentication buttons */}
+      {/* Navigation links for logged-in users */}
+      {user?.data?.isLoggedIn &&
+        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {user?.data?.cliente && (
+              <>
+                <Button
+                  component={Link}
+                  to="/explorar-productos"
+                  variant="text"
+                  sx={{ color: 'primary.main' }}
+                >
+                  Productos
+                </Button>
+                <Button
+                  component={Link}
+                  to="/mis-pedidos"
+                  variant="text"
+                  sx={{ color: 'primary.main' }}
+                >
+                  Mis Pedidos
+                </Button>
+              </>
+            )}
+            {user?.data?.proveedor && (
+              <>
+                <Button
+                  component={Link}
+                  to="/mis-productos"
+                  variant="text"
+                  sx={{ color: 'primary.main' }}
+                >
+                  Mis Productos
+                </Button>
+                <Button
+                  component={Link}
+                  to="/pedidos-recibidos"
+                  variant="text"
+                  sx={{ color: 'primary.main' }}
+                >
+                  Pedidos Recibidos
+                </Button>
+              </>
+            )}
+          </Box>
+        )}
+
+      {/* Authentication and cart buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {user?.data?.isLoggedIn &&
         (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) ? (
-          user?.data?.cliente ? (
+          <>
+            {/* Shopping cart for customers only */}
+            {user?.data?.cliente && (
+              <IconButton onClick={() => setIsCartOpen(true)} sx={{ color: 'primary.main' }}>
+                <Badge badgeContent={getTotalCartItems()} color="secondary">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            )}
+            {/* Logout button for both customers and suppliers */}
             <UserHeaderContent />
-          ) : (
-            <ProviderHeaderContent />
-          )
+          </>
         ) : (
           <UnauthenticatedHeaderContent />
         )}
       </Box>
+
+      {/* Cart Drawer */}
+      {user?.data?.cliente && (
+        <Drawer anchor="right" open={isCartOpen} onClose={() => setIsCartOpen(false)}>
+          {/* Cart content will be imported from ExplorarProductos components */}
+          <Box sx={{ width: 400, p: 2 }}>
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <ShoppingCartIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
+              <Box sx={{ mt: 2 }}>Carrito de compras</Box>
+              <Button
+                variant="contained"
+                component={Link}
+                to="/explorar-productos"
+                onClick={() => setIsCartOpen(false)}
+                sx={{ mt: 2 }}
+              >
+                Ver Productos
+              </Button>
+            </Box>
+          </Box>
+        </Drawer>
+      )}
     </FlexBox>
   );
 };
@@ -273,7 +366,7 @@ const UnauthenticatedHeaderContent = () => {
     <>
       <Button
         component={Link}
-        to="/beneficios"
+        to="/ingresar"
         variant="contained"
         sx={{
           backgroundColor: theme.palette.primary.main,
@@ -283,7 +376,7 @@ const UnauthenticatedHeaderContent = () => {
           },
         }}
       >
-        Regístrate
+        Ingresar
       </Button>
     </>
   );

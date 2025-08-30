@@ -61,15 +61,14 @@ export interface AuthSupplier extends AuthUserData {
   nombreNegocio: string;
   descripcion?: string;
   telefonoContacto?: string;
-  idDireccion?: number;
-  latitud?: string;
-  longitud?: string;
+  idDireccion?: number | null;
+  latitud?: string | null;
+  longitud?: string | null;
   destacado: boolean;
-  emailNegocio?: string;
-  radioEntregaKm?: number;
+  emailNegocio?: string | null;
+  radioEntregaKm?: number | null;
   cobraEnvio: boolean;
-  envioGratisDesde?: string;
-  isLoggedIn: boolean;
+  envioGratisDesde?: string | null;
 }
 
 export interface AuthState {

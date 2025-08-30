@@ -1,43 +1,41 @@
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
+import { MoneyRounded } from '@mui/icons-material';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
-export const prestadorDrawerOptions = [
+export const supplierDrawerOptions = [
   {
     title: 'Panel',
     path: '/proveedor-dashboard',
     icon: HomeOutlinedIcon,
   },
   {
-    title: 'Sesiones',
-    path: '/sesiones',
-    icon: CalendarTodayOutlinedIcon,
+    title: 'Mis Productos',
+    path: '/mis-productos',
+    icon: InventoryIcon,
   },
-  // {
-  //   title: 'Trabajos',
-  //   path: '/trabajos',
-  //   icon: FormatListBulletedOutlinedIcon,
-  // },
-  // {
-  //   title: 'Clientes',
-  //   path: '/clientes',
-  //   icon: PeopleAltOutlinedIcon,
-  // },
-  // {
-  //   title: 'Historial',
-  //   path: '/historial',
-  //   icon: HistoryOutlinedIcon,
-  // },
+  {
+    title: 'Pedidos Recibidos',
+    path: '/pedidos-recibidos',
+    icon: ShoppingBagIcon,
+  },
+  {
+    title: 'Clientes',
+    path: '/clientes',
+    icon: PeopleAltOutlinedIcon,
+  },
   {
     title: 'Inbox',
     path: '/proveedor-inbox',
     icon: MailOutlinedIcon,
   },
-  // {
-  //   title: 'Pagos',
-  //   path: '/pagos',
-  //   icon: AttachMoneyOutlinedIcon,
-  // },
+  {
+    title: 'Pagos',
+    path: '/pagos',
+    icon: MoneyRounded,
+  },
   // {
   //   title: 'Configuración',
   //   path: '/configuracion',
@@ -48,9 +46,5 @@ export const prestadorDrawerOptions = [
 export const generalOptionsDrawerList = [
   { title: 'Contacto', path: '/contacto' },
   { title: 'Acerca de nosotros', path: '/nosotros' },
-  { title: 'Buscar prestadores', path: '/resultados' },
+  { title: 'Explorar', path: '/resultados' },
 ];
-
-export const providerGeneralOptions = [...generalOptionsDrawerList].filter(
-  (o) => o.title !== 'Buscar prestadores',
-);

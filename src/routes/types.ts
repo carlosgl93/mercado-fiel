@@ -54,6 +54,7 @@ enum Pages {
   Contacto,
   PreguntasFrecuentes,
   MisProductos,
+  ExplorarProductos,
 }
 
 type PathRouteCustomProps = {

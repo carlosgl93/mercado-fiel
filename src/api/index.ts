@@ -1,3 +1,4 @@
+export * from './carrito';
 export * from './categories';
 export * from './clientes';
 export * from './paykuApi';

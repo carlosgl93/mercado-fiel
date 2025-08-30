@@ -7,9 +7,6 @@ export const useProveedorDashboard = () => {
   const { supplier } = useAuth();
   const setNotification = useSetRecoilState(notificationState);
 
-  console.log({ supplier });
-  console.log(supplier?.descripcion, supplier?.profile_picture_url, supplier?.nombreNegocio);
-
   // Basic profile completion check
   const isProfileComplete = !!(
     supplier?.descripcion &&

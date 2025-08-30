@@ -78,3 +78,12 @@ export const mapCategoryFromApi = (category: any) => {
 export const mapCategoryToApi = (category: any) => {
   return objectToSnakeCase(category);
 };
+
+// Cart item mapping functions
+export const mapCartItemFromApi = (cartItem: any) => {
+  return objectToCamelCase(cartItem);
+};
+
+export const mapCartItemToApi = (cartItem: any) => {
+  return objectToSnakeCase(cartItem);
+};

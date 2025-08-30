@@ -102,6 +102,7 @@ export const ProveedorPerfil = () => {
         message: response.message || 'Información actualizada exitosamente',
         severity: 'success',
       });
+      navigate('/proveedor-dashboard');
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Error al actualizar la información';
@@ -242,7 +243,7 @@ export const ProveedorPerfil = () => {
           setSnackbar({
             open: true,
             message:
-              'Imagen cargada exitosamente. Haz clic en "Guardar Foto" para aplicar los cambios.',
+              'Imagen cargada exitosamente. Haz clic en "Guardar Logo" para aplicar los cambios.',
             severity: 'success',
           });
         } else {

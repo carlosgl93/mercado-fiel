@@ -1,7 +1,5 @@
-import { userState } from '@/store/auth/user';
 import useSidebar from '@/store/sidebar';
 import Drawer from '@mui/material/Drawer';
-import { useRecoilValue } from 'recoil';
 import { useAuth } from '../../hooks/useAuthSupabase';
 import { BrandHomeLinkMobile } from './BrandHomeLinkMobile';
 import { NotLoggedInDrawerList } from './NotLoggedInDrawerList';
@@ -10,11 +8,9 @@ import { UsuarioDrawerList } from './UsuarioDrawerList';
 
 function Sidebar() {
   const [isSidebarOpen, sidebarActions] = useSidebar();
-  const { supplier } = useAuth();
-  const user = useRecoilValue(userState);
+  const { supplier, user, customer } = useAuth();
 
   const isLoggedIn = user !== null && user !== undefined;
-
   const closeDrawer = sidebarActions.close;
 
   if (!isLoggedIn) {

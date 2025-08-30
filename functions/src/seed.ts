@@ -4,21 +4,12 @@ import dayjs from 'dayjs';
 const prisma = new PrismaClient();
 
 const categories = [
-  { id: 1, nombre: 'Frutas y Verduras' },
+  { id: 1, nombre: 'Frutas' },
+  { id: 5, nombre: 'Verduras' },
   { id: 2, nombre: 'Carnes y Pescados' },
   { id: 3, nombre: 'Panadería y Pastelería' },
   { id: 4, nombre: 'Lácteos y Quesos' },
-  { id: 5, nombre: 'Salud y Belleza' },
-  { id: 6, nombre: 'Deportes y Outdoor' },
-  { id: 7, nombre: 'Tecnología' },
-  { id: 8, nombre: 'Mascotas' },
-  { id: 9, nombre: 'Hogar y Jardín' },
-  { id: 10, nombre: 'Moda y Accesorios' },
-  { id: 11, nombre: 'Libros y Papelería' },
-  { id: 12, nombre: 'Arte y Cultura' },
-  { id: 13, nombre: 'Juguetes y Niños' },
   { id: 14, nombre: 'Bebidas y Jugos' },
-  { id: 15, nombre: 'Alimentos Gourmet' },
 ];
 
 const roles = [

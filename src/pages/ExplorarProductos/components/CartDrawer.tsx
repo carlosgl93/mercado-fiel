@@ -173,6 +173,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           color="text.secondary"
                           sx={{ textDecoration: 'line-through' }}
                         >
+                          {item.producto.precioUnitario}
                           {formatCurrency(item.producto.precioUnitario)}
                         </Typography>
                         <Chip
@@ -190,7 +191,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </Box>
                   ) : (
                     <Typography variant="body1" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                      {formatCurrency(item.precio_final)}
+                      {formatCurrency(item.precio_final || item.producto.precioUnitario)}
                     </Typography>
                   )}
                 </Box>

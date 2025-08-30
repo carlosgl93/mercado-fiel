@@ -1,4 +1,5 @@
 import { productsApi } from '@/api';
+import { ShoppingCartButton } from '@/components/ShoppingCartButton';
 import { useShoppingCartRecoil } from '@/hooks/useShoppingCartRecoil';
 import { Product, ProductFilters } from '@/types/products';
 import { FilterList as FilterListIcon, Search as SearchIcon } from '@mui/icons-material';
@@ -131,7 +132,7 @@ export const ExplorarProductos: React.FC = () => {
           </IconButton>
 
           {/* Cart button */}
-          {/* <ShoppingCartButton /> */}
+          <ShoppingCartButton />
         </Toolbar>
       </AppBar>
 

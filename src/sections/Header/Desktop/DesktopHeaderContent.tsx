@@ -1,5 +1,5 @@
-import { carritoApi } from '@/api';
 import BackButton from '@/components/BackButton';
+import { ShoppingCartButton } from '@/components/ShoppingCartButton';
 import { FlexBox, HeaderIconImage } from '@/components/styled';
 import { ChatTitle } from '@/pages/Chat/StyledChatMensajes';
 import { chatState } from '@/store/chat/chatStore';
@@ -8,15 +8,12 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { Badge, Box, Button, Drawer, IconButton, useTheme } from '@mui/material';
+import { Box, Button, IconButton, useTheme } from '@mui/material';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Theme } from '@mui/material/styles';
 import { styled } from '@mui/system';
-import { useState } from 'react';
-import { useQuery } from 'react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { useAuth } from '../../../hooks/useAuthSupabase';
@@ -30,20 +27,6 @@ const DesktopHeaderContent = () => {
   const prestadorName = chats?.providerName;
   const isUserChat = location.pathname === '/chat';
   const isProviderChat = location.pathname === '/prestador-chat';
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // Fetch cart data for customers
-  const { data: cartResponse } = useQuery({
-    queryKey: ['carrito', user?.data?.cliente?.id_cliente],
-    queryFn: () => carritoApi.getCartItems(user?.data?.cliente?.id_cliente || 0),
-    enabled: !!user?.data?.cliente?.id_cliente,
-  });
-
-  const cartItems = cartResponse?.data?.items || [];
-
-  const getTotalCartItems = () => {
-    return cartItems.reduce((total: number, item: any) => total + item.cantidad, 0);
-  };
   if (isUserChat) {
     return (
       <FlexBox
@@ -193,13 +176,7 @@ const DesktopHeaderContent = () => {
         (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) ? (
           <>
             {/* Shopping cart for customers only */}
-            {user?.data?.cliente && (
-              <IconButton onClick={() => setIsCartOpen(true)} sx={{ color: 'primary.main' }}>
-                <Badge badgeContent={getTotalCartItems()} color="secondary">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-            )}
+            {user?.data?.cliente && <ShoppingCartButton />}
             {/* Logout button for both customers and suppliers */}
             <UserHeaderContent />
           </>
@@ -207,28 +184,6 @@ const DesktopHeaderContent = () => {
           <UnauthenticatedHeaderContent />
         )}
       </Box>
-
-      {/* Cart Drawer */}
-      {user?.data?.cliente && (
-        <Drawer anchor="right" open={isCartOpen} onClose={() => setIsCartOpen(false)}>
-          {/* Cart content will be imported from ExplorarProductos components */}
-          <Box sx={{ width: 400, p: 2 }}>
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <ShoppingCartIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-              <Box sx={{ mt: 2 }}>Carrito de compras</Box>
-              <Button
-                variant="contained"
-                component={Link}
-                to="/explorar-productos"
-                onClick={() => setIsCartOpen(false)}
-                sx={{ mt: 2 }}
-              >
-                Ver Productos
-              </Button>
-            </Box>
-          </Box>
-        </Drawer>
-      )}
     </FlexBox>
   );
 };

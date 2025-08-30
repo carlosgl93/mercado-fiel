@@ -10,6 +10,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { withErrorHandler } from '@/error-handling';
 import AppErrorBoundaryFallback from '@/error-handling/fallbacks/App';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { ShoppingCartDrawer } from './components/ShoppingCartDrawer';
 import { NotificationSnackbar } from './components/Snackbar';
 
 const Loading = lazy(() => import('@/components/Loading'));
@@ -46,6 +47,7 @@ function App() {
               <Sidebar />
               <Pages />
               <NotificationSnackbar />
+              <ShoppingCartDrawer />
             </BrowserRouter>
           </Suspense>
         </Fragment>

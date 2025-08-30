@@ -36,11 +36,6 @@ export const supplierDrawerOptions = [
     path: '/pagos',
     icon: MoneyRounded,
   },
-  // {
-  //   title: 'Configuración',
-  //   path: '/configuracion',
-  //   icon: SettingsOutlinedIcon,
-  // },
 ];
 
 export const generalOptionsDrawerList = [

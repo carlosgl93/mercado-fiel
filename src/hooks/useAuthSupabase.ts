@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { authApi } from '../api/authApi';
 import { supabase } from '../lib/supabase';
+import { AuthSyncService } from '../services/AuthSyncService';
 import {
   authCustomerState,
   authInitializedState,
@@ -47,12 +48,15 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useRecoilState(authLoadingState);
   const [notification, setNotification] = useRecoilState(notificationState);
 
-  // Load user profile from database
+  // Load user profile from database with proper sync
   const loadUserProfile = useCallback(
     async (supabaseUser: User) => {
       try {
         setIsLoading(true);
-        // Get user data from database using email
+
+        console.log('Loading user profile for:', supabaseUser.email);
+
+        // Get complete user data from database using email
         const userResponse = await authApi.getCurrentUser(supabaseUser.email || '');
 
         if (userResponse) {
@@ -111,14 +115,37 @@ export const useAuth = () => {
             isInitialized: true,
             isLoading: false,
           });
+
+          console.log('Auth state updated successfully:', {
+            hasCustomer: !!customerData,
+            hasSupplier: !!supplierData,
+            userId: authUser.data.id_usuario,
+          });
+
+          // After successful profile load, sync authentication to ensure proper RLS context
+          await AuthSyncService.syncAuthentication(supabaseUser);
+        } else {
+          console.log('User not found in database, creating basic profile...');
+          // User exists in Supabase but not in database - create basic profile
+          const syncedProfile = await AuthSyncService.syncAuthentication(supabaseUser);
+          if (syncedProfile) {
+            console.log('Basic profile created, reloading...');
+            // Retry loading the profile after creation
+            const retryResponse = await authApi.getCurrentUser(supabaseUser.email || '');
+            if (retryResponse) {
+              // Recursive call to load the newly created profile
+              await loadUserProfile(supabaseUser);
+              return;
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading user profile:', error);
-        // setNotification({
-        //   open: true,
-        //   message: 'Error al cargar el perfil del usuario',
-        //   severity: 'error',
-        // });
+        setNotification({
+          open: true,
+          message: 'Error al cargar el perfil del usuario',
+          severity: 'error',
+        });
       } finally {
         setIsLoading(false);
       }
@@ -154,8 +181,10 @@ export const useAuth = () => {
         } = await supabase.auth.getSession();
 
         if (session?.user && mounted) {
+          console.log('Initializing auth with session:', session.user.email);
           await loadUserProfile(session.user);
         } else {
+          console.log('No active session found');
           setIsInitialized(true);
           setIsLoading(false);
         }
@@ -176,9 +205,12 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return;
 
+      console.log('Auth state change:', event, session?.user?.email);
+
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out, clearing auth state');
         clearAuthState();
       }
     });
@@ -260,7 +292,6 @@ export const useAuth = () => {
             telefono: extraData.telefono,
           });
           console.log('Customer created in database:', apiResponse);
-          navigate('/usuario-dashboard');
         } else if (type === 'supplier') {
           console.log('Creating supplier in database...');
           apiResponse = await authApi.createSupplier({
@@ -271,6 +302,18 @@ export const useAuth = () => {
             telefono_contacto: extraData.telefono_contacto,
           });
           console.log('Supplier created in database:', apiResponse);
+        }
+
+        // After successful database creation, sync authentication for RLS
+        if (authData.user) {
+          console.log('Syncing authentication for RLS...');
+          await AuthSyncService.syncAuthentication(authData.user);
+        }
+
+        // Navigate after everything is set up
+        if (type === 'customer') {
+          navigate('/usuario-dashboard');
+        } else if (type === 'supplier') {
           navigate('/proveedor-dashboard');
         }
       } catch (dbError) {
@@ -280,6 +323,7 @@ export const useAuth = () => {
           message: 'Error al crear el perfil en la base de datos',
           severity: 'error',
         });
+        throw dbError; // Re-throw to trigger onError
       }
 
       return authData;

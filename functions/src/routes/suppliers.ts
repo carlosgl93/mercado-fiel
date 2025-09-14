@@ -223,6 +223,99 @@ suppliersRouter.get('/', async (req: Request, res: Response, next: NextFunction)
   }
 });
 
+// GET /suppliers/search - Search suppliers with advanced filters
+suppliersRouter.get('/search', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Search parameters
+    const searchTerm = req.query.q as string;
+    const category = req.query.category as string;
+    // const comuna = req.query.comuna as string; // TODO: Implement when proper location filtering is needed
+
+    // Build where clause
+    const where: Prisma.proveedoresWhereInput = {};
+
+    // Text search across multiple fields
+    if (searchTerm) {
+      where.OR = [
+        { nombre_negocio: { contains: searchTerm, mode: 'insensitive' } },
+        { descripcion: { contains: searchTerm, mode: 'insensitive' } },
+        {
+          usuario: {
+            nombre: { contains: searchTerm, mode: 'insensitive' },
+          },
+        },
+      ];
+    }
+
+    // Category filter - filter by suppliers who have products in this category
+    if (category) {
+      where.productos = {
+        some: {
+          categoria: {
+            nombre: { contains: category, mode: 'insensitive' }
+          }
+        }
+      };
+    }
+
+    // TODO: Location filter by comuna (requires complex join through direcciones table)
+    // if (comuna) {
+    //   where.direccion = {
+    //     comuna: {
+    //       nombre: { contains: comuna, mode: 'insensitive' }
+    //     }
+    //   };
+    // }
+
+    const [suppliers, total] = await Promise.all([
+      prisma.proveedores.findMany({
+        where,
+        include: {
+          usuario: {
+            select: {
+              id_usuario: true,
+              nombre: true,
+              email: true,
+              profile_picture_url: true,
+              created_at: true,
+              updated_at: true,
+            },
+          },
+          _count: {
+            select: {
+              productos: true,
+            },
+          },
+        },
+        orderBy: [
+          { destacado: 'desc' }, // Featured suppliers first
+          { created_at: 'desc' },
+        ],
+        skip,
+        take: limit,
+      }),
+      prisma.proveedores.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: suppliers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /suppliers/:id - Get supplier by ID
 suppliersRouter.get(
   '/:id',

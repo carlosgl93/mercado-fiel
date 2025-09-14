@@ -1,10 +1,11 @@
 import { suppliersApi } from '@/api/suppliers';
 import { usersApi } from '@/api/users';
+import { DashboardHeader, MobileActionBar } from '@/components';
+import { SupplierPreview } from '@/components/SupplierPreview';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { UpdateBusinessRequest } from '@/types/supplier';
 import { uploadImageToSupabase } from '@/utils/supabaseStorage';
 import {
-  ArrowBack as ArrowBackIcon,
   Business as BusinessIcon,
   Check as CheckIcon,
   Close as CloseIcon,
@@ -12,13 +13,13 @@ import {
   Person as PersonIcon,
   PhotoCamera as PhotoCameraIcon,
   Save as SaveIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import {
   Alert,
   alpha,
   Avatar,
   Box,
-  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -29,7 +30,6 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
-  Link,
   Paper,
   Snackbar,
   Switch,
@@ -72,6 +72,8 @@ export const ProveedorPerfil = () => {
   });
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showDesktopPreview, setShowDesktopPreview] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [snackbar, setSnackbar] = useState({
@@ -373,6 +375,31 @@ export const ProveedorPerfil = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  // Prepare data for preview
+  const getPreviewData = () => ({
+    nombreNegocio: formData.nombreNegocio || '',
+    descripcion: formData.descripcion || '',
+    telefonoContacto: formData.telefonoContacto,
+    email: formData.email,
+    radioEntregaKm: formData.radioEntregaKm,
+    cobraEnvio: formData.cobraEnvio ?? true,
+    envioGratisDesde: formData.envioGratisDesde,
+    profilePictureUrl: profileData.previewUrl || user?.data?.profile_picture_url || undefined,
+    userName: userProfileData.nombre || user?.data?.nombre,
+    userEmail: userProfileData.email || user?.data?.email,
+  });
+
+  // Show preview if requested
+  if (showPreview) {
+    return (
+      <SupplierPreview
+        supplierData={getPreviewData()}
+        isPreview={true}
+        onBack={() => setShowPreview(false)}
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 3 }}>
@@ -403,290 +430,313 @@ export const ProveedorPerfil = () => {
     >
       <Container maxWidth="lg">
         {/* Header */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            borderRadius: 2,
-          }}
-        >
-          <Box display="flex" alignItems="center">
-            <IconButton
-              onClick={handleBackToDashboard}
-              sx={{
-                mr: 2,
-                color: 'primary.contrastText',
-                '&:hover': {
-                  bgcolor: alpha(theme.palette.primary.contrastText, 0.1),
-                },
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Box flexGrow={1}>
-              <Breadcrumbs
-                aria-label="breadcrumb"
+        <DashboardHeader
+          title="Mi Perfil de Proveedor"
+          description="Actualiza la información de tu negocio para que los clientes te encuentren fácilmente"
+          icon={<BusinessIcon sx={{ fontSize: 32 }} />}
+          breadcrumbs={[
+            {
+              label: 'Dashboard',
+              onClick: handleBackToDashboard,
+            },
+            {
+              label: 'Mi Perfil de Proveedor',
+            },
+          ]}
+          onBack={handleBackToDashboard}
+          actions={
+            <>
+              <Button
+                variant="outlined"
+                startIcon={<VisibilityIcon />}
+                onClick={() => setShowDesktopPreview(!showDesktopPreview)}
                 sx={{
-                  mb: 1,
-                  '& .MuiBreadcrumbs-separator': {
-                    color: 'primary.contrastText',
+                  color: 'primary.contrastText',
+                  borderColor: 'primary.contrastText',
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.contrastText, 0.1),
+                    borderColor: 'primary.contrastText',
                   },
                 }}
               >
-                <Link
-                  underline="hover"
-                  color="inherit"
-                  href="#"
-                  onClick={handleBackToDashboard}
-                  sx={{ color: 'primary.contrastText' }}
-                >
-                  Dashboard
-                </Link>
-                <Typography color="inherit">Mi Perfil de Proveedor</Typography>
-              </Breadcrumbs>
-              {isMobile ? null : (
-                <>
-                  <Typography
-                    variant="h4"
-                    component="h1"
-                    display="flex"
-                    alignItems="center"
-                    color="inherit"
-                  >
-                    <BusinessIcon sx={{ mr: 2, fontSize: 32 }} />
-                    Mi Perfil de Proveedor
-                  </Typography>
-                  <Typography variant="body1" color="inherit" sx={{ opacity: 0.9 }}>
-                    Actualiza la información de tu negocio para que los clientes te encuentren
-                    fácilmente
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </Box>
-        </Paper>
+                {showDesktopPreview ? 'Ocultar Vista Previa' : 'Vista Previa'}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<VisibilityIcon />}
+                onClick={() => setShowPreview(true)}
+                sx={{
+                  bgcolor: 'primary.contrastText',
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.contrastText, 0.9),
+                  },
+                }}
+              >
+                Vista Completa
+              </Button>
+            </>
+          }
+        />
 
-        <Grid container spacing={3}>
-          {/* Profile Picture Section */}
-          <Grid item xs={12} md={4}>
-            <Card
+        {/* Mobile Preview Button */}
+        {isMobile && (
+          <MobileActionBar>
+            <Button
+              variant="contained"
+              startIcon={<VisibilityIcon />}
+              onClick={() => setShowPreview(true)}
+              size="large"
               sx={{
-                height: 'fit-content',
-                position: 'sticky',
-                top: 20,
+                width: '100%',
+                bgcolor: '#4CAF4F',
+                boxShadow: '0 0 20px rgba(76, 175, 79, 0.4)',
+                animation: 'glow 2s ease-in-out infinite alternate',
+                '@keyframes glow': {
+                  from: {
+                    boxShadow: '0 0 20px rgba(76, 175, 79, 0.4)',
+                  },
+                  to: {
+                    boxShadow: '0 0 30px rgba(76, 175, 79, 0.7)',
+                  },
+                },
+                '&:hover': {
+                  bgcolor: '#45a049',
+                },
+                transform: 'scale(1.02)',
+                transition: 'all 0.2s ease-in-out',
               }}
             >
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <PersonIcon sx={{ mr: 1 }} />
-                  Logo de tu Marca
-                </Typography>
+              Vista Previa
+            </Button>
+          </MobileActionBar>
+        )}
 
-                <Box sx={{ mb: 3 }}>
-                  <Avatar
-                    src={profileData.previewUrl || user?.data?.profile_picture_url || ''}
+        <Grid container spacing={3}>
+          {/* Preview Section (Desktop) or Profile Picture Section */}
+          <Grid item xs={12} md={showDesktopPreview ? 6 : 4}>
+            {showDesktopPreview ? (
+              <Card sx={{ height: 'fit-content' }}>
+                <CardContent sx={{ p: 0 }}>
+                  <Box
                     sx={{
-                      width: 120,
-                      height: 120,
-                      margin: '0 auto',
-                      mb: 2,
-                      border: `4px solid ${theme.palette.primary.main}`,
+                      maxHeight: '80vh',
+                      overflow: 'auto',
+                      '&::-webkit-scrollbar': {
+                        width: 8,
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        bgcolor: '#f1f1f1',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        bgcolor: '#888',
+                        borderRadius: 4,
+                      },
                     }}
                   >
-                    <PersonIcon sx={{ fontSize: 60 }} />
-                  </Avatar>
-
+                    <SupplierPreview supplierData={getPreviewData()} isPreview={true} />
+                  </Box>
+                </CardContent>
+              </Card>
+            ) : (
+              /* Profile Picture Section */
+              <Card
+                sx={{
+                  height: 'fit-content',
+                  position: 'sticky',
+                  top: 20,
+                }}
+              >
+                <CardContent sx={{ textAlign: 'center', p: 3 }}>
                   <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mb: 2, display: 'block' }}
+                    variant="h6"
+                    gutterBottom
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
                   >
-                    Esta imagen debería ser el logo de tu marca.
+                    <PersonIcon sx={{ mr: 1 }} />
+                    Logo de tu Marca
                   </Typography>
 
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="profile-picture-upload"
-                    type="file"
-                    onChange={handleImageUpload}
-                    disabled={isUploadingImage}
-                  />
-                  <label htmlFor="profile-picture-upload">
-                    <Button
-                      variant="outlined"
-                      component="span"
-                      startIcon={
-                        isUploadingImage ? <CircularProgress size={16} /> : <PhotoCameraIcon />
-                      }
-                      sx={{ mb: 2 }}
-                      disabled={isUploadingImage}
+                  <Box sx={{ mb: 3 }}>
+                    <Avatar
+                      src={profileData.previewUrl || user?.data?.profile_picture_url || ''}
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        margin: '0 auto',
+                        mb: 2,
+                        border: `4px solid ${theme.palette.primary.main}`,
+                      }}
                     >
-                      {isUploadingImage ? 'Subiendo...' : 'Cambiar Logo'}
+                      <PersonIcon sx={{ fontSize: 60 }} />
+                    </Avatar>
+
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mb: 2, display: 'block' }}
+                    >
+                      Esta imagen debería ser el logo de tu marca.
+                    </Typography>
+
+                    <input
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="profile-picture-upload"
+                      type="file"
+                      onChange={handleImageUpload}
+                      disabled={isUploadingImage}
+                    />
+                    <label htmlFor="profile-picture-upload">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        startIcon={
+                          isUploadingImage ? <CircularProgress size={16} /> : <PhotoCameraIcon />
+                        }
+                        sx={{ mb: 2 }}
+                        disabled={isUploadingImage}
+                      >
+                        {isUploadingImage ? 'Subiendo...' : 'Cambiar Logo'}
+                      </Button>
+                    </label>
+                  </Box>
+
+                  {profileData.profilePictureUrl !== user?.data?.profile_picture_url && (
+                    <Button
+                      variant="contained"
+                      onClick={handleProfilePictureSubmit}
+                      disabled={updateProfileMutation.isLoading}
+                      size="small"
+                      sx={{ mb: 2 }}
+                    >
+                      {updateProfileMutation.isLoading ? 'Guardando...' : 'Guardar Logo'}
                     </Button>
-                  </label>
-                </Box>
+                  )}
 
-                {profileData.profilePictureUrl !== user?.data?.profile_picture_url && (
-                  <Button
-                    variant="contained"
-                    onClick={handleProfilePictureSubmit}
-                    disabled={updateProfileMutation.isLoading}
-                    size="small"
-                    sx={{ mb: 2 }}
-                  >
-                    {updateProfileMutation.isLoading ? 'Guardando...' : 'Guardar Logo'}
-                  </Button>
-                )}
+                  <Divider sx={{ my: 2 }} />
 
-                <Divider sx={{ my: 2 }} />
+                  {/* User Profile Information */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Información Personal
+                    </Typography>
 
-                {/* User Profile Information */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Información Personal
-                  </Typography>
-
-                  {/* Name Field */}
-                  <Box sx={{ mb: 2 }}>
-                    {userProfileData.isEditingName ? (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <TextField
-                          size="small"
-                          value={userProfileData.nombre}
-                          onChange={(e) => handleUserFieldChange('nombre', e.target.value)}
-                          placeholder="Nombre"
-                          autoFocus
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleUserFieldSave('nombre')}
-                          color="primary"
-                        >
-                          <CheckIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleUserFieldCancel('nombre')}>
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          gap={1}
-                          justifyContent={'start'}
-                          width={'100%'}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            Nombre
-                          </Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            {user?.data?.nombre || 'Sin nombre'}
-                          </Typography>
+                    {/* Name Field */}
+                    <Box sx={{ mb: 2 }}>
+                      {userProfileData.isEditingName ? (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <TextField
+                            size="small"
+                            value={userProfileData.nombre}
+                            onChange={(e) => handleUserFieldChange('nombre', e.target.value)}
+                            placeholder="Nombre"
+                            autoFocus
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUserFieldSave('nombre')}
+                            color="primary"
+                          >
+                            <CheckIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleUserFieldCancel('nombre')}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
                         </Box>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleUserFieldEdit('nombre', true)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* Email Field */}
-                  <Box sx={{ mb: 2 }}>
-                    {userProfileData.isEditingEmail ? (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <TextField
-                          size="small"
-                          type="email"
-                          value={userProfileData.email}
-                          onChange={(e) => handleUserFieldChange('email', e.target.value)}
-                          placeholder="Email"
-                          autoFocus
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleUserFieldSave('email')}
-                          color="primary"
-                        >
-                          <CheckIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleUserFieldCancel('email')}>
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          gap={1}
-                          justifyContent={'start'}
-                          width={'100%'}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            Email
-                          </Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            {user?.data?.email || 'Sin email'}
-                          </Typography>
-                        </Box>
-                        <IconButton size="small" onClick={() => handleUserFieldEdit('email', true)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                {/* Profile Completion Status */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Estado del Perfil
-                  </Typography>
-
-                  {(() => {
-                    const missingRequirements = getMissingProfileRequirements();
-                    const isComplete = missingRequirements.length === 0;
-
-                    return (
-                      <>
-                        {isComplete ? (
+                      ) : (
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
                           <Box
                             display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            sx={{ mb: 1 }}
+                            flexDirection="column"
+                            gap={1}
+                            justifyContent={'start'}
+                            width={'100%'}
                           >
-                            <Box
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                bgcolor: 'success.main',
-                                mr: 1,
-                              }}
-                            />
-                            <Typography variant="body2" color="success.main" fontWeight="medium">
-                              Perfil Completo
+                            <Typography variant="caption" color="text.secondary">
+                              Nombre
+                            </Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              {user?.data?.nombre || 'Sin nombre'}
                             </Typography>
                           </Box>
-                        ) : (
-                          <>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUserFieldEdit('nombre', true)}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* Email Field */}
+                    <Box sx={{ mb: 2 }}>
+                      {userProfileData.isEditingEmail ? (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <TextField
+                            size="small"
+                            type="email"
+                            value={userProfileData.email}
+                            onChange={(e) => handleUserFieldChange('email', e.target.value)}
+                            placeholder="Email"
+                            autoFocus
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUserFieldSave('email')}
+                            color="primary"
+                          >
+                            <CheckIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleUserFieldCancel('email')}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            gap={1}
+                            justifyContent={'start'}
+                            width={'100%'}
+                          >
+                            <Typography variant="caption" color="text.secondary">
+                              Email
+                            </Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              {user?.data?.email || 'Sin email'}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUserFieldEdit('email', true)}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* Profile Completion Status */}
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Estado del Perfil
+                    </Typography>
+
+                    {(() => {
+                      const missingRequirements = getMissingProfileRequirements();
+                      const isComplete = missingRequirements.length === 0;
+
+                      return (
+                        <>
+                          {isComplete ? (
                             <Box
                               display="flex"
                               alignItems="center"
@@ -698,57 +748,83 @@ export const ProveedorPerfil = () => {
                                   width: 8,
                                   height: 8,
                                   borderRadius: '50%',
-                                  bgcolor: 'warning.main',
+                                  bgcolor: 'success.main',
                                   mr: 1,
                                 }}
                               />
-                              <Typography variant="body2" color="warning.main" fontWeight="medium">
-                                Perfil Incompleto
+                              <Typography variant="body2" color="success.main" fontWeight="medium">
+                                Perfil Completo
                               </Typography>
                             </Box>
-
-                            <Box sx={{ mt: 1 }}>
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{ mb: 1, display: 'block' }}
+                          ) : (
+                            <>
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                sx={{ mb: 1 }}
                               >
-                                Te faltan los siguientes elementos:
-                              </Typography>
-                              {missingRequirements.map((requirement, index) => (
-                                <Chip
-                                  key={index}
-                                  label={requirement}
-                                  size="small"
-                                  color="warning"
-                                  variant="outlined"
+                                <Box
                                   sx={{
-                                    m: 0.25,
-                                    fontSize: '0.7rem',
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    bgcolor: 'warning.main',
+                                    mr: 1,
                                   }}
                                 />
-                              ))}
-                            </Box>
-                          </>
-                        )}
+                                <Typography
+                                  variant="body2"
+                                  color="warning.main"
+                                  fontWeight="medium"
+                                >
+                                  Perfil Incompleto
+                                </Typography>
+                              </Box>
 
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ mt: 2, display: 'block' }}
-                        >
-                          Completa tu perfil para habilitar la gestión de productos
-                        </Typography>
-                      </>
-                    );
-                  })()}
-                </Box>
-              </CardContent>
-            </Card>
+                              <Box sx={{ mt: 1 }}>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ mb: 1, display: 'block' }}
+                                >
+                                  Te faltan los siguientes elementos:
+                                </Typography>
+                                {missingRequirements.map((requirement, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={requirement}
+                                    size="small"
+                                    color="warning"
+                                    variant="outlined"
+                                    sx={{
+                                      m: 0.25,
+                                      fontSize: '0.7rem',
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            </>
+                          )}
+
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 2, display: 'block' }}
+                          >
+                            Completa tu perfil para habilitar la gestión de productos
+                          </Typography>
+                        </>
+                      );
+                    })()}
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
           </Grid>
 
           {/* Business Information Form */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={showDesktopPreview ? 6 : 8}>
             <Card>
               <CardContent sx={{ p: isMobile ? 2 : 4 }}>
                 <form onSubmit={handleSubmit}>

@@ -11,7 +11,7 @@ export const ProveedorDashboard = () => {
     <Wrapper sx={wrapperSx}>
       <DashboardTile
         goToPath="/proveedor-perfil"
-        title="Mi Perfil de Proveedor"
+        title="Mi perfil de proveedor"
         subTitle="Actualiza tu información de negocio"
         isMobile={isMobile}
         text="Mantén actualizada la información de tu negocio, horarios, áreas de servicio y datos de contacto para que los clientes te encuentren fácilmente."
@@ -19,7 +19,7 @@ export const ProveedorDashboard = () => {
       />
       <DashboardTile
         goToPath="/mis-productos"
-        title="Mis Productos"
+        title="Mis productos"
         subTitle="Gestiona tu catálogo de productos"
         isMobile={isMobile}
         text="Agrega, edita y administra tus productos. Define precios, inventario, descripciones e imágenes para atraer más clientes."
@@ -29,7 +29,7 @@ export const ProveedorDashboard = () => {
       />
       <DashboardTile
         goToPath="/compras-colectivas"
-        title="Campañas Colectivas"
+        title="Campañas colectivas"
         subTitle="Crea campañas de compra grupal"
         isMobile={isMobile}
         text="Ofrece descuentos por volumen creando campañas donde los usuarios se unen para alcanzar mejores precios."
@@ -37,7 +37,7 @@ export const ProveedorDashboard = () => {
       />
       <DashboardTile
         goToPath="/pedidos-ventas"
-        title="Pedidos y Ventas"
+        title="Pedidos y ventas"
         subTitle="Administra tus ventas y pedidos"
         isMobile={isMobile}
         text="Revisa los pedidos recibidos, gestiona el estado de las entregas y mantén un historial de tus ventas."

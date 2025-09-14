@@ -8,26 +8,73 @@ export interface UploadImageResult {
 
 export const uploadImageToSupabase = async (
   file: File,
-  bucket = 'profile-images',
-  folder = 'suppliers',
+  bucket = 'product-images',
+  folder = 'products',
 ): Promise<UploadImageResult> => {
   try {
+    console.log('Starting upload to bucket:', bucket, 'folder:', folder);
+
+    // Check authentication first
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    console.log({ session, sessionError });
+
+    if (sessionError || !session?.user) {
+      console.error('No authenticated session:', sessionError);
+      return {
+        success: false,
+        error: 'Debes iniciar sesión para subir archivos.',
+      };
+    }
+
+    console.log('Authenticated user:', session.user.email);
+
+    // Verify user is supplier for product uploads
+    if (bucket === 'product-images') {
+      const { data: supplierCheck, error: supplierError } = await supabase
+        .from('usuarios')
+        .select(
+          `
+          proveedores (
+            id_proveedor
+          )
+        `,
+        )
+        .eq('email', session.user.email)
+        .single();
+
+      if (supplierError || !supplierCheck?.proveedores?.length) {
+        console.error('Supplier verification failed:', supplierError);
+        return {
+          success: false,
+          error: 'Solo los proveedores pueden subir imágenes de productos.',
+        };
+      }
+
+      console.log('Supplier verified:', supplierCheck.proveedores[0]);
+    }
+
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}-${Math.random()
       .toString(36)
       .substring(2)}.${fileExt}`;
 
-    // First, try to upload to see if bucket exists
+    console.log('Uploading file:', fileName);
+
+    // Upload the file
     const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
       cacheControl: '3600',
       upsert: false,
     });
 
     if (error) {
+      console.error('Upload error:', error);
+
       // If bucket not found, provide helpful message
       if (error.message.includes('Bucket not found')) {
-        console.error('Bucket not found:', error);
         return {
           success: false,
           error: `El bucket de almacenamiento '${bucket}' no existe. Contacta al administrador del sistema.`,
@@ -39,11 +86,10 @@ export const uploadImageToSupabase = async (
         error.message.includes('row-level security policy') ||
         error.message.includes('Unauthorized')
       ) {
-        console.error('Storage permission error:', error);
         return {
           success: false,
           error:
-            'No tienes permisos para subir archivos. Verifica que estés autenticado correctamente.',
+            'No tienes permisos para subir archivos. Verifica que tus permisos de proveedor estén configurados correctamente.',
         };
       }
 

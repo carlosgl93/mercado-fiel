@@ -61,13 +61,13 @@ model usuarios {
   nombre              String                  @db.VarChar(100)
   email               String                  @unique @db.VarChar(100)
   contrasena_hash     String
-  auth_uid            String?                 @unique @db.Uuid
   fecha_registro      DateTime                @default(now()) @db.Timestamp(6)
   activo              Boolean                 @default(true)
   profile_picture_url String?
   id_plan             Int?
   created_at          DateTime                @default(now())
   updated_at          DateTime                @updatedAt
+  auth_uid            String?                 @unique(map: "idx_usuarios_auth_uid") @db.Uuid
   carrito             carrito[]
   cliente             clientes?
   comentarios         comentarios[]
@@ -179,12 +179,12 @@ model productos {
   nombre_producto     String                @db.VarChar(100)
   descripcion         String?
   precio_unitario     Decimal               @db.Decimal(10, 2)
-  unit_type           String?               @default("unit") @db.VarChar(10)
   imagen_url          String?
   disponible          Boolean               @default(true)
   fecha_publicacion   DateTime              @default(now()) @db.Timestamp(6)
   created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
+  updated_at          DateTime              @default(now()) @updatedAt
+  unit_type           String?               @default("unit") @db.VarChar(10)
   carrito             carrito[]
   comentarios         comentarios[]
   campanas_colectivas compras_colectivas[]
@@ -205,7 +205,7 @@ model descuentos_cantidad {
   precio_descuento     Decimal?  @db.Decimal(10, 2)
   activo               Boolean   @default(true)
   created_at           DateTime  @default(now())
-  updated_at           DateTime  @updatedAt
+  updated_at           DateTime  @default(now()) @updatedAt
   producto             productos @relation(fields: [id_producto], references: [id_producto])
 
   @@unique([id_producto, cantidad_minima])

@@ -22,6 +22,7 @@ export interface Supplier {
     idUsuario: number;
     nombre: string;
     email: string;
+    profilePictureUrl?: string;
   };
   direccion?: {
     idDireccion: number;
@@ -55,6 +56,12 @@ export interface UpdateProfileRequest {
 export interface SupplierResponse {
   success: boolean;
   data: Supplier;
+  message?: string;
+}
+
+export interface SuppliersListResponse {
+  success: boolean;
+  data: Supplier[];
   message?: string;
 }
 

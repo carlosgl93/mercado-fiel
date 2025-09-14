@@ -15,8 +15,6 @@ export const ShoppingCartDrawer: React.FC = () => {
     closeSnackbar,
   } = useShoppingCartRecoil();
 
-  console.log('ShoppingCartDrawer render - isCartOpen:', isCartOpen);
-
   return (
     <>
       {/* Cart Drawer */}

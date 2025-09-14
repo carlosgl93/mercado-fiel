@@ -8,8 +8,6 @@ export const Beneficios = () => {
   const { translatedLookingFor } = useUserLookingFor();
   const navigate = useNavigate();
 
-  console.log({ lookingFor: translatedLookingFor() });
-
   const clientesSectionRef = useRef<HTMLDivElement>(null);
   const proveedoresSectionRef = useRef<HTMLDivElement>(null);
   const { clientesBeneficios, proveedoresBeneficios, styles } = BeneficiosConstants();
@@ -20,7 +18,7 @@ export const Beneficios = () => {
     if (lookingFor === 'Proveedores' && clientesSectionRef.current) {
       clientesSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     } else if (lookingFor === 'Clientes' && proveedoresSectionRef.current) {
-      proveedoresSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      proveedoresSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [translatedLookingFor]);
 
@@ -76,7 +74,7 @@ export const Beneficios = () => {
         </Grid>
       </Container>
       {/* Sección Proveedores */}
-      <Container ref={proveedoresSectionRef} maxWidth="xl" sx={styles.sectionWhite}>
+      <Container maxWidth="xl" sx={styles.sectionWhite}>
         <Grid container spacing={4} alignItems="center">
           <Grid item xs={12} md={6}>
             <Box sx={styles.gridImage2}>
@@ -104,6 +102,7 @@ export const Beneficios = () => {
               <Typography variant="h6" sx={styles.subheading}>
                 Conecta con nuevos clientes y aumenta tus ingresos con facilidad
               </Typography>
+
               <Box sx={styles.beneficiosBox}>
                 {proveedoresBeneficios.map((beneficio, index) => (
                   <Box key={index} sx={styles.beneficioItem}>
@@ -121,6 +120,7 @@ export const Beneficios = () => {
                 >
                   Registrarme como Vendedor
                 </Button>
+                <Box ref={proveedoresSectionRef} />
               </Box>
             </Box>
           </Grid>

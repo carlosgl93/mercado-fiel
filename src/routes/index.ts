@@ -207,6 +207,30 @@ const routes: Routes = {
     title: 'Explorar Productos',
   },
 
+  [Pages.SearchResults]: {
+    component: asyncComponentLoader(() => import('@/pages/SearchResults')),
+    path: '/buscar',
+    title: 'Proveedores y clientes',
+  },
+
+  [Pages.ProductDetail]: {
+    component: asyncComponentLoader(() => import('@/pages/ProductDetail')),
+    path: '/producto/:id',
+    title: 'Detalle del Producto',
+  },
+
+  [Pages.PublicSupplierProfile]: {
+    component: asyncComponentLoader(() => import('@/pages/PublicSupplierProfile')),
+    path: '/proveedor/:id',
+    title: 'Perfil del Proveedor',
+  },
+
+  [Pages.ClientDetail]: {
+    component: asyncComponentLoader(() => import('@/pages/ClientDetail')),
+    path: '/cliente/:id',
+    title: 'Perfil del Cliente',
+  },
+
   [Pages.NotFound]: {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),
     path: '*',

@@ -22,6 +22,7 @@ interface CreateProductoRequest {
   }[];
 }
 
+// TODO: Use this interface when implementing product update functionality
 interface UpdateProductoRequest {
   id_categoria?: number;
   nombre_producto?: string;

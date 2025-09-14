@@ -164,6 +164,74 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
   }
 });
 
+// GET /users/search - Search users/clients with filters
+router.get('/search', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Search parameters
+    const searchTerm = req.query.q as string;
+    // const region = req.query.region as string; // TODO: Implement when location filtering is needed
+    // const comuna = req.query.comuna as string; // TODO: Implement when location filtering is needed
+
+    // Build where clause - only return active users who are not suppliers
+    const where: Prisma.usuariosWhereInput = {
+      activo: true,
+      // Exclude users who are suppliers (only return regular clients)
+      proveedor: {
+        is: null,
+      },
+    };
+
+    // Text search across user fields
+    if (searchTerm) {
+      where.OR = [
+        { nombre: { contains: searchTerm, mode: 'insensitive' } },
+        { email: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    // Location filters - to be implemented when proper location fields are available
+    // if (region || comuna) {
+    //   // Add location filtering when schema supports it
+    // }
+
+    const [users, total] = await Promise.all([
+      prisma.usuarios.findMany({
+        where,
+        select: {
+          id_usuario: true,
+          nombre: true,
+          email: true,
+          profile_picture_url: true,
+          created_at: true,
+          updated_at: true,
+          activo: true,
+        },
+        orderBy: { created_at: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.usuarios.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /users/:id - Get specific user
 router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

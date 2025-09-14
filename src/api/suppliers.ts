@@ -1,4 +1,4 @@
-import { SupplierResponse, UpdateBusinessRequest } from '@/types/supplier';
+import { SupplierResponse, SuppliersListResponse, UpdateBusinessRequest } from '@/types/supplier';
 import { objectToCamelCase, objectToSnakeCase } from '@/utils/caseMapping';
 import api from './api';
 
@@ -11,7 +11,7 @@ export const suppliersApi = {
     limit = 10,
     comuna?: any,
     category?: any,
-  ): Promise<SupplierResponse> => {
+  ): Promise<SuppliersListResponse> => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -67,6 +67,33 @@ export const suppliersApi = {
     return {
       success: response.data.success,
       data: objectToCamelCase(response.data.data),
+      message: response.data.message,
+    };
+  },
+
+  // Search suppliers
+  searchSuppliers: async (filters: {
+    searchTerm?: string;
+    category?: string;
+    region?: string;
+    comuna?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<SuppliersListResponse> => {
+    const params = new URLSearchParams();
+
+    if (filters.searchTerm) params.append('q', filters.searchTerm);
+    if (filters.category) params.append('category', filters.category);
+    if (filters.region) params.append('region', filters.region);
+    if (filters.comuna) params.append('comuna', filters.comuna);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    const response = await api.get(`${SUPPLIERS_ENDPOINT}/search?${params}`);
+
+    return {
+      success: response.data.success,
+      data: response.data.data ? objectToCamelCase(response.data.data) : [],
       message: response.data.message,
     };
   },

@@ -55,6 +55,10 @@ enum Pages {
   PreguntasFrecuentes,
   MisProductos,
   ExplorarProductos,
+  SearchResults,
+  ProductDetail,
+  PublicSupplierProfile,
+  ClientDetail,
 }
 
 type PathRouteCustomProps = {
@@ -68,3 +72,4 @@ type Routes = Record<Pages, PathRouteProps & PathRouteCustomProps>;
 
 export { Pages };
 export type { Routes };
+

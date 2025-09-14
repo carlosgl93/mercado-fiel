@@ -9,27 +9,23 @@ datasource db {
 }
 
 model regiones {
-  id_region     Int      @id @default(autoincrement())
-  codigo_region String   @unique @db.VarChar(10) // e.g., "XV", "RM"
-  nombre        String   @db.VarChar(100)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  // Relations
-  comunas    comunas[]
-  direcciones direcciones[]
+  id_region     Int           @id @default(autoincrement())
+  codigo_region String        @unique @db.VarChar(10)
+  nombre        String        @db.VarChar(100)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  comunas       comunas[]
+  direcciones   direcciones[]
 
   @@map("regiones")
 }
 
 model comunas {
-  id_comuna  Int      @id @default(autoincrement())
-  id_region  Int
-  nombre     String   @db.VarChar(100)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  // Relations
+  id_comuna   Int           @id @default(autoincrement())
+  id_region   Int
+  nombre      String        @db.VarChar(100)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
   region      regiones      @relation(fields: [id_region], references: [id_region])
   direcciones direcciones[]
 
@@ -37,70 +33,61 @@ model comunas {
 }
 
 model direcciones {
-  id_direccion     Int      @id @default(autoincrement())
-  calle            String   @db.VarChar(200)
-  numero           String?  @db.VarChar(20)
-  departamento     String?  @db.VarChar(20)
-  id_comuna        Int
-  id_region        Int
-  codigo_postal    String?  @db.VarChar(10)
-  referencia       String?  @db.Text // Additional reference/landmark
-  latitud          Decimal? @db.Decimal(9, 6)
-  longitud         Decimal? @db.Decimal(9, 6)
-  direccion_completa String? @db.Text // Computed field for full address
-  activa           Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  // Relations
-  comuna    comunas   @relation(fields: [id_comuna], references: [id_comuna])
-  region    regiones  @relation(fields: [id_region], references: [id_region])
-  
-  // Back relations
-  proveedores_direccion proveedores[]
+  id_direccion          Int           @id @default(autoincrement())
+  calle                 String        @db.VarChar(200)
+  numero                String?       @db.VarChar(20)
+  departamento          String?       @db.VarChar(20)
+  id_comuna             Int
+  id_region             Int
+  codigo_postal         String?       @db.VarChar(10)
+  referencia            String?
+  latitud               Decimal?      @db.Decimal(9, 6)
+  longitud              Decimal?      @db.Decimal(9, 6)
+  direccion_completa    String?
+  activa                Boolean       @default(true)
+  created_at            DateTime      @default(now())
+  updated_at            DateTime      @updatedAt
   clientes_direccion    clientes[]
+  comuna                comunas       @relation(fields: [id_comuna], references: [id_comuna])
+  region                regiones      @relation(fields: [id_region], references: [id_region])
   pedidos_direccion     pedidos[]
+  proveedores_direccion proveedores[]
 
   @@map("direcciones")
 }
 
-// User table
 model usuarios {
-  id_usuario          Int      @id @default(autoincrement())
-  nombre              String   @db.VarChar(100)
-  email               String   @unique @db.VarChar(100)
-  contrasena_hash     String   @db.Text
-  fecha_registro      DateTime @default(now()) @db.Timestamp
-  activo              Boolean  @default(true)
-  profile_picture_url String?  @db.Text
+  id_usuario          Int                     @id @default(autoincrement())
+  nombre              String                  @db.VarChar(100)
+  email               String                  @unique @db.VarChar(100)
+  contrasena_hash     String
+  fecha_registro      DateTime                @default(now()) @db.Timestamp(6)
+  activo              Boolean                 @default(true)
+  profile_picture_url String?
   id_plan             Int?
-  plan                planes?  @relation(fields: [id_plan], references: [id_plan])
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
-
-  // Relations
-  roles               UsuarioRol[]
-  proveedor           proveedores?
+  created_at          DateTime                @default(now())
+  updated_at          DateTime                @updatedAt
+  carrito             carrito[]
   cliente             clientes?
   comentarios         comentarios[]
-  solicitudescontacto solicitudescontacto[]
+  lista_deseos        lista_deseos[]
+  notificaciones      notificaciones[]
   pagos               pagos[]
   participaciones     ParticipanteColectivo[]
   pedidos             pedidos[]
-  notificaciones      notificaciones[]
-  lista_deseos        lista_deseos[]
-  carrito             carrito[]
+  proveedor           proveedores?
+  solicitudescontacto solicitudescontacto[]
+  roles               UsuarioRol[]
+  plan                planes?                 @relation(fields: [id_plan], references: [id_plan])
 
   @@map("usuarios")
 }
 
 model roles {
-  id_rol      Int     @id @default(autoincrement())
-  nombre      String  @unique @db.VarChar(50) // e.g. 'comprador', 'proveedor', 'admin'
-  descripcion String? @db.Text
-
-  // Relations
-  usuarios UsuarioRol[]
+  id_rol      Int          @id @default(autoincrement())
+  nombre      String       @unique @db.VarChar(50)
+  descripcion String?
+  usuarios    UsuarioRol[]
 
   @@map("roles")
 }
@@ -108,271 +95,236 @@ model roles {
 model UsuarioRol {
   id_usuario Int
   id_rol     Int
-
-  usuario usuarios @relation(fields: [id_usuario], references: [id_usuario])
-  rol     roles    @relation(fields: [id_rol], references: [id_rol])
+  rol        roles    @relation(fields: [id_rol], references: [id_rol])
+  usuario    usuarios @relation(fields: [id_usuario], references: [id_usuario])
 
   @@id([id_usuario, id_rol])
   @@map("usuario_rol")
 }
 
-// Provider/Seller table
 model proveedores {
-  id_proveedor      Int      @id @default(autoincrement())
-  id_usuario        Int      @unique
-  usuario           usuarios @relation(fields: [id_usuario], references: [id_usuario])
-  nombre_negocio    String   @db.VarChar(100)
-  descripcion       String?  @db.Text
-  telefono_contacto String?  @db.VarChar(20)
-  id_direccion      Int?
-  direccion         direcciones? @relation(fields: [id_direccion], references: [id_direccion])
-  
-  latitud           Decimal? @db.Decimal(9, 6)
-  longitud          Decimal? @db.Decimal(9, 6)
-  destacado         Boolean  @default(false)
-  email             String?  @unique @db.VarChar(100) // email contacto proveedor puede ser distinto del de la ucneta de usuario
-  radio_entrega_km  Int?         @default(10) // Delivery radius in kilometers
-  cobra_envio       Boolean      @default(true)
-  envio_gratis_desde Decimal?    @db.Decimal(10, 2) // Free shipping threshold
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  // Relations
+  id_proveedor        Int                   @id @default(autoincrement())
+  id_usuario          Int                   @unique
+  nombre_negocio      String                @db.VarChar(100)
+  descripcion         String?
+  telefono_contacto   String?               @db.VarChar(20)
+  id_direccion        Int?
+  latitud             Decimal?              @db.Decimal(9, 6)
+  longitud            Decimal?              @db.Decimal(9, 6)
+  destacado           Boolean               @default(false)
+  email               String?               @unique @db.VarChar(100)
+  radio_entrega_km    Int?                  @default(10)
+  cobra_envio         Boolean               @default(true)
+  envio_gratis_desde  Decimal?              @db.Decimal(10, 2)
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  areas_servicio      areas_servicio[]
+  campanas_colectivas compras_colectivas[]
   productos           productos[]
+  direccion           direcciones?          @relation(fields: [id_direccion], references: [id_direccion])
+  usuario             usuarios              @relation(fields: [id_usuario], references: [id_usuario])
+  publicidad          publicidad[]
   solicitudescontacto solicitudescontacto[]
   suscripciones       suscripciones[]
-  publicidad          publicidad[]
-  campanas_colectivas compras_colectivas[]
-  areas_servicio      areas_servicio[]
 
   @@map("proveedores")
 }
 
 model areas_servicio {
-  id_area      Int         @id @default(autoincrement())
-  id_proveedor Int
-  proveedor    proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
-  tipo         String      @db.VarChar(20) // 'comuna', 'region', 'radio'
-  id_comuna    Int?
-  id_region    Int?
-  radio_km     Int?        // For radius-based service areas
-  costo_envio  Decimal?    @db.Decimal(8, 2)
-  tiempo_entrega_dias Int? @default(3)
-  activa       Boolean     @default(true)
-  created_at   DateTime    @default(now())
-  updated_at   DateTime    @updatedAt
+  id_area             Int         @id @default(autoincrement())
+  id_proveedor        Int
+  tipo                String      @db.VarChar(20)
+  id_comuna           Int?
+  id_region           Int?
+  radio_km            Int?
+  costo_envio         Decimal?    @db.Decimal(8, 2)
+  tiempo_entrega_dias Int?        @default(3)
+  activa              Boolean     @default(true)
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  proveedor           proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("areas_servicio")
 }
 
 model clientes {
-  id_cliente     Int      @id @default(autoincrement())
-  id_usuario     Int      @unique
-  usuario        usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  id_cliente     Int          @id @default(autoincrement())
+  id_usuario     Int          @unique
   id_direccion   Int?
+  telefono       String?      @db.VarChar(20)
+  fecha_registro DateTime     @default(now()) @db.Timestamp(6)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
   direccion      direcciones? @relation(fields: [id_direccion], references: [id_direccion])
-  telefono       String?  @db.VarChar(20)
-  fecha_registro DateTime @default(now()) @db.Timestamp
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  usuario        usuarios     @relation(fields: [id_usuario], references: [id_usuario])
 
   @@map("clientes")
 }
 
-// Categories table
 model categorias {
-  id_categoria Int      @id @default(autoincrement())
-  nombre       String   @db.VarChar(100)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  // Relations
-  productos productos[]
+  id_categoria Int         @id @default(autoincrement())
+  nombre       String      @db.VarChar(100)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+  productos    productos[]
 
   @@map("categorias")
 }
 
-// Products table
 model productos {
-  id_producto       Int      @id @default(autoincrement())
-  id_proveedor      Int
-  id_categoria      Int
-  nombre_producto   String   @db.VarChar(100)
-  descripcion       String?  @db.Text
-  precio_unitario   Decimal  @db.Decimal(10, 2)
-  imagen_url        String?  @db.Text
-  disponible        Boolean  @default(true)
-  fecha_publicacion DateTime @default(now()) @db.Timestamp
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  // Relations
-  proveedor           proveedores          @relation(fields: [id_proveedor], references: [id_proveedor])
-  categoria           categorias           @relation(fields: [id_categoria], references: [id_categoria])
+  id_producto         Int                   @id @default(autoincrement())
+  id_proveedor        Int
+  id_categoria        Int
+  nombre_producto     String                @db.VarChar(100)
+  descripcion         String?
+  precio_unitario     Decimal               @db.Decimal(10, 2)
+  unit_type           String?               @default("unit") @db.VarChar(10)
+  imagen_url          String?
+  disponible          Boolean               @default(true)
+  fecha_publicacion   DateTime              @default(now()) @db.Timestamp(6)
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  carrito             carrito[]
   comentarios         comentarios[]
   campanas_colectivas compras_colectivas[]
+  descuentos_cantidad descuentos_cantidad[]
   items_pedido        ItemPedido[]
   lista_deseos        lista_deseos[]
-  descuentos_cantidad descuentos_cantidad[]
-  carrito             carrito[]
+  categoria           categorias            @relation(fields: [id_categoria], references: [id_categoria])
+  proveedor           proveedores           @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("productos")
 }
 
-// Quantity discounts for individual products
 model descuentos_cantidad {
-  id_descuento        Int       @id @default(autoincrement())
-  id_producto         Int
-  producto            productos @relation(fields: [id_producto], references: [id_producto])
-  cantidad_minima     Int       // Minimum quantity for this discount tier
-  descuento_porcentaje Decimal  @db.Decimal(5, 2) // Discount percentage (e.g., 10.50 for 10.5%)
-  precio_descuento    Decimal?  @db.Decimal(10, 2) // Alternative: fixed discounted price
-  activo              Boolean   @default(true)
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @updatedAt
+  id_descuento         Int       @id @default(autoincrement())
+  id_producto          Int
+  cantidad_minima      Int
+  descuento_porcentaje Decimal   @db.Decimal(5, 2)
+  precio_descuento     Decimal?  @db.Decimal(10, 2)
+  activo               Boolean   @default(true)
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+  producto             productos @relation(fields: [id_producto], references: [id_producto])
 
-  @@unique([id_producto, cantidad_minima]) // One discount per quantity level per product
+  @@unique([id_producto, cantidad_minima])
   @@map("descuentos_cantidad")
 }
 
-// Comments/Reviews table
 model comentarios {
-  id_comentario Int      @id @default(autoincrement())
+  id_comentario Int       @id @default(autoincrement())
   id_cliente    Int
   id_producto   Int
-  texto         String   @db.Text
-  calificacion  Int // 1-5 stars
-  fecha         DateTime @default(now()) @db.Timestamp
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  // Relations
-  cliente  usuarios  @relation(fields: [id_cliente], references: [id_usuario])
-  producto productos @relation(fields: [id_producto], references: [id_producto])
+  texto         String
+  calificacion  Int
+  fecha         DateTime  @default(now()) @db.Timestamp(6)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  cliente       usuarios  @relation(fields: [id_cliente], references: [id_usuario])
+  producto      productos @relation(fields: [id_producto], references: [id_producto])
 
   @@map("comentarios")
 }
 
-// Contact requests table
 model solicitudescontacto {
-  id_solicitud    Int      @id @default(autoincrement())
+  id_solicitud    Int         @id @default(autoincrement())
   id_cliente      Int
   id_proveedor    Int
-  mensaje         String   @db.Text
-  fecha_solicitud DateTime @default(now()) @db.Timestamp
-  estado          String   @default("pendiente") // 'pendiente', 'respondida', 'cerrada'
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  // Relations
-  cliente   usuarios    @relation(fields: [id_cliente], references: [id_usuario])
-  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  mensaje         String
+  fecha_solicitud DateTime    @default(now()) @db.Timestamp(6)
+  estado          String      @default("pendiente")
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  cliente         usuarios    @relation(fields: [id_cliente], references: [id_usuario])
+  proveedor       proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("solicitudescontacto")
 }
 
-// Subscription plans table
 model planes {
-  id_plan        Int      @id @default(autoincrement())
-  nombre         String   @db.VarChar(50)
-  precio_mensual Decimal  @db.Decimal(10, 2)
-  descripcion    String?  @db.Text
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-
-  // Relations
-  usuarios      usuarios[]
-  suscripciones suscripciones[]
+  id_plan        Int             @id @default(autoincrement())
+  nombre         String          @db.VarChar(50)
+  precio_mensual Decimal         @db.Decimal(10, 2)
+  descripcion    String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  suscripciones  suscripciones[]
+  usuarios       usuarios[]
 
   @@map("planes")
 }
 
-// Subscriptions table
 model suscripciones {
-  id_suscripcion Int       @id @default(autoincrement())
+  id_suscripcion Int         @id @default(autoincrement())
   id_proveedor   Int
   id_plan        Int
-  fecha_inicio   DateTime  @db.Timestamp
-  fecha_fin      DateTime? @db.Timestamp
-  activa         Boolean   @default(true)
-  created_at     DateTime  @default(now())
-  updated_at     DateTime  @updatedAt
-
-  // Relations
-  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
-  plan      planes      @relation(fields: [id_plan], references: [id_plan])
+  fecha_inicio   DateTime    @db.Timestamp(6)
+  fecha_fin      DateTime?   @db.Timestamp(6)
+  activa         Boolean     @default(true)
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+  plan           planes      @relation(fields: [id_plan], references: [id_plan])
+  proveedor      proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("suscripciones")
 }
 
-// Payments table
 model pagos {
   id_pago     Int      @id @default(autoincrement())
   id_usuario  Int
   monto       Decimal  @db.Decimal(10, 2)
   metodo_pago String   @db.VarChar(50)
-  fecha_pago  DateTime @default(now()) @db.Timestamp
-  estado      String   @default("pendiente") // 'pendiente', 'completado', 'fallido'
-  id_pedido   Int? // Link to order if applicable
-  pedido      pedidos? @relation(fields: [id_pedido], references: [id_pedido])
+  fecha_pago  DateTime @default(now()) @db.Timestamp(6)
+  estado      String   @default("pendiente")
+  id_pedido   Int?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-
-  // Relations
-  usuario usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  pedido      pedidos? @relation(fields: [id_pedido], references: [id_pedido])
+  usuario     usuarios @relation(fields: [id_usuario], references: [id_usuario])
 
   @@map("pagos")
 }
 
-// Advertising/Publicity table
 model publicidad {
-  id_publicidad    Int       @id @default(autoincrement())
+  id_publicidad    Int         @id @default(autoincrement())
   id_proveedor     Int
-  imagen_destacada String?   @db.Text
-  texto_destacado  String?   @db.Text
-  fecha_inicio     DateTime  @db.Timestamp
-  fecha_fin        DateTime? @db.Timestamp
-  activa           Boolean   @default(true)
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-
-  // Relations
-  proveedor proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
+  imagen_destacada String?
+  texto_destacado  String?
+  fecha_inicio     DateTime    @db.Timestamp(6)
+  fecha_fin        DateTime?   @db.Timestamp(6)
+  activa           Boolean     @default(true)
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  proveedor        proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("publicidad")
 }
 
-// Enhanced collective buying campaigns
 model compras_colectivas {
-  id_campana        Int         @id @default(autoincrement())
-  nombre            String      @db.VarChar(100)
-  descripcion       String?     @db.Text
-  id_proveedor      Int
-  proveedor         proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
-  id_producto       Int
-  producto          productos   @relation(fields: [id_producto], references: [id_producto])
-  precio_objetivo   Decimal     @db.Decimal(10, 2)
-  cantidad_objetivo Int
-
-  // Enhanced campaign rules
+  id_campana           Int                     @id @default(autoincrement())
+  nombre               String                  @db.VarChar(100)
+  descripcion          String?
+  id_proveedor         Int
+  id_producto          Int
+  precio_objetivo      Decimal                 @db.Decimal(10, 2)
+  cantidad_objetivo    Int
   min_participantes    Int?
   max_participantes    Int?
-  cantidad_min_usuario Int     @default(1)
+  cantidad_min_usuario Int                     @default(1)
   cantidad_max_usuario Int?
-  requiere_aprobacion  Boolean @default(false)
-
-  fecha_inicio DateTime  @default(now())
-  fecha_fin    DateTime?
-  estado       String    @default("abierta") // abierta, cerrada, completada, cancelada
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-
-  // Relations
-  participantes   ParticipanteColectivo[]
-  escalas_precios escalas_precios[]
-  progreso        progreso_campana?
-  pedidos         pedidos[]
-  notificaciones  notificaciones[]
+  requiere_aprobacion  Boolean                 @default(false)
+  fecha_inicio         DateTime                @default(now())
+  fecha_fin            DateTime?
+  estado               String                  @default("abierta")
+  created_at           DateTime                @default(now())
+  updated_at           DateTime                @updatedAt
+  producto             productos               @relation(fields: [id_producto], references: [id_producto])
+  proveedor            proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
+  escalas_precios      escalas_precios[]
+  notificaciones       notificaciones[]
+  participantes        ParticipanteColectivo[]
+  pedidos              pedidos[]
+  progreso             progreso_campana?
 
   @@map("compras_colectivas")
 }
@@ -380,74 +332,69 @@ model compras_colectivas {
 model ParticipanteColectivo {
   id_participante Int                @id @default(autoincrement())
   id_campana      Int
-  campana         compras_colectivas @relation(fields: [id_campana], references: [id_campana])
   id_usuario      Int
-  usuario         usuarios           @relation(fields: [id_usuario], references: [id_usuario])
   cantidad        Int
   monto_aportado  Decimal            @db.Decimal(10, 2)
   fecha_aporte    DateTime           @default(now())
-  estado          String             @default("activo") // activo, retirado, completado
+  estado          String             @default("activo")
   created_at      DateTime           @default(now())
   updated_at      DateTime           @updatedAt
+  campana         compras_colectivas @relation(fields: [id_campana], references: [id_campana])
+  usuario         usuarios           @relation(fields: [id_usuario], references: [id_usuario])
 
   @@unique([id_campana, id_usuario])
   @@map("participantes_colectivos")
 }
 
-// Tier-based pricing for collective campaigns
 model escalas_precios {
   id_escala            Int                @id @default(autoincrement())
   id_campana           Int
-  campana              compras_colectivas @relation(fields: [id_campana], references: [id_campana])
   cantidad_minima      Int
   precio_unitario      Decimal            @db.Decimal(10, 2)
   descuento_porcentaje Decimal?           @db.Decimal(5, 2)
   activa               Boolean            @default(true)
   created_at           DateTime           @default(now())
   updated_at           DateTime           @updatedAt
+  campana              compras_colectivas @relation(fields: [id_campana], references: [id_campana])
 
   @@map("escalas_precios")
 }
 
-// Real-time progress tracking for campaigns
 model progreso_campana {
   id_progreso            Int                @id @default(autoincrement())
   id_campana             Int                @unique
-  campana                compras_colectivas @relation(fields: [id_campana], references: [id_campana])
   participantes_actuales Int                @default(0)
   cantidad_actual        Int                @default(0)
   monto_recaudado        Decimal            @default(0) @db.Decimal(15, 2)
   porcentaje_completado  Decimal            @default(0) @db.Decimal(5, 2)
-  precio_actual          Decimal?           @db.Decimal(10, 2) // Current price based on tier
-  siguiente_tier         Int? // Next quantity milestone
+  precio_actual          Decimal?           @db.Decimal(10, 2)
+  siguiente_tier         Int?
   created_at             DateTime           @default(now())
   updated_at             DateTime           @updatedAt
+  campana                compras_colectivas @relation(fields: [id_campana], references: [id_campana])
 
   @@map("progreso_campanas")
 }
 
-// Order management system
 model pedidos {
-  id_pedido         Int                 @id @default(autoincrement())
-  id_usuario        Int
-  usuario           usuarios            @relation(fields: [id_usuario], references: [id_usuario])
-  tipo_pedido       String // 'individual', 'colectivo'
-  id_campana        Int? // nullable for individual orders
-  campana           compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
-  total             Decimal             @db.Decimal(10, 2)
-  estado            String              @default("pendiente") // pendiente, confirmado, enviado, entregado, cancelado
-  fecha_pedido      DateTime            @default(now())
-  fecha_entrega     DateTime?
+  id_pedido            Int                 @id @default(autoincrement())
+  id_usuario           Int
+  tipo_pedido          String
+  id_campana           Int?
+  total                Decimal             @db.Decimal(10, 2)
+  estado               String              @default("pendiente")
+  fecha_pedido         DateTime            @default(now())
+  fecha_entrega        DateTime?
   id_direccion_entrega Int?
-  direccion_entrega    direcciones? @relation(fields: [id_direccion_entrega], references: [id_direccion])
-  costo_envio       Decimal?            @db.Decimal(8, 2)
-  notas             String?             @db.Text
-  created_at        DateTime            @default(now())
-  updated_at        DateTime            @updatedAt
-
-  // Relations
-  items ItemPedido[]
-  pagos pagos[]
+  costo_envio          Decimal?            @db.Decimal(8, 2)
+  notas                String?
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+  items                ItemPedido[]
+  pagos                pagos[]
+  campana              compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  direccion_entrega    direcciones?        @relation(fields: [id_direccion_entrega], references: [id_direccion])
+  usuario              usuarios            @relation(fields: [id_usuario], references: [id_usuario])
 
   @@map("pedidos")
 }
@@ -455,64 +402,61 @@ model pedidos {
 model ItemPedido {
   id_item         Int       @id @default(autoincrement())
   id_pedido       Int
-  pedido          pedidos   @relation(fields: [id_pedido], references: [id_pedido])
   id_producto     Int
-  producto        productos @relation(fields: [id_producto], references: [id_producto])
   cantidad        Int
   precio_unitario Decimal   @db.Decimal(10, 2)
   subtotal        Decimal   @db.Decimal(10, 2)
   created_at      DateTime  @default(now())
   updated_at      DateTime  @updatedAt
+  pedido          pedidos   @relation(fields: [id_pedido], references: [id_pedido])
+  producto        productos @relation(fields: [id_producto], references: [id_producto])
 
   @@map("items_pedido")
 }
 
-// Notification system for collective buying
 model notificaciones {
   id_notificacion Int                 @id @default(autoincrement())
   id_usuario      Int
-  usuario         usuarios            @relation(fields: [id_usuario], references: [id_usuario])
-  tipo            String // 'campana_iniciada', 'objetivo_alcanzado', 'campana_cerrada', 'nuevo_tier', 'pedido_confirmado'
+  tipo            String
   titulo          String              @db.VarChar(200)
-  mensaje         String              @db.Text
+  mensaje         String
   leida           Boolean             @default(false)
   id_campana      Int?
-  campana         compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
-  url_accion      String?             @db.VarChar(255) // URL to redirect user for action
+  url_accion      String?             @db.VarChar(255)
   created_at      DateTime            @default(now())
   updated_at      DateTime            @updatedAt
+  campana         compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  usuario         usuarios            @relation(fields: [id_usuario], references: [id_usuario])
 
   @@map("notificaciones")
 }
 
-// Wishlist/Interest tracking
 model lista_deseos {
   id_lista          Int       @id @default(autoincrement())
   id_usuario        Int
-  usuario           usuarios  @relation(fields: [id_usuario], references: [id_usuario])
   id_producto       Int
-  producto          productos @relation(fields: [id_producto], references: [id_producto])
   notificar_campana Boolean   @default(true)
-  cantidad_deseada  Int? // Desired quantity for collective buying
-  precio_maximo     Decimal?  @db.Decimal(10, 2) // Maximum price willing to pay
+  cantidad_deseada  Int?
+  precio_maximo     Decimal?  @db.Decimal(10, 2)
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
+  producto          productos @relation(fields: [id_producto], references: [id_producto])
+  usuario           usuarios  @relation(fields: [id_usuario], references: [id_usuario])
 
   @@unique([id_usuario, id_producto])
   @@map("lista_deseos")
 }
 
-// Shopping cart for temporary product storage
 model carrito {
   id_carrito      Int       @id @default(autoincrement())
   id_usuario      Int
-  usuario         usuarios  @relation(fields: [id_usuario], references: [id_usuario])
   id_producto     Int
-  producto        productos @relation(fields: [id_producto], references: [id_producto])
   cantidad        Int
-  precio_unitario Decimal   @db.Decimal(10, 2) // Price at time of adding to cart (with discounts)
+  precio_unitario Decimal   @db.Decimal(10, 2)
   created_at      DateTime  @default(now())
   updated_at      DateTime  @updatedAt
+  producto        productos @relation(fields: [id_producto], references: [id_producto])
+  usuario         usuarios  @relation(fields: [id_usuario], references: [id_usuario])
 
   @@unique([id_usuario, id_producto])
   @@map("carrito")

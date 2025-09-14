@@ -60,3 +60,5 @@ firebase-adminsdk.json
 key.json
 
 ./functions/lib
+
+*.temp

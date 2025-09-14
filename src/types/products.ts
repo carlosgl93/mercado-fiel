@@ -7,6 +7,7 @@ export interface Product {
   nombreProducto: string;
   descripcion?: string;
   precioUnitario: number;
+  unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible: boolean;
   fechaPublicacion: Date;
@@ -52,6 +53,7 @@ export interface CreateProductRequest {
   nombreProducto: string;
   descripcion?: string;
   precioUnitario: number;
+  unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible?: boolean;
   descuentosCantidad?: {
@@ -66,6 +68,7 @@ export interface UpdateProductRequest {
   nombreProducto?: string;
   descripcion?: string;
   precioUnitario?: number;
+  unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible?: boolean;
 }

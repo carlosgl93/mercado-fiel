@@ -1,7 +1,55 @@
 import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
 import dayjs from 'dayjs';
 
 const prisma = new PrismaClient();
+
+// Initialize Supabase client for storage operations
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Function to create storage bucket
+async function createStorageBucket(bucketName: string, isPublic = true) {
+  try {
+    console.log(`🪣 Creating storage bucket: ${bucketName}...`);
+
+    // Check if bucket already exists
+    const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets();
+
+    if (listError) {
+      console.error('Error listing buckets:', listError);
+      return false;
+    }
+
+    const bucketExists = existingBuckets?.some((bucket) => bucket.name === bucketName);
+
+    if (bucketExists) {
+      console.log(`✅ Bucket '${bucketName}' already exists`);
+      return true;
+    }
+
+    // Create the bucket
+    const { error } = await supabase.storage.createBucket(bucketName, {
+      public: isPublic,
+      allowedMimeTypes: ['image/*'],
+      fileSizeLimit: 5242880, // 5MB
+    });
+
+    if (error) {
+      console.error(`❌ Error creating bucket '${bucketName}':`, error);
+      return false;
+    }
+
+    console.log(`✅ Successfully created bucket '${bucketName}'`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to create bucket '${bucketName}':`, error);
+    return false;
+  }
+}
 
 const categories = [
   { id: 1, nombre: 'Frutas' },
@@ -20,6 +68,10 @@ const roles = [
 
 async function main() {
   console.log('🌱 Starting database seeding...');
+
+  // Create storage buckets first
+  await createStorageBucket('profile-images', true);
+  await createStorageBucket('product-images', true);
 
   // Seed roles
   console.log('📝 Seeding roles...');

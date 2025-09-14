@@ -30,6 +30,7 @@
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.2",
     "@prisma/client": "^6.11.1",
+    "@supabase/supabase-js": "^2.57.4",
     "axios": "^1.7.4",
     "bcryptjs": "^3.0.2",
     "dayjs": "^1.11.13",

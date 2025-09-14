@@ -61,6 +61,7 @@ model usuarios {
   nombre              String                  @db.VarChar(100)
   email               String                  @unique @db.VarChar(100)
   contrasena_hash     String
+  auth_uid            String?                 @unique @db.Uuid
   fecha_registro      DateTime                @default(now()) @db.Timestamp(6)
   activo              Boolean                 @default(true)
   profile_picture_url String?

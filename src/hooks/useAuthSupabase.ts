@@ -208,10 +208,18 @@ export const useAuth = () => {
       });
     },
     onError: (error: AuthError) => {
-      console.error('Sign in error:', error);
+      console.error('Sign in error:', { error });
+      let message = 'Error al iniciar sesión';
+
+      if (error.message.includes('Invalid login credentials')) {
+        message = 'Credenciales inválidas';
+      } else if (error.message.includes('Email not confirmed')) {
+        message = 'Por favor confirma tu email';
+      }
+
       setNotification({
         open: true,
-        message: error.message || 'Error al iniciar sesión',
+        message,
         severity: 'error',
       });
     },

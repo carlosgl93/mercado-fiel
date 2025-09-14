@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { NextFunction, Request, Response, Router } from 'express';
+import { supabaseAdmin } from '../lib/supabase';
 
 const prisma = new PrismaClient();
 const productosRouter = Router();
@@ -11,6 +12,7 @@ interface CreateProductoRequest {
   nombre_producto: string;
   descripcion?: string;
   precio_unitario: number;
+  unit_type?: string;
   imagen_url?: string;
   disponible?: boolean;
   descuentos_cantidad?: {
@@ -263,6 +265,7 @@ productosRouter.post(
         nombre_producto,
         descripcion,
         precio_unitario,
+        unit_type = 'unit',
         imagen_url,
         disponible = true,
         descuentos_cantidad = [],
@@ -303,73 +306,86 @@ productosRouter.post(
         return;
       }
 
-      const producto = await prisma.$transaction(async (tx) => {
-        // Create the product
-        const newProduct = await tx.productos.create({
-          data: {
-            id_proveedor,
-            id_categoria,
-            nombre_producto,
-            descripcion,
-            precio_unitario,
-            imagen_url,
-            disponible,
-          },
+      // Use Supabase Admin to bypass RLS policies
+      const now = new Date().toISOString();
+      const { data: newProduct, error: productError } = await supabaseAdmin
+        .from('productos')
+        .insert({
+          id_proveedor,
+          id_categoria,
+          nombre_producto,
+          descripcion: descripcion || null,
+          precio_unitario: precio_unitario.toString(),
+          unit_type,
+          imagen_url: imagen_url || null,
+          disponible,
+          fecha_publicacion: now,
+          created_at: now,
+          updated_at: now,
+        })
+        .select('*')
+        .single();
+
+      if (productError) {
+        console.error('Error creating product:', productError);
+        res.status(500).json({
+          success: false,
+          message: 'Error al crear el producto',
+          error: productError.message,
         });
+        return;
+      }
 
-        // Create quantity discounts if provided
-        if (descuentos_cantidad.length > 0) {
-          const validDiscounts = descuentos_cantidad
-            .filter(
-              (descuento) =>
-                descuento.descuento_porcentaje !== undefined ||
-                descuento.precio_descuento !== undefined,
-            )
-            .map((descuento) => {
-              const data: any = {
-                id_producto: newProduct.id_producto,
-                cantidad_minima: descuento.cantidad_minima,
-              };
+      // Create quantity discounts if provided
+      if (descuentos_cantidad.length > 0) {
+        const validDiscounts = descuentos_cantidad
+          .filter(
+            (descuento) =>
+              descuento.descuento_porcentaje !== undefined ||
+              descuento.precio_descuento !== undefined,
+          )
+          .map((descuento) => ({
+            id_producto: newProduct.id_producto,
+            cantidad_minima: descuento.cantidad_minima,
+            descuento_porcentaje: descuento.descuento_porcentaje || null,
+            precio_descuento: descuento.precio_descuento?.toString() || null,
+            created_at: now,
+            updated_at: now,
+          }));
 
-              if (descuento.descuento_porcentaje !== undefined) {
-                data.descuento_porcentaje = descuento.descuento_porcentaje;
-              }
+        if (validDiscounts.length > 0) {
+          const { error: discountError } = await supabaseAdmin
+            .from('descuentos_cantidad')
+            .insert(validDiscounts);
 
-              if (descuento.precio_descuento !== undefined) {
-                data.precio_descuento = descuento.precio_descuento;
-              }
-
-              return data;
-            });
-
-          if (validDiscounts.length > 0) {
-            await tx.descuentos_cantidad.createMany({
-              data: validDiscounts,
-            });
+          if (discountError) {
+            console.error('Error creating quantity discounts:', discountError);
+            // Don't fail the whole operation, but log the error
           }
         }
+      }
 
-        // Return product with all relations
-        return await tx.productos.findUnique({
-          where: { id_producto: newProduct.id_producto },
-          include: {
-            proveedor: {
-              select: {
-                nombre_negocio: true,
-                usuario: {
-                  select: {
-                    nombre: true,
-                  },
+      // Fetch the complete product with relations using Prisma for read operations
+      const producto = await prisma.productos.findUnique({
+        where: { id_producto: newProduct.id_producto },
+        include: {
+          proveedor: {
+            select: {
+              nombre_negocio: true,
+              usuario: {
+                select: {
+                  nombre: true,
                 },
               },
             },
-            categoria: {
-              select: {
-                nombre: true,
-              },
+          },
+          categoria: {
+            select: {
+              nombre: true,
             },
           },
-        });
+          descuentos_cantidad: true,
+        },
       });
 
       res.status(201).json({
@@ -521,9 +537,18 @@ productosRouter.delete(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
+      const productId = parseInt(id);
+
+      if (isNaN(productId)) {
+        res.status(400).json({
+          success: false,
+          message: 'ID de producto inválido',
+        });
+        return;
+      }
 
       const producto = await prisma.productos.findUnique({
-        where: { id_producto: parseInt(id) },
+        where: { id_producto: productId },
       });
 
       if (!producto) {
@@ -534,8 +559,17 @@ productosRouter.delete(
         return;
       }
 
-      await prisma.productos.delete({
-        where: { id_producto: parseInt(id) },
+      // Use transaction to delete related records first, then the product
+      await prisma.$transaction(async (tx) => {
+        // First, delete all quantity discounts associated with this product
+        await tx.descuentos_cantidad.deleteMany({
+          where: { id_producto: productId },
+        });
+
+        // Then delete the product
+        await tx.productos.delete({
+          where: { id_producto: productId },
+        });
       });
 
       res.json({
@@ -543,6 +577,7 @@ productosRouter.delete(
         message: 'Producto eliminado exitosamente',
       });
     } catch (error: unknown) {
+      console.error('Error deleting product:', error);
       if (error instanceof Error && 'code' in error && error.code === 'P2025') {
         res.status(404).json({
           success: false,

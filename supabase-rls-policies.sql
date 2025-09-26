@@ -253,36 +253,61 @@ CREATE POLICY "Users can create addresses" ON direcciones
   FOR INSERT WITH CHECK (auth.jwt() ->> 'email' IS NOT NULL);
 
 -- =====================================================
--- 10. STORAGE POLICIES (for product images)
+-- 10. STORAGE POLICIES 
+-- IMPORTANT: These policies MUST be created in Supabase Dashboard > Storage > Policies
+-- NOT in the SQL editor due to permission restrictions
 -- =====================================================
 
--- Allow authenticated users to upload to product-images bucket
-CREATE POLICY "Authenticated users can upload product images" ON storage.objects
-  FOR INSERT WITH CHECK (
-    bucket_id = 'product-images' 
-    AND auth.role() = 'authenticated'
-    AND auth.is_supplier()
-  );
+-- INSTRUCTIONS FOR CREATING STORAGE POLICIES IN SUPABASE DASHBOARD:
+-- 1. Go to Supabase Dashboard > Storage > Policies
+-- 2. Create policies for each bucket (product-images, profile-images)
+-- 3. Use the SQL expressions below in the dashboard policy editor
 
--- Allow authenticated users to read product images
-CREATE POLICY "Anyone can view product images" ON storage.objects
-  FOR SELECT USING (bucket_id = 'product-images');
+-- =====================================================
+-- PRODUCT-IMAGES BUCKET POLICIES (Create in Dashboard)
+-- =====================================================
 
--- Suppliers can update their own product images
-CREATE POLICY "Suppliers can update own product images" ON storage.objects
-  FOR UPDATE USING (
-    bucket_id = 'product-images' 
-    AND auth.role() = 'authenticated'
-    AND auth.is_supplier()
-  );
+-- Policy 1: "Anyone can view product images"
+-- Target: SELECT operations on product-images bucket
+-- SQL Expression: bucket_id = 'product-images'
 
--- Suppliers can delete their own product images
-CREATE POLICY "Suppliers can delete own product images" ON storage.objects
-  FOR DELETE USING (
-    bucket_id = 'product-images' 
-    AND auth.role() = 'authenticated'
-    AND auth.is_supplier()
-  );
+-- Policy 2: "Authenticated users can upload product images" 
+-- Target: INSERT operations on product-images bucket
+-- SQL Expression: 
+-- bucket_id = 'product-images' AND auth.role() = 'authenticated'
+
+-- Policy 3: "Users can update their own product images"
+-- Target: UPDATE operations on product-images bucket  
+-- SQL Expression:
+-- bucket_id = 'product-images' AND auth.role() = 'authenticated' AND auth.uid()::text = (storage.foldername(name))[1]
+
+-- Policy 4: "Users can delete their own product images"
+-- Target: DELETE operations on product-images bucket
+-- SQL Expression: 
+-- bucket_id = 'product-images' AND auth.role() = 'authenticated' AND auth.uid()::text = (storage.foldername(name))[1]
+
+-- =====================================================
+-- PROFILE-IMAGES BUCKET POLICIES (Create in Dashboard)
+-- =====================================================
+
+-- Policy 1: "Anyone can view profile images"
+-- Target: SELECT operations on profile-images bucket
+-- SQL Expression: bucket_id = 'profile-images'
+
+-- Policy 2: "Authenticated users can upload profile images"
+-- Target: INSERT operations on profile-images bucket
+-- SQL Expression:
+-- bucket_id = 'profile-images' AND auth.role() = 'authenticated'
+
+-- Policy 3: "Users can update their own profile images"
+-- Target: UPDATE operations on profile-images bucket
+-- SQL Expression:
+-- bucket_id = 'profile-images' AND auth.role() = 'authenticated' AND auth.uid()::text = (storage.foldername(name))[1]
+
+-- Policy 4: "Users can delete their own profile images" 
+-- Target: DELETE operations on profile-images bucket
+-- SQL Expression:
+-- bucket_id = 'profile-images' AND auth.role() = 'authenticated' AND auth.uid()::text = (storage.foldername(name))[1]
 
 -- =====================================================
 -- 11. COMPRAS_COLECTIVAS TABLE POLICIES (only if table exists)
@@ -335,3 +360,44 @@ CREATE POLICY "Suppliers can delete own product images" ON storage.objects
 -- SELECT auth.is_customer();
 -- SELECT auth.get_supplier_id();
 -- SELECT auth.get_customer_id();
+
+-- Test current user authentication
+-- SELECT auth.uid(), auth.jwt() ->> 'email', auth.role();
+
+-- Test user data lookup
+-- SELECT * FROM usuarios WHERE email = auth.jwt() ->> 'email';
+
+-- =====================================================
+-- STORAGE POLICY DEPLOYMENT INSTRUCTIONS
+-- =====================================================
+
+/*
+IMPORTANT: Storage policies CANNOT be created via SQL editor due to permission restrictions.
+You MUST create them through the Supabase Dashboard:
+
+1. NAVIGATE TO STORAGE POLICIES:
+   - Go to your Supabase project dashboard
+   - Navigate to Storage > Policies
+   - Select the bucket (product-images or profile-images)
+
+2. CREATE EACH POLICY:
+   For each operation (SELECT, INSERT, UPDATE, DELETE):
+   - Click "New Policy"
+   - Choose "For full customization"
+   - Give it a descriptive name
+   - Select the operation type
+   - Paste the SQL expression from the comments above
+   - Click "Review" then "Save policy"
+
+3. VERIFY POLICIES:
+   - Test image upload/download from your app
+   - Check browser network tab for 403 errors
+   - Use the verification queries above to debug auth issues
+
+4. TROUBLESHOOTING:
+   If you still get 403 errors:
+   - Verify the user is properly authenticated (check auth.uid())
+   - Ensure the bucket exists and is public for reads
+   - Check that file paths match the policy expressions
+   - Consider temporarily using more permissive policies for testing
+*/

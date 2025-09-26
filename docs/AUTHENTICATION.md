@@ -341,9 +341,15 @@ supabase db reset
 1. ✅ Implementar verificación de email obligatoria
 2. ✅ Crear templates de email personalizados con branding
 3. ✅ Configurar URLs de redirect correctas para producción
-4. 🔄 Implementar reset de contraseña
-5. 🔄 Añadir autenticación de dos factores (2FA)
-6. 🔄 Implementar OAuth con Google/Facebook
+4. ✅ Implementar reset de contraseña
+5. ✅ Configurar políticas RLS y Storage
+6. 🔄 Añadir autenticación de dos factores (2FA)
+7. 🔄 Implementar OAuth con Google/Facebook
+
+## 📖 Documentación Relacionada
+
+- **[Storage Policies Setup](./STORAGE_POLICIES_SETUP.md)**: Guía paso a paso para configurar políticas de Storage
+- **[PWA Configuration](./PWA_CONFIGURATION.md)**: Configuración completa de Progressive Web App
 
 ---
 

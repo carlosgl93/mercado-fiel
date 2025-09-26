@@ -298,8 +298,42 @@ supabase db reset
 
 ### PWA
 
+La aplicación está configurada como Progressive Web App (PWA) usando `vite-plugin-pwa` con Workbox.
+
+#### Configuración
+
 - **Manifest**: `/public/manifest.json`
-- **Icons**: `/public/android/`, `/public/ios/`, `/public/windows11/`
+- **Icons**: `/public/pwa-*.png` - Íconos para diferentes tamaños
+- **Service Worker**: Auto-generado por Workbox
+- **Configuración**: `vite.config.mjs` - Configuración de PWA y Workbox
+
+#### Workbox y Caché
+
+El service worker está configurado para:
+
+```javascript
+// Runtime caching para APIs externas
+runtimeCaching: [
+  {
+    // Supabase API - NetworkOnly (no cache)
+    urlPattern: ({ url }) => url.origin === 'https://xnehuzmpesnelhdboijy.supabase.co',
+    handler: 'NetworkOnly',
+  },
+  {
+    // Otras APIs de Supabase
+    urlPattern: ({ url }) => url.href.includes('.supabase.co'),
+    handler: 'NetworkOnly',
+  },
+]
+```
+
+#### Actualización de SW
+
+- **Componente**: `src/sections/SW/SW.tsx`
+- **Estrategia**: AutoUpdate con notificación al usuario
+- **Caché**: Se limpia automáticamente en actualizaciones
+
+📖 **Documentación completa**: [PWA_CONFIGURATION.md](./docs/PWA_CONFIGURATION.md)
 
 ### Convención de Ramas
 

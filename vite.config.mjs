@@ -22,6 +22,22 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html}', '**/*.{svg,png,jpg,gif}'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.origin === 'https://xnehuzmpesnelhdboijy.supabase.co',
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'supabase-api-cache',
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.href.includes('.supabase.co'),
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'supabase-external-cache',
+            },
+          },
+        ],
       },
     }),
     {

@@ -186,6 +186,13 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
                   image={product.imagenUrl}
                   alt={product.nombreProducto}
                   sx={{ objectFit: 'cover' }}
+                  onError={(e) => {
+                    console.log('Image load error for:', product.imagenUrl);
+                    console.log('Error:', e);
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', product.imagenUrl);
+                  }}
                 />
               ) : (
                 <Box

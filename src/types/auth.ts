@@ -1,42 +1,42 @@
 // Enhanced auth state types matching API response
 export interface AuthCliente {
-  id_cliente: number;
-  id_usuario: number;
-  id_direccion: number | null;
+  idCliente: number;
+  idUsuario: number;
+  idDireccion: number | null;
   telefono: string | null;
-  fecha_registro: string;
-  created_at: string;
-  updated_at: string;
+  fechaRegistro: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthProveedor {
-  id_proveedor: number;
-  id_usuario: number;
-  nombre_negocio: string;
+  idProveedor: number;
+  idUsuario: number;
+  nombreNegocio: string;
   descripcion?: string;
-  telefono_contacto?: string;
-  id_direccion?: number | null;
+  telefonoContacto?: string;
+  idDireccion?: number | null;
   latitud?: string;
   longitud?: string;
   destacado: boolean;
   email?: string;
-  radio_entrega_km?: number;
-  cobra_envio: boolean;
-  envio_gratis_desde?: string;
-  created_at: string;
-  updated_at: string;
+  radioEntregaKm?: number;
+  cobraEnvio: boolean;
+  envioGratisDesde?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthUserData {
-  id_usuario: number;
+  idUsuario: number;
   nombre: string;
   email: string;
-  fecha_registro: string;
+  fechaRegistro: string;
   activo: boolean;
-  profile_picture_url: string | null;
-  id_plan: number | null;
-  created_at: string;
-  updated_at: string;
+  profilePictureUrl: string | null;
+  idPlan: number | null;
+  createdAt: string;
+  updatedAt: string;
   cliente: AuthCliente | null;
   proveedor: AuthProveedor | null;
   isLoggedIn: boolean;

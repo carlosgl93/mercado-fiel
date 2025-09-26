@@ -9,7 +9,7 @@ export const ShoppingCartButton: React.FC = () => {
   const { openCart, getTotalCartItems } = useShoppingCartRecoil();
 
   // Only show cart for customers (not suppliers)
-  if (!user?.data?.cliente?.id_cliente) {
+  if (!user?.data?.cliente?.idCliente) {
     return null;
   }
 

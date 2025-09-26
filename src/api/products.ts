@@ -33,10 +33,17 @@ export const productsApi = {
     const response = await api.get(`${PRODUCTS_ENDPOINT}?${params.toString()}`);
 
     // Map response to camelCase
+    const mappedProducts = response.data.data.productos.map((product: any) => {
+      const mapped = mapProductFromApi(product);
+      console.log('Original product:', product);
+      console.log('Mapped product:', mapped);
+      return mapped;
+    });
+
     return {
       success: response.data.success,
       data: {
-        productos: response.data.data.productos.map(mapProductFromApi),
+        productos: mappedProducts,
         pagination: response.data.data.pagination,
       },
     };

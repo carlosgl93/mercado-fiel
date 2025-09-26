@@ -43,6 +43,32 @@ check_dependencies() {
     done
 }
 
+# Function to verify project structure
+verify_project_structure() {
+    print_status "Verifying project structure..."
+    
+    # Check if functions directory exists
+    if [ ! -d "$FUNCTIONS_DIR" ]; then
+        print_error "Functions directory not found: $FUNCTIONS_DIR"
+        print_error "Please ensure you're running this from the project root"
+        return 1
+    fi
+    
+    # Check if functions has package.json
+    if [ ! -f "$FUNCTIONS_DIR/package.json" ]; then
+        print_warning "Functions package.json not found"
+        print_warning "Functions environment setup may not work correctly"
+    fi
+    
+    # Check if Supabase directory exists
+    if [ ! -d "$SUPABASE_DIR" ]; then
+        print_warning "Supabase directory not found: $SUPABASE_DIR"
+        print_warning "Supabase configuration may not be available"
+    fi
+    
+    print_success "Project structure verification completed"
+}
+
 # Function to load secrets from secure sources
 load_secrets() {
     # Try to load from .env.secrets file (not tracked in git)
@@ -208,8 +234,14 @@ VITE_API_BASE_URL=https://southamerica-west1-${FIREBASE_PROJECT_ID}.cloudfunctio
 EOF
 
     # Create functions environment files
-    cp "$PROJECT_ROOT/.env.development" "$FUNCTIONS_DIR/.env.development"
-    cp "$PROJECT_ROOT/.env.production" "$FUNCTIONS_DIR/.env.production"
+    if [ -d "$FUNCTIONS_DIR" ]; then
+        cp "$PROJECT_ROOT/.env.development" "$FUNCTIONS_DIR/.env.development"
+        cp "$PROJECT_ROOT/.env.production" "$FUNCTIONS_DIR/.env.production"
+        print_success "Functions environment files created successfully"
+    else
+        print_warning "Functions directory not found: $FUNCTIONS_DIR"
+        print_warning "Functions environment files will be created when switching environments"
+    fi
     
     print_success "Environment files created successfully"
 }
@@ -218,11 +250,31 @@ EOF
 switch_to_dev() {
     print_status "Switching to DEVELOPMENT environment..."
     
-    # Copy development env files
+    # Ensure environment files exist, create them if not
+    if [ ! -f "$PROJECT_ROOT/.env.development" ]; then
+        print_warning "Development environment files not found. Creating them..."
+        if ! create_env_files; then
+            print_error "Failed to create environment files"
+            return 1
+        fi
+    fi
+    
+    # Copy development env files to root
     cp "$PROJECT_ROOT/.env.development" "$PROJECT_ROOT/.env"
-    cp "$FUNCTIONS_DIR/.env.development" "$FUNCTIONS_DIR/.env"
+    print_success "Updated root .env file for DEVELOPMENT"
+    
+    # Copy development env files to functions folder
+    if [ -d "$FUNCTIONS_DIR" ]; then
+        cp "$PROJECT_ROOT/.env.development" "$FUNCTIONS_DIR/.env"
+        print_success "Updated functions .env file for DEVELOPMENT"
+    else
+        print_warning "Functions directory not found: $FUNCTIONS_DIR"
+    fi
     
     print_success "Switched to DEVELOPMENT environment"
+    print_status "Environment configuration:"
+    print_status "  - Database: Local Supabase Emulator (http://127.0.0.1:54321)"
+    print_status "  - API: Local Firebase Emulator"
     print_warning "Remember to start Supabase emulators: npm run dev:start"
 }
 
@@ -230,11 +282,31 @@ switch_to_dev() {
 switch_to_prod() {
     print_status "Switching to PRODUCTION environment..."
     
-    # Copy production env files
+    # Ensure environment files exist, create them if not
+    if [ ! -f "$PROJECT_ROOT/.env.production" ]; then
+        print_warning "Production environment files not found. Creating them..."
+        if ! create_env_files; then
+            print_error "Failed to create environment files"
+            return 1
+        fi
+    fi
+    
+    # Copy production env files to root
     cp "$PROJECT_ROOT/.env.production" "$PROJECT_ROOT/.env"
-    cp "$FUNCTIONS_DIR/.env.production" "$FUNCTIONS_DIR/.env"
+    print_success "Updated root .env file for PRODUCTION"
+    
+    # Copy production env files to functions folder
+    if [ -d "$FUNCTIONS_DIR" ]; then
+        cp "$PROJECT_ROOT/.env.production" "$FUNCTIONS_DIR/.env"
+        print_success "Updated functions .env file for PRODUCTION"
+    else
+        print_warning "Functions directory not found: $FUNCTIONS_DIR"
+    fi
     
     print_success "Switched to PRODUCTION environment"
+    print_status "Environment configuration:"
+    print_status "  - Database: Production Supabase"
+    print_status "  - API: Production Firebase Functions"
     print_warning "Ready for deployment to production"
 }
 
@@ -311,19 +383,52 @@ deploy_prod() {
 
 # Function to show current environment
 show_env() {
+    print_status "Environment Status:"
+    echo ""
+    
+    # Check root environment
     if [ -f "$PROJECT_ROOT/.env" ]; then
         local env_type=$(grep "VITE_ENV=" "$PROJECT_ROOT/.env" | cut -d'=' -f2)
-        print_status "Current environment: $env_type"
+        print_success "Root environment: $env_type"
         
         if [ "$env_type" = "development" ]; then
-            print_status "Database: Local Supabase Emulator"
-            print_status "Functions: Local Firebase Emulator"
+            print_status "  Database: Local Supabase Emulator (http://127.0.0.1:54321)"
+            print_status "  Functions: Local Firebase Emulator"
         else
-            print_status "Database: Production Supabase"
-            print_status "Functions: Production Firebase"
+            print_status "  Database: Production Supabase"
+            print_status "  Functions: Production Firebase"
         fi
     else
-        print_warning "No environment file found. Run 'setup' first."
+        print_error "No root .env file found"
+    fi
+    
+    echo ""
+    
+    # Check functions environment
+    if [ -f "$FUNCTIONS_DIR/.env" ]; then
+        local functions_env_type=$(grep "VITE_ENV=" "$FUNCTIONS_DIR/.env" | cut -d'=' -f2 2>/dev/null || echo "unknown")
+        print_success "Functions environment: $functions_env_type"
+    else
+        print_error "No functions .env file found"
+    fi
+    
+    echo ""
+    
+    # Check if environments are in sync
+    if [ -f "$PROJECT_ROOT/.env" ] && [ -f "$FUNCTIONS_DIR/.env" ]; then
+        local root_env=$(grep "VITE_ENV=" "$PROJECT_ROOT/.env" | cut -d'=' -f2)
+        local functions_env=$(grep "VITE_ENV=" "$FUNCTIONS_DIR/.env" | cut -d'=' -f2 2>/dev/null || echo "missing")
+        
+        if [ "$root_env" = "$functions_env" ]; then
+            print_success "Environments are synchronized"
+        else
+            print_error "Environments are NOT synchronized!"
+            print_error "Root: $root_env, Functions: $functions_env"
+            print_warning "Run './scripts/env-manager.sh dev' or './scripts/env-manager.sh prod' to synchronize"
+        fi
+    else
+        print_warning "Cannot verify environment synchronization - missing files"
+        print_status "Run './scripts/env-manager.sh create-env' to create missing files"
     fi
 }
 
@@ -352,6 +457,7 @@ cleanup() {
 case "$1" in
     "setup")
         check_dependencies
+        verify_project_structure
         create_env_templates
         print_success "Setup completed! Follow these steps:"
         echo ""
@@ -366,8 +472,15 @@ case "$1" in
         print_status "   ./scripts/env-manager.sh create-env  - Create environment files"
         print_status "   ./scripts/env-manager.sh dev         - Switch to development"
         print_status "   ./scripts/env-manager.sh start       - Start development environment"
+        echo ""
+        print_status "Or use npm scripts:"
+        print_status "   pnpm run env:setup     - Initial setup"
+        print_status "   pnpm run env:dev       - Switch to development"
+        print_status "   pnpm run dev           - Start development with proper env"
+        print_status "   pnpm run dev:setup     - Create env files and start development"
         ;;
     "create-env")
+        verify_project_structure
         create_env_files
         ;;
     "dev")
@@ -392,14 +505,23 @@ case "$1" in
         echo "Usage: $0 {setup|create-env|dev|prod|start|deploy|status|clean}"
         echo ""
         echo "Commands:"
-        echo "  setup       - Initial setup of template files"
+        echo "  setup       - Initial setup of template files and project verification"
         echo "  create-env  - Create environment files from templates (after filling secrets)"
-        echo "  dev         - Switch to development environment"
-        echo "  prod        - Switch to production environment"
+        echo "  dev         - Switch to development environment (root + functions)"
+        echo "  prod        - Switch to production environment (root + functions)"
         echo "  start       - Start complete development environment"
         echo "  deploy      - Deploy to production"
-        echo "  status      - Show current environment"
+        echo "  status      - Show current environment status and synchronization"
         echo "  clean       - Clean up build artifacts and stop services"
+        echo ""
+        echo "NPM Scripts (recommended):"
+        echo "  pnpm run env:setup     - Initial setup"
+        echo "  pnpm run env:dev       - Switch to development"
+        echo "  pnpm run env:prod      - Switch to production"
+        echo "  pnpm run env:status    - Check environment status"
+        echo "  pnpm run dev           - Start development with proper env setup"
+        echo "  pnpm run dev:setup     - Create env files and start development"
+        echo "  pnpm run dev:start     - Start complete development environment"
         exit 1
         ;;
 esac

@@ -23,8 +23,8 @@ export const useShoppingCartRecoil = () => {
     isLoading: loadingCart,
     refetch: refetchCart,
   } = useQuery(
-    ['carrito', user?.data.id_usuario],
-    () => carritoApi.getCartItems(user!.data.id_usuario),
+    ['carrito', user?.data.idUsuario],
+    () => carritoApi.getCartItems(user!.data.idUsuario),
     {
       enabled: !!user,
       onSuccess: (data) => {
@@ -39,7 +39,7 @@ export const useShoppingCartRecoil = () => {
 
   // Mutations for cart operations
   const addToCartMutation = useMutation(
-    (data: AddCartItemRequest) => carritoApi.addCartItem(user!.data.id_usuario, data),
+    (data: AddCartItemRequest) => carritoApi.addCartItem(user!.data.idUsuario, data),
     {
       onSuccess: () => {
         setSnackbar({ open: true, message: 'Producto agregado al carrito', severity: 'success' });
@@ -57,7 +57,7 @@ export const useShoppingCartRecoil = () => {
 
   const updateCartMutation = useMutation(
     ({ itemId, data }: { itemId: number; data: { cantidad: number } }) =>
-      carritoApi.updateCartItem(user!.data.id_usuario, itemId, data),
+      carritoApi.updateCartItem(user!.data.idUsuario, itemId, data),
     {
       onSuccess: () => {
         refetchCart();
@@ -69,7 +69,7 @@ export const useShoppingCartRecoil = () => {
   );
 
   const removeFromCartMutation = useMutation(
-    (itemId: number) => carritoApi.removeCartItem(user!.data.id_usuario, itemId),
+    (itemId: number) => carritoApi.removeCartItem(user!.data.idUsuario, itemId),
     {
       onSuccess: () => {
         setSnackbar({ open: true, message: 'Producto eliminado del carrito', severity: 'success' });

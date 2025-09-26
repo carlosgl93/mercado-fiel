@@ -56,8 +56,8 @@ const DesktopHeaderContent = () => {
             Chateando con{' '}
             {prestadorName
               ? prestadorName
-              : user?.data?.proveedor?.nombre_negocio
-              ? user?.data?.proveedor?.nombre_negocio
+              : user?.data?.proveedor?.nombreNegocio
+              ? user?.data?.proveedor?.nombreNegocio
               : user?.data?.nombre}
           </ChatTitle>
         </Box>
@@ -125,7 +125,7 @@ const DesktopHeaderContent = () => {
 
       {/* Navigation links for logged-in users */}
       {user?.data?.isLoggedIn &&
-        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) && (
+        (user?.data?.cliente?.idCliente || user?.data?.proveedor?.idProveedor) && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {user?.data?.cliente && (
               <>
@@ -173,7 +173,7 @@ const DesktopHeaderContent = () => {
       {/* Authentication and cart buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {user?.data?.isLoggedIn &&
-        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) ? (
+        (user?.data?.cliente?.idCliente || user?.data?.proveedor?.idProveedor) ? (
           <>
             {/* Shopping cart for customers only */}
             {user?.data?.cliente && <ShoppingCartButton />}
@@ -199,7 +199,7 @@ const BurgerIconWithLogo = ({ user, toggle }: BurgerIconWithLogoProps) => {
   return (
     <FlexBox>
       {user?.data?.isLoggedIn &&
-        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) && (
+        (user?.data?.cliente?.idCliente || user?.data?.proveedor?.idProveedor) && (
           <IconButton
             onClick={toggle}
             size="large"

@@ -11,7 +11,7 @@ export const ListSesiones = () => {
 
   const { user } = useAuth();
 
-  if (user?.data?.id_usuario) {
+  if (user?.data?.idUsuario) {
     return <ListUserSessions userSessions={userSessions} />;
   } else {
     return <ListProviderSessions providerSessions={providerSessions} />;

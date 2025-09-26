@@ -32,7 +32,7 @@ export const PaymentController = (appointment?: ScheduleAppointmentParams) => {
           html: `<p>${user?.data?.email} claimed to have paid for appointment ${appointment?.id}.</p>`,
         },
       });
-      client.invalidateQueries(['userAppointments', user?.data?.id_usuario]);
+      client.invalidateQueries(['userAppointments', user?.data?.idUsuario]);
       setNotification({
         open: true,
         message: 'Confirmaremos tu sesion en breve',

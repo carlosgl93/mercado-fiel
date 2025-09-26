@@ -9,8 +9,8 @@ export const useProveedorDashboard = () => {
 
   // Basic profile completion check
   const isProfileComplete = !!(
+    supplier?.profilePictureUrl &&
     supplier?.descripcion &&
-    supplier?.profile_picture_url &&
     supplier?.nombreNegocio
   );
 
@@ -22,7 +22,7 @@ export const useProveedorDashboard = () => {
   const shouldDisableVentas = !isProfileComplete;
 
   // Legacy check for backward compatibility
-  const shouldDisableEncuentraClientes = !supplier?.descripcion || !supplier?.profile_picture_url;
+  const shouldDisableEncuentraClientes = !supplier?.descripcion || !supplier?.profilePictureUrl;
 
   const router = useNavigate();
 

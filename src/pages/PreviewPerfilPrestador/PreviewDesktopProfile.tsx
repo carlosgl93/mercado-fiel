@@ -38,7 +38,7 @@ export const PreviewDesktopProfile = () => {
     idProveedor: id,
     nombreNegocio: firstname,
     descripcion,
-    profile_picture_url: imageUrl,
+    profilePictureUrl: imageUrl,
     // averageReviews,
     // totalReviews,
   } = supplier;

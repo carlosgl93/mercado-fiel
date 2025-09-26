@@ -1,3 +1,4 @@
+import { objectToCamelCase } from '@/utils/caseMapping';
 import { AuthCustomer, AuthSupplier, AuthUser } from '../types/auth';
 import api from './api';
 
@@ -20,7 +21,11 @@ export const apiClient: ApiClient = {
 export const authApi = {
   getCurrentUser: async (email: string): Promise<AuthUser> => {
     const response = await apiClient.get(`auth/user/${email}`);
-    return response.data;
+    // Apply case conversion to ensure consistent camelCase
+    return {
+      ...response.data,
+      data: objectToCamelCase(response.data.data),
+    };
   },
 
   createCustomer: async (data: { email: string; nombre: string; telefono?: string }) => {

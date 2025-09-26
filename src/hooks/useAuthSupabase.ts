@@ -78,9 +78,9 @@ export const useAuth = () => {
           if (authUser.data.cliente) {
             customerData = {
               ...authUser.data,
-              idCliente: authUser.data.cliente.id_cliente,
+              idCliente: authUser.data.cliente.idCliente,
               telefono: authUser.data.cliente.telefono || undefined,
-              idDireccion: authUser.data.cliente.id_direccion || undefined,
+              idDireccion: authUser.data.cliente.idDireccion || undefined,
               isLoggedIn: true,
             };
             setCustomer(customerData);
@@ -89,18 +89,18 @@ export const useAuth = () => {
           if (authUser.data.proveedor) {
             supplierData = {
               ...authUser.data,
-              idProveedor: authUser.data.proveedor.id_proveedor,
-              nombreNegocio: authUser.data.proveedor.nombre_negocio,
+              idProveedor: authUser.data.proveedor.idProveedor,
+              nombreNegocio: authUser.data.proveedor.nombreNegocio,
               descripcion: authUser.data.proveedor.descripcion,
-              telefonoContacto: authUser.data.proveedor.telefono_contacto,
-              idDireccion: authUser.data.proveedor.id_direccion || undefined,
+              telefonoContacto: authUser.data.proveedor.telefonoContacto,
+              idDireccion: authUser.data.proveedor.idDireccion || undefined,
               latitud: authUser.data.proveedor.latitud,
               longitud: authUser.data.proveedor.longitud,
               destacado: authUser.data.proveedor.destacado,
               emailNegocio: authUser.data.proveedor.email,
-              radioEntregaKm: authUser.data.proveedor.radio_entrega_km,
-              cobraEnvio: authUser.data.proveedor.cobra_envio,
-              envioGratisDesde: authUser.data.proveedor.envio_gratis_desde,
+              radioEntregaKm: authUser.data.proveedor.radioEntregaKm,
+              cobraEnvio: authUser.data.proveedor.cobraEnvio,
+              envioGratisDesde: authUser.data.proveedor.envioGratisDesde,
               isLoggedIn: true,
             };
             setSupplier(supplierData);
@@ -425,10 +425,10 @@ export const useAuth = () => {
       console.log('Supabase auth email updated successfully');
 
       // After successful auth update, update the user profile in database
-      if (user?.data?.id_usuario) {
+      if (user?.data?.idUsuario) {
         try {
           console.log('Updating user profile in database...');
-          const updatedUser = await usersApi.updateProfile(user.data.id_usuario, {
+          const updatedUser = await usersApi.updateProfile(user.data.idUsuario, {
             email: email.toLowerCase(),
           });
 

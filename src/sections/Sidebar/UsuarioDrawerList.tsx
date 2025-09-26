@@ -55,7 +55,7 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
   if (!customer) return null;
   console.log({ customer });
 
-  const { nombre, profile_picture_url } = customer;
+  const { nombre, profilePictureUrl } = customer;
 
   return (
     <List
@@ -76,7 +76,7 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
           paddingLeft: '1.5rem',
         }}
       >
-        <Avatar {...stringAvatar(nombre)} src={profile_picture_url || undefined} />
+        <Avatar {...stringAvatar(nombre)} src={profilePictureUrl || undefined} />
         <Box
           sx={{
             display: 'flex',

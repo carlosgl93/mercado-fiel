@@ -88,6 +88,8 @@ export const ProveedorPerfil = () => {
     enabled: !!supplier?.idProveedor,
   });
 
+  console.log('supplierResponse', supplierResponse);
+
   // Mutation for updating business info
   const updateBusinessMutation = useMutation({
     mutationFn: (businessData: UpdateBusinessRequest) =>
@@ -145,7 +147,7 @@ export const ProveedorPerfil = () => {
   // Mutation for updating profile picture
   const updateProfileMutation = useMutation({
     mutationFn: (profilePictureUrl: string) =>
-      usersApi.updateProfile(user?.data?.id_usuario || 0, { profilePictureUrl }),
+      usersApi.updateProfile(user?.data?.idUsuario || 0, { profilePictureUrl }),
     onMutate: async (profilePictureUrl) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries(['supplier', 'current']);
@@ -178,8 +180,8 @@ export const ProveedorPerfil = () => {
         queryClient.setQueryData(['supplier', 'current'], context.previousData);
         setProfileData((prev) => ({
           ...prev,
-          profilePictureUrl: user?.data?.profile_picture_url || '',
-          previewUrl: user?.data?.profile_picture_url || '',
+          profilePictureUrl: user?.data?.profilePictureUrl || '',
+          previewUrl: user?.data?.profilePictureUrl || '',
         }));
       }
 
@@ -196,7 +198,7 @@ export const ProveedorPerfil = () => {
   const updateUserProfileMutation = useMutation({
     mutationFn: async (userData: { nombre?: string }) => {
       // Handle name updates through the users API
-      const dbResponse = await usersApi.updateProfile(user?.data?.id_usuario || 0, userData);
+      const dbResponse = await usersApi.updateProfile(user?.data?.idUsuario || 0, userData);
 
       return {
         ...dbResponse,
@@ -285,11 +287,11 @@ export const ProveedorPerfil = () => {
 
   // Initialize profile picture when user data loads
   useEffect(() => {
-    if (user?.data?.profile_picture_url) {
+    if (user?.data?.profilePictureUrl) {
       setProfileData((prev) => ({
         ...prev,
-        profilePictureUrl: user.data.profile_picture_url || '',
-        previewUrl: prev.previewUrl || user.data.profile_picture_url || '',
+        profilePictureUrl: user.data.profilePictureUrl || '',
+        previewUrl: prev.previewUrl || user.data.profilePictureUrl || '',
       }));
     }
 
@@ -391,7 +393,7 @@ export const ProveedorPerfil = () => {
   const handleProfilePictureSubmit = () => {
     if (
       profileData.profilePictureUrl &&
-      profileData.profilePictureUrl !== user?.data?.profile_picture_url
+      profileData.profilePictureUrl !== user?.data?.profilePictureUrl
     ) {
       updateProfileMutation.mutate(profileData.profilePictureUrl);
     }
@@ -439,7 +441,7 @@ export const ProveedorPerfil = () => {
       missing.push('Descripción del negocio');
     }
 
-    if (!user?.data?.profile_picture_url?.trim()) {
+    if (!user?.data?.profilePictureUrl?.trim()) {
       missing.push('Logo/Foto de perfil');
     }
 
@@ -498,7 +500,7 @@ export const ProveedorPerfil = () => {
     radioEntregaKm: formData.radioEntregaKm,
     cobraEnvio: formData.cobraEnvio ?? true,
     envioGratisDesde: formData.envioGratisDesde,
-    profilePictureUrl: profileData.previewUrl || user?.data?.profile_picture_url || undefined,
+    profilePictureUrl: profileData.previewUrl || user?.data?.profilePictureUrl || undefined,
     userName: userProfileData.nombre || user?.data?.nombre,
     userEmail: user?.data?.email,
   });
@@ -675,7 +677,7 @@ export const ProveedorPerfil = () => {
 
                   <Box sx={{ mb: 3 }}>
                     <Avatar
-                      src={profileData.previewUrl || user?.data?.profile_picture_url || ''}
+                      src={profileData.previewUrl || user?.data?.profilePictureUrl || ''}
                       sx={{
                         width: 120,
                         height: 120,
@@ -710,7 +712,7 @@ export const ProveedorPerfil = () => {
                     </label>
                   </Box>
 
-                  {profileData.profilePictureUrl !== user?.data?.profile_picture_url && (
+                  {profileData.profilePictureUrl !== user?.data?.profilePictureUrl && (
                     <Button
                       variant="contained"
                       onClick={handleProfilePictureSubmit}

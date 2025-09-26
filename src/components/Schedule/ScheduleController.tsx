@@ -268,9 +268,8 @@ export const ScheduleController = () => {
         email: prestador.email,
       };
       const customer = {
-        id: String(user.data.id_usuario),
-        firstname: user.data.nombre.split(' ')[0] || '',
-        lastname: user.data.nombre.split(' ')[1] || '',
+        id: String(user.data.idUsuario),
+        nombre: user.data.nombre,
         email: user.data.email,
       };
 
@@ -319,7 +318,7 @@ export const ScheduleController = () => {
     scheduleService,
     {
       onSettled: async () => {
-        client.invalidateQueries(['userAppointments', user?.data.id_usuario]);
+        client.invalidateQueries(['userAppointments', user?.data.idUsuario]);
         client.invalidateQueries(['providerAppointments', prestador?.id]);
       },
       onSuccess: async (data: Appointment[]) => {
@@ -337,7 +336,7 @@ export const ScheduleController = () => {
           howManySessionsToConfirm: 1,
         });
         setValue(null);
-        client.invalidateQueries(['userAppointments', user?.data.id_usuario]);
+        client.invalidateQueries(['userAppointments', user?.data.idUsuario]);
         client.invalidateQueries(['providerAppointments', prestador?.id]);
         handleSendUserToPayku(paykuParams);
         setLoading(false);

@@ -46,6 +46,6 @@ export const mapDBAddress = (address: AddressDB): Address => {
     direccionCompleta: address.direccion_completa,
     activa: address.activa,
     createdAt: address.created_at,
-    updatedAt: address.updated_at,
+    updatedAt: address.updated_at || new Date(),
   };
 };

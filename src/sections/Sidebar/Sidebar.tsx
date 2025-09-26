@@ -20,7 +20,7 @@ function Sidebar() {
         <NotLoggedInDrawerList closeDrawer={closeDrawer} />
       </Drawer>
     );
-  } else if (isLoggedIn && supplier?.id_usuario) {
+  } else if (isLoggedIn && supplier?.idUsuario) {
     return (
       <Drawer anchor="left" open={isSidebarOpen} onClose={closeDrawer}>
         <BrandHomeLinkMobile />

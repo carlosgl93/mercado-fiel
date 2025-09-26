@@ -94,30 +94,23 @@ const MobileHeaderContent = () => {
 
       {/* Right side - Cart for customers, Logout for suppliers, or Login for unauthenticated */}
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        {user?.data?.isLoggedIn &&
-        (user?.data?.cliente?.id_cliente || user?.data?.proveedor?.id_proveedor) ? (
-          // For logged-in users
-          user?.data?.cliente ? (
-            // Show cart for customers
-            <ShoppingCartButton />
-          ) : (
-            // Show logout for suppliers
-            <Button
-              onClick={() => signOut()}
-              variant="contained"
-              size="small"
-              sx={{
-                backgroundColor: theme.palette.primary.main,
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-                mr: '1rem',
-              }}
-            >
-              Salir
-            </Button>
-          )
+        {user?.data?.isLoggedIn && user?.data?.cliente && <ShoppingCartButton />}
+        {user?.data?.isLoggedIn ? (
+          <Button
+            onClick={() => signOut()}
+            variant="contained"
+            size="small"
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: '#FFFFFF',
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+              },
+              mr: '1rem',
+            }}
+          >
+            Salir
+          </Button>
         ) : (
           // For unauthenticated users, show "Ingresar" button
           <Button

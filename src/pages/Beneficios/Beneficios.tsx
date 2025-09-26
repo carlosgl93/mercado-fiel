@@ -1,5 +1,5 @@
 import { Box, Button, Container, Grid, Typography } from '@mui/material';
-import { DetailedHTMLProps, ImgHTMLAttributes, useEffect, useRef } from 'react';
+import { DetailedHTMLProps, ImgHTMLAttributes, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserLookingFor } from '../../hooks';
 import { BeneficiosConstants } from './BeneficiosConstants';
@@ -12,15 +12,34 @@ export const Beneficios = () => {
   const proveedoresSectionRef = useRef<HTMLDivElement>(null);
   const { clientesBeneficios, proveedoresBeneficios, styles } = BeneficiosConstants();
 
-  // Auto-scroll based on translatedLookingFor
+  const scrollToSection = useCallback(
+    (elementRef: React.RefObject<HTMLDivElement>, offset = 100) => {
+      if (elementRef.current) {
+        const rect = elementRef.current.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetPosition = rect.top + scrollTop - offset;
+
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth',
+        });
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     const lookingFor = translatedLookingFor();
-    if (lookingFor === 'Proveedores' && clientesSectionRef.current) {
-      clientesSectionRef.current.scrollIntoView({ behavior: 'smooth' });
-    } else if (lookingFor === 'Clientes' && proveedoresSectionRef.current) {
-      proveedoresSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
-  }, [translatedLookingFor]);
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      if (lookingFor === 'Proveedores') {
+        scrollToSection(clientesSectionRef, 80);
+      } else if (lookingFor === 'Clientes') {
+        scrollToSection(proveedoresSectionRef, 80);
+      }
+    });
+  }, [translatedLookingFor, scrollToSection]);
 
   return (
     <Box sx={styles.root}>

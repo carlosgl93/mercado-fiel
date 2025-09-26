@@ -1,5 +1,6 @@
-import React, { ReactNode } from 'react';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import {
+  alpha,
   Box,
   Breadcrumbs,
   IconButton,
@@ -8,9 +9,8 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-  alpha,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import React, { ReactNode } from 'react';
 
 export interface BreadcrumbItem {
   label: string;
@@ -88,17 +88,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             color: txtColor,
             '&:hover': {
               bgcolor: alpha(
-                backgroundColor 
-                  ? theme.palette.getContrastText(backgroundColor) 
-                  : theme.palette.primary.contrastText, 
-                0.1
+                backgroundColor
+                  ? theme.palette.getContrastText(backgroundColor)
+                  : theme.palette.primary.contrastText,
+                0.1,
               ),
             },
           }}
         >
           <ArrowBackIcon />
         </IconButton>
-        
+
         <Box flexGrow={1}>
           <Breadcrumbs
             aria-label="breadcrumb"
@@ -111,7 +111,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             {breadcrumbs.map((breadcrumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
-              
+
               if (isLast) {
                 return (
                   <Typography key={index} color="inherit">
@@ -119,13 +119,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   </Typography>
                 );
               }
-              
+
               return (
                 <Link
                   key={index}
                   underline="hover"
                   color="inherit"
-                  href={breadcrumb.href || "#"}
+                  href={breadcrumb.href || '#'}
                   onClick={(e) => {
                     if (breadcrumb.onClick) {
                       e.preventDefault();
@@ -139,7 +139,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               );
             })}
           </Breadcrumbs>
-          
+
           {!isMobile && (
             <>
               <Typography
@@ -151,13 +151,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 sx={{ mb: description ? 1 : 0 }}
               >
                 {icon && (
-                  <Box component="span" sx={{ mr: 2, fontSize: 32, display: 'flex', alignItems: 'center' }}>
+                  <Box
+                    component="span"
+                    sx={{ mr: 2, fontSize: 32, display: 'flex', alignItems: 'center' }}
+                  >
                     {icon}
                   </Box>
                 )}
                 {title}
               </Typography>
-              
+
               {description && (
                 <Typography variant="body1" color="inherit" sx={{ opacity: 0.9 }}>
                   {description}
@@ -168,11 +171,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </Box>
 
         {/* Actions for Desktop */}
-        {!isMobile && actions && (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {actions}
-          </Box>
-        )}
+        {!isMobile && actions && <Box sx={{ display: 'flex', gap: 1 }}>{actions}</Box>}
       </Box>
     </Paper>
   );

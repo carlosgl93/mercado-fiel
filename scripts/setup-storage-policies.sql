@@ -22,3 +22,28 @@ CREATE POLICY "Allow authenticated update to profile-images" ON storage.objects
 CREATE POLICY "Allow authenticated delete to profile-images" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'profile-images');
+
+-- Storage RLS Policies for product-images bucket
+
+-- Drop existing policies if they exist (ignore errors)
+DROP POLICY IF EXISTS "Allow authenticated uploads to product-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read access to product-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated update to product-images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated delete to product-images" ON storage.objects;
+
+-- Create policies for the product-images bucket
+CREATE POLICY "Allow authenticated uploads to product-images" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'product-images');
+
+CREATE POLICY "Allow public read access to product-images" ON storage.objects
+  FOR SELECT TO public
+  USING (bucket_id = 'product-images');
+
+CREATE POLICY "Allow authenticated update to product-images" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'product-images');
+
+CREATE POLICY "Allow authenticated delete to product-images" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'product-images');

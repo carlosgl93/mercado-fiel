@@ -13,6 +13,7 @@ enum Pages {
   ProveedorPerfil,
   EmailConfirmation,
   AuthCallback,
+  CambiarContrasena,
   Comenzar,
   Prestador,
   Comienzo,
@@ -59,6 +60,7 @@ enum Pages {
   ProductDetail,
   PublicSupplierProfile,
   ClientDetail,
+  PerfilUsuario,
 }
 
 type PathRouteCustomProps = {

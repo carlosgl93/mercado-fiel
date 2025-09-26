@@ -1,16 +1,9 @@
+import { DashboardHeader, MobileActionBar } from '@/components';
 import { Product } from '@/types/products';
-import { Add as AddIcon } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Container,
-  Tab,
-  Tabs,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Add as AddIcon, Inventory as InventoryIcon } from '@mui/icons-material';
+import { alpha, Box, Button, Container, Tab, Tabs, useMediaQuery, useTheme } from '@mui/material';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CreateProductModal, EditProductModal, ProductsList } from './components';
 
 interface TabPanelProps {
@@ -36,6 +29,7 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
 export const MisProductos: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const [currentTab, setCurrentTab] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -64,74 +58,105 @@ export const MisProductos: React.FC = () => {
     setSelectedProduct(null);
   };
 
+  const handleBackToDashboard = () => {
+    navigate('/proveedor-dashboard');
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-        flexDirection={isMobile ? 'column' : 'row'}
-        gap={2}
-      >
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Mis Productos
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Gestiona tu catálogo de productos y configuración de descuentos
-          </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'grey.50',
+        py: 3,
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Header */}
+        <DashboardHeader
+          title="Mis Productos"
+          description="Gestiona tu catálogo de productos y configuración de descuentos"
+          icon={<InventoryIcon sx={{ fontSize: 32 }} />}
+          breadcrumbs={[
+            {
+              label: 'Dashboard',
+              onClick: handleBackToDashboard,
+            },
+            {
+              label: 'Mis Productos',
+            },
+          ]}
+          onBack={handleBackToDashboard}
+          actions={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateProduct}
+              sx={{
+                bgcolor: 'primary.contrastText',
+                color: 'primary.main',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.contrastText, 0.9),
+                },
+              }}
+            >
+              Nuevo Producto
+            </Button>
+          }
+        />
+
+        {/* Mobile Action Bar */}
+        {isMobile && (
+          <MobileActionBar>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateProduct}
+              fullWidth
+              size="large"
+            >
+              Nuevo Producto
+            </Button>
+          </MobileActionBar>
+        )}
+
+        {/* Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            aria-label="product management tabs"
+            variant={isMobile ? 'fullWidth' : 'standard'}
+          >
+            <Tab label="Todos los Productos" id="products-tab-0" />
+            <Tab label="Productos Activos" id="products-tab-1" />
+            <Tab label="Productos Inactivos" id="products-tab-2" />
+          </Tabs>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateProduct}
-          size={isMobile ? 'medium' : 'large'}
-          sx={{ minWidth: isMobile ? '100%' : 200 }}
-        >
-          Nuevo Producto
-        </Button>
-      </Box>
+        {/* Tab Panels */}
+        <TabPanel value={currentTab} index={0}>
+          <ProductsList filters={{}} onEdit={handleEditProduct} />
+        </TabPanel>
 
-      {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          aria-label="product management tabs"
-          variant={isMobile ? 'fullWidth' : 'standard'}
-        >
-          <Tab label="Todos los Productos" id="products-tab-0" />
-          <Tab label="Productos Activos" id="products-tab-1" />
-          <Tab label="Productos Inactivos" id="products-tab-2" />
-        </Tabs>
-      </Box>
+        <TabPanel value={currentTab} index={1}>
+          <ProductsList filters={{ disponible: true }} onEdit={handleEditProduct} />
+        </TabPanel>
 
-      {/* Tab Panels */}
-      <TabPanel value={currentTab} index={0}>
-        <ProductsList filters={{}} onEdit={handleEditProduct} />
-      </TabPanel>
+        <TabPanel value={currentTab} index={2}>
+          <ProductsList filters={{ disponible: false }} onEdit={handleEditProduct} />
+        </TabPanel>
 
-      <TabPanel value={currentTab} index={1}>
-        <ProductsList filters={{ disponible: true }} onEdit={handleEditProduct} />
-      </TabPanel>
+        {/* Modals */}
+        <CreateProductModal open={createModalOpen} onClose={handleCloseCreateModal} />
 
-      <TabPanel value={currentTab} index={2}>
-        <ProductsList filters={{ disponible: false }} onEdit={handleEditProduct} />
-      </TabPanel>
-
-      {/* Modals */}
-      <CreateProductModal open={createModalOpen} onClose={handleCloseCreateModal} />
-
-      {selectedProduct && (
-        <EditProductModal
-          open={editModalOpen}
-          onClose={handleCloseEditModal}
-          product={selectedProduct}
-        />
-      )}
-    </Container>
+        {selectedProduct && (
+          <EditProductModal
+            open={editModalOpen}
+            onClose={handleCloseEditModal}
+            product={selectedProduct}
+          />
+        )}
+      </Container>
+    </Box>
   );
 };

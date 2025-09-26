@@ -1,54 +1,56 @@
-// import { useGetClientes } from '@/hooks';
+import { DashboardHeader } from '@/components';
+import { Search as SearchIcon } from '@mui/icons-material';
+import { Box, Container, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export const EncuentraClientes = () => {
-  // const { lastClientElementRef, hasNextPage } = useGetClientes();
+  const navigate = useNavigate();
 
-  // const {
-  //   isFetching,
-  //   infiniteSupportRequests,
-  //   totalSupportRequestsIsLoading,
-  //   infiniteSupportRequestsIsLoading,
-  // } = useSupportRequests();
+  const handleBackToDashboard = () => {
+    navigate('/proveedor-dashboard');
+  };
 
-  // if (infiniteSupportRequestsIsLoading || isFetching || totalSupportRequestsIsLoading) <Loading />;
-  return null;
-  // return (
-  //   <>
-  //     <FlexBox sx={{ px: '1rem' }}>
-  //       <BackButtonContainer
-  //         sx={{
-  //           pt: '1rem',
-  //         }}
-  //       >
-  //         <BackButton displayText to="/proveedor-dashboard" />
-  //       </BackButtonContainer>
-  //     </FlexBox>
-  //     <EncuentraClientesHeader />
-  //     {/* {isTablet && <MobileClientes />} */}
-  //     {/* TODO: add ? <MobileClientes/> : <DesktopClientes/> */}
-  //     {infiniteSupportRequests?.pages[0].supportRequests.length === 0 && (
-  //       <CenteredFlexBox
-  //         sx={{
-  //           height: '55vh',
-  //           m: '1rem 1.4rem',
-  //         }}
-  //       >
-  //         <Text>Aún no hay personas buscando apoyo para tus comunas y/o servicio.</Text>
-  //       </CenteredFlexBox>
-  //     )}
-  //     {!hasNextPage &&
-  //       (infiniteSupportRequests?.pages[0]?.supportRequests?.length || [].length) > 0 && (
-  //         <CenteredFlexBox
-  //           sx={{
-  //             m: '1rem 1.4rem',
-  //           }}
-  //         >
-  //           <Text>No hay más registros para mostrar para tus comunas y tipo de servicio.</Text>
-  //         </CenteredFlexBox>
-  //       )}
-  //     {(infiniteSupportRequests?.pages[0].supportRequests || []).length > 0 && <MobileClientes />}
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'grey.50',
+        py: 3,
+      }}
+    >
+      <Container maxWidth="lg">
+        <DashboardHeader
+          title="Encuentra Clientes"
+          description="Encuentra personas que necesitan tus servicios"
+          icon={<SearchIcon sx={{ fontSize: 32 }} />}
+          breadcrumbs={[
+            {
+              label: 'Dashboard',
+              onClick: handleBackToDashboard,
+            },
+            {
+              label: 'Encuentra Clientes',
+            },
+          ]}
+          onBack={handleBackToDashboard}
+        />
 
-  //     {hasNextPage && <Box ref={lastClientElementRef} className="bottomSentinel" />}
-  //   </>
-  // );
+        <Box
+          sx={{
+            bgcolor: 'white',
+            p: 4,
+            borderRadius: 2,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6" color="text.secondary">
+            Esta sección está en desarrollo.
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+            Próximamente podrás encontrar clientes que necesitan tus servicios.
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
+  );
 };

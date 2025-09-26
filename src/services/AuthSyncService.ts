@@ -5,7 +5,7 @@ interface UserProfile {
   id_usuario: number;
   email: string;
   nombre: string;
-  apellido: string;
+  apellido?: string;
   telefono?: string;
   is_supplier?: boolean;
   is_customer?: boolean;
@@ -22,12 +22,11 @@ export class AuthSyncService {
       // First, check if user exists in usuarios table
       const { data: existingUser, error: userError } = await supabase
         .from('usuarios')
-        .select(`
+        .select(
+          `
           id_usuario,
           email,
           nombre,
-          apellido,
-          telefono,
           proveedores (
             id_proveedor,
             nombre_negocio
@@ -35,7 +34,8 @@ export class AuthSyncService {
           clientes (
             id_cliente
           )
-        `)
+        `,
+        )
         .eq('email', supabaseUser.email)
         .single();
 
@@ -45,14 +45,30 @@ export class AuthSyncService {
       }
 
       if (existingUser) {
+        // Check if user has auth_uid set, if not, update it
+        const { data: userWithAuthUid } = await supabase
+          .from('usuarios')
+          .select('auth_uid')
+          .eq('id_usuario', existingUser.id_usuario)
+          .single();
+
+        if (!userWithAuthUid?.auth_uid) {
+          console.log('Updating missing auth_uid for existing user:', supabaseUser.email);
+          await supabase
+            .from('usuarios')
+            .update({ auth_uid: supabaseUser.id })
+            .eq('id_usuario', existingUser.id_usuario);
+        }
+
         // User exists, return profile with role information
         return {
           id_usuario: existingUser.id_usuario,
           email: existingUser.email,
           nombre: existingUser.nombre,
-          apellido: existingUser.apellido,
-          telefono: existingUser.telefono,
-          is_supplier: Array.isArray(existingUser.proveedores) && existingUser.proveedores.length > 0,
+          // apellido: existingUser.apellido,
+          // telefono: existingUser.telefono,
+          is_supplier:
+            Array.isArray(existingUser.proveedores) && existingUser.proveedores.length > 0,
           is_customer: Array.isArray(existingUser.clientes) && existingUser.clientes.length > 0,
           supplier_id: existingUser.proveedores?.[0]?.id_proveedor,
           customer_id: existingUser.clientes?.[0]?.id_cliente,
@@ -61,14 +77,16 @@ export class AuthSyncService {
 
       // User doesn't exist in database, create them
       console.log('Creating new user in database:', supabaseUser.email);
-      
+
       const { data: newUser, error: createError } = await supabase
         .from('usuarios')
         .insert({
           email: supabaseUser.email,
-          nombre: supabaseUser.user_metadata?.nombre || supabaseUser.user_metadata?.name || 'Usuario',
+          nombre:
+            supabaseUser.user_metadata?.nombre || supabaseUser.user_metadata?.name || 'Usuario',
           apellido: supabaseUser.user_metadata?.apellido || '',
           telefono: supabaseUser.user_metadata?.telefono || supabaseUser.phone,
+          auth_uid: supabaseUser.id, // CRITICAL: Link the Supabase Auth user to database record
         })
         .select()
         .single();
@@ -87,7 +105,6 @@ export class AuthSyncService {
         is_supplier: false,
         is_customer: false,
       };
-
     } catch (error) {
       console.error('AuthSyncService error:', error);
       return null;
@@ -106,7 +123,7 @@ export class AuthSyncService {
           database_id: profile.id_usuario,
           is_supplier: profile.is_supplier,
           is_customer: profile.is_customer,
-        }
+        },
       });
 
       if (error) {
@@ -126,7 +143,7 @@ export class AuthSyncService {
     try {
       // Ensure user exists in database
       const profile = await this.ensureUserInDatabase(supabaseUser);
-      
+
       if (!profile) {
         console.error('Failed to create/retrieve user profile');
         return null;
@@ -153,8 +170,11 @@ export class AuthSyncService {
    */
   static async setAuthenticatedSession(): Promise<boolean> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error || !session?.user) {
         console.error('No valid session:', error);
         return false;
@@ -162,7 +182,7 @@ export class AuthSyncService {
 
       // Sync user data
       const profile = await this.syncAuthentication(session.user);
-      
+
       if (!profile) {
         console.error('Failed to sync user profile');
         return false;
@@ -188,16 +208,20 @@ export class AuthSyncService {
    */
   static async isSupplier(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const { data, error } = await supabase
         .from('usuarios')
-        .select(`
+        .select(
+          `
           proveedores (
             id_proveedor
           )
-        `)
+        `,
+        )
         .eq('email', user.email)
         .single();
 
@@ -217,16 +241,20 @@ export class AuthSyncService {
    */
   static async isCustomer(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const { data, error } = await supabase
         .from('usuarios')
-        .select(`
+        .select(
+          `
           clientes (
             id_cliente
           )
-        `)
+        `,
+        )
         .eq('email', user.email)
         .single();
 
@@ -246,7 +274,9 @@ export class AuthSyncService {
    */
   static async getCurrentUserProfile(): Promise<UserProfile | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       return await this.ensureUserInDatabase(user);

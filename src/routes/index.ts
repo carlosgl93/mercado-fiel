@@ -42,6 +42,11 @@ const routes: Routes = {
     path: '/auth/callback',
     // title: 'Autenticando...',
   },
+  [Pages.CambiarContrasena]: {
+    component: asyncComponentLoader(() => import('@/pages/CambiarContrasena')),
+    path: '/cambiar-contrasena',
+    title: 'Cambiar Contraseña',
+  },
   [Pages.Prestador]: {
     component: asyncComponentLoader(() => import('@/pages/PersonaApoyo')),
     path: '/persona-de-apoyo',
@@ -229,6 +234,12 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/ClientDetail')),
     path: '/cliente/:id',
     title: 'Perfil del Cliente',
+  },
+
+  [Pages.PerfilUsuario]: {
+    component: asyncComponentLoader(() => import('@/pages/UsuarioProfile')),
+    path: '/perfil-usuario',
+    title: 'Mi Perfil',
   },
 
   [Pages.NotFound]: {

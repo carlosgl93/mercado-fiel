@@ -4,6 +4,7 @@ import { CancelledError, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { authApi } from '../api/authApi';
+import { usersApi } from '../api/users';
 import { supabase } from '../lib/supabase';
 import { AuthSyncService } from '../services/AuthSyncService';
 import {
@@ -53,8 +54,6 @@ export const useAuth = () => {
     async (supabaseUser: User) => {
       try {
         setIsLoading(true);
-
-        console.log('Loading user profile for:', supabaseUser.email);
 
         // Get complete user data from database using email
         const userResponse = await authApi.getCurrentUser(supabaseUser.email || '');
@@ -114,12 +113,6 @@ export const useAuth = () => {
             supplier: supplierData,
             isInitialized: true,
             isLoading: false,
-          });
-
-          console.log('Auth state updated successfully:', {
-            hasCustomer: !!customerData,
-            hasSupplier: !!supplierData,
-            userId: authUser.data.id_usuario,
           });
 
           // After successful profile load, sync authentication to ensure proper RLS context
@@ -184,7 +177,6 @@ export const useAuth = () => {
           console.log('Initializing auth with session:', session.user.email);
           await loadUserProfile(session.user);
         } else {
-          console.log('No active session found');
           setIsInitialized(true);
           setIsLoading(false);
         }
@@ -204,8 +196,6 @@ export const useAuth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return;
-
-      console.log('Auth state change:', event, session?.user?.email);
 
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
@@ -262,11 +252,18 @@ export const useAuth = () => {
     mutationFn: async ({ email, password, nombre, type, ...extraData }: SignUpData) => {
       console.log('Starting signup process for:', email, type);
 
+      // Determine redirect URL based on environment
+      const isProduction = import.meta.env.VITE_ENV === 'prod';
+      const redirectUrl = isProduction
+        ? 'https://mercadofiel.cl/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
       // First, create Supabase user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.toLowerCase(),
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             nombre,
             user_type: type,
@@ -357,6 +354,145 @@ export const useAuth = () => {
     },
   });
 
+  // Password reset mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+      console.log('Starting password reset process for:', email);
+
+      // Determine redirect URL based on environment
+      const isProduction = import.meta.env.VITE_ENV === 'prod';
+      const redirectUrl = isProduction
+        ? 'https://mercadofiel.cl/cambiar-contrasena'
+        : `${window.location.origin}/cambiar-contrasena`;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
+
+      console.log('Password reset email sent successfully');
+    },
+    onSuccess: () => {
+      setNotification({
+        open: true,
+        message: 'Se ha enviado un enlace para restablecer tu contraseña a tu email',
+        severity: 'success',
+      });
+    },
+    onError: (error: AuthError) => {
+      console.error('Password reset error:', error);
+      let message = 'Error al enviar el email de recuperación';
+
+      if (error.message.includes('Email not found')) {
+        message = 'No existe una cuenta con ese email';
+      } else if (error.message.includes('rate limit')) {
+        message = 'Has solicitado muchos resets. Intenta nuevamente en unos minutos.';
+      }
+
+      setNotification({
+        open: true,
+        message,
+        severity: 'error',
+      });
+    },
+  });
+
+  // Update user mutation (for email updates)
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+      console.log('Starting user email update process...');
+
+      // Determine redirect URL based on environment
+      const isProduction = import.meta.env.VITE_ENV === 'prod';
+      const redirectUrl = isProduction
+        ? 'https://mercadofiel.cl/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
+      // First, update Supabase Auth email
+      const { data, error } = await supabase.auth.updateUser({
+        email: email.toLowerCase(),
+      });
+
+      if (error) {
+        console.error('Supabase auth email update error:', error);
+        throw error;
+      }
+
+      console.log('Supabase auth email updated successfully');
+
+      // After successful auth update, update the user profile in database
+      if (user?.data?.id_usuario) {
+        try {
+          console.log('Updating user profile in database...');
+          const updatedUser = await usersApi.updateProfile(user.data.id_usuario, {
+            email: email.toLowerCase(),
+          });
+
+          console.log('User profile updated in database successfully');
+
+          // Reload user profile to get updated data
+          if (data.user) {
+            await loadUserProfile(data.user);
+          }
+
+          return { authData: data, userProfile: updatedUser };
+        } catch (dbError) {
+          console.error('Database user update error:', dbError);
+          throw new Error(
+            'Email de autenticación actualizado pero falló la actualización del perfil. Contacta soporte técnico.',
+          );
+        }
+      }
+
+      return { authData: data, userProfile: null };
+    },
+    onSuccess: (result) => {
+      setNotification({
+        open: true,
+        message: 'Email actualizado exitosamente. Por favor verifica tu nuevo email.',
+        severity: 'success',
+      });
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries(['user']);
+      queryClient.invalidateQueries(['supplier']);
+      queryClient.invalidateQueries(['customer']);
+    },
+    onError: (error: AuthError | Error) => {
+      console.error('Update user error:', error);
+      let message = 'Error al actualizar el email';
+
+      if (error.message) {
+        if (
+          error.message.includes('User already registered') ||
+          error.message.includes('already been registered')
+        ) {
+          message =
+            'Este email ya está registrado con otra cuenta. Por favor usa un email diferente.';
+        } else if (error.message.includes('rate limit') || error.message.includes('too many')) {
+          message =
+            'Se han enviado demasiados emails. Por favor espera un momento e intenta de nuevo.';
+        } else if (error.message.includes('invalid') && error.message.includes('email')) {
+          message = 'El formato del email no es válido.';
+        } else if (error.message.includes('same')) {
+          message = 'El nuevo email debe ser diferente al actual.';
+        } else if (error.message.includes('Email de autenticación actualizado pero falló')) {
+          message = error.message; // Use the specific message we threw
+        }
+      }
+
+      setNotification({
+        open: true,
+        message,
+        severity: 'error',
+      });
+    },
+  });
+
   // Sign out mutation
   const signOutMutation = useMutation({
     mutationFn: async () => {
@@ -364,6 +500,7 @@ export const useAuth = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      console.log('signed out');
       clearAuthState();
       navigate('/');
       setNotification({
@@ -372,7 +509,12 @@ export const useAuth = () => {
         severity: 'success',
       });
     },
+    onMutate: () => {
+      console.log('sgining  out');
+    },
     onError: (error: AuthError | CancelledError) => {
+      console.log('signed out');
+
       // Don't show error for cancellation - this happens during navigation
       const isCancelledError =
         'revert' in error ||
@@ -425,8 +567,25 @@ export const useAuth = () => {
 
   // Sign out wrapper
   const signOut = useCallback(() => {
+    console.log('sign in out');
     signOutMutation.mutate();
   }, [signOutMutation]);
+
+  // Update user wrapper (for email updates)
+  const updateUser = useCallback(
+    (userData: { email: string }) => {
+      return updateUserMutation.mutate(userData);
+    },
+    [updateUserMutation],
+  );
+
+  // Reset password wrapper
+  const resetPassword = useCallback(
+    (email: string) => {
+      return resetPasswordMutation.mutate({ email });
+    },
+    [resetPasswordMutation],
+  );
 
   return {
     // Auth state
@@ -438,12 +597,16 @@ export const useAuth = () => {
       isLoading ||
       signInMutation.isLoading ||
       signUpMutation.isLoading ||
-      signOutMutation.isLoading,
+      signOutMutation.isLoading ||
+      updateUserMutation.isLoading ||
+      resetPasswordMutation.isLoading,
 
     // Auth actions
     signIn,
     signUp,
     signOut,
+    updateUser,
+    resetPassword,
 
     // Helper functions
     isAuthenticated,
@@ -458,10 +621,14 @@ export const useAuth = () => {
     signInError: signInMutation.error,
     signUpError: signUpMutation.error,
     signOutError: signOutMutation.error,
+    updateUserError: updateUserMutation.error,
+    resetPasswordError: resetPasswordMutation.error,
 
     // Loading states
     isSigningIn: signInMutation.isLoading,
     isSigningUp: signUpMutation.isLoading,
     isSigningOut: signOutMutation.isLoading,
+    isUpdatingUser: updateUserMutation.isLoading,
+    isResettingPassword: resetPasswordMutation.isLoading,
   };
 };

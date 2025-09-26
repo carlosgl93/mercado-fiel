@@ -23,15 +23,15 @@ interface CreateProductoRequest {
 }
 
 // TODO: Use this interface when implementing product update functionality
-interface UpdateProductoRequest {
-  id_categoria?: number;
-  nombre_producto?: string;
-  descripcion?: string;
-  precio_unitario?: number;
-  unit_type?: string;
-  imagen_url?: string;
-  disponible?: boolean;
-}
+// interface UpdateProductoRequest {
+//   id_categoria?: number;
+//   nombre_producto?: string;
+//   descripcion?: string;
+//   precio_unitario?: number;
+//   unit_type?: string;
+//   imagen_url?: string;
+//   disponible?: boolean;
+// }
 
 // Helper function to safely parse query parameters
 const parseQueryParam = (param: unknown): string => {

@@ -16,7 +16,6 @@ import { NotificationSnackbar } from './components/Snackbar';
 const Loading = lazy(() => import('@/components/Loading'));
 const Pages = lazy(() => import('@/routes/Pages'));
 const Header = lazy(() => import('@/sections/Header'));
-const HotKeys = lazy(() => import('@/sections/HotKeys'));
 const SW = lazy(() => import('@/sections/SW'));
 const Sidebar = lazy(() => import('@/sections/Sidebar'));
 
@@ -40,7 +39,6 @@ function App() {
         <Fragment>
           <CssBaseline />
           <Suspense fallback={<Loading />}>
-            <HotKeys />
             <SW />
             <BrowserRouter>
               <Header />

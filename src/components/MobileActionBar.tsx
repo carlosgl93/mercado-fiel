@@ -1,10 +1,5 @@
+import { Paper } from '@mui/material';
 import React, { ReactNode } from 'react';
-import {
-  Box,
-  Button,
-  Paper,
-  useTheme,
-} from '@mui/material';
 
 export interface MobileActionBarProps {
   /**

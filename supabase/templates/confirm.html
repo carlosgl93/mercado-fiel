@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mercado Fiel: Verifica tu cuenta</title>
+    <title>Mercado Fiel: Confirma tu email</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -129,6 +129,29 @@
         font-size: 14px;
         color: #449A46;
       }
+
+      .backup-link {
+        background-color: #F6F6F4;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        word-break: break-all;
+      }
+      
+      .backup-link p {
+        font-size: 12px;
+        color: #6B6B6B;
+        margin-bottom: 10px;
+      }
+      
+      .backup-link code {
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        color: #449A46;
+        background-color: #ffffff;
+        padding: 5px;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
@@ -139,21 +162,25 @@
           src="https://firebasestorage.googleapis.com/v0/b/mercado-fiel.appspot.com/o/emails-mercadofiel-logo.png?alt=media&token=d66f9486-ea3a-494c-a838-b49e5b2586d3"
           alt="Mercado Fiel Logo"
         />
-        <h1>¡Bienvenido a Mercado Fiel!</h1>
+        <h1>Confirma tu dirección de email</h1>
       </div>
       
       <div class="content">
-        <p class="welcome-text">Tu cuenta ha sido creada exitosamente</p>
+        <p class="welcome-text">¡Un paso más para completar tu registro!</p>
         
         <p class="description">
-          Para completar tu registro y comenzar a usar Mercado Fiel, necesitamos verificar tu dirección de correo electrónico. 
-          Esto nos ayuda a mantener tu cuenta segura y garantizar que puedas recibir todas nuestras comunicaciones importantes.
+          Haz clic en el botón de abajo para confirmar tu dirección de correo electrónico y activar tu cuenta en Mercado Fiel.
         </p>
         
-        <a href="{{EMAIL_VERIFICATION_LINK}}" class="button">Verificar mi cuenta</a>
+        <a href="{{ .ConfirmationURL }}" class="button">Confirmar mi email</a>
+        
+        <div class="backup-link">
+          <p><strong>¿El botón no funciona?</strong> Copia y pega este enlace en tu navegador:</p>
+          <code>{{ .ConfirmationURL }}</code>
+        </div>
         
         <div class="security-note">
-          <p><strong>Nota de seguridad:</strong> Este enlace es válido por 24 horas. Si no solicitaste esta cuenta, puedes ignorar este email.</p>
+          <p><strong>Nota de seguridad:</strong> Este enlace expira en 24 horas. Si no solicitaste esta confirmación, puedes ignorar este email.</p>
         </div>
       </div>
       
@@ -168,7 +195,7 @@
         </p>
         
         <p class="footer-text">
-          <a href="https://mercadofiel.cl" class="footer-link">mercadofiel.cl</a>
+          <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email" class="footer-link">mercadofiel.cl</a>
         </p>
       </div>
     </div>

@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTheme, useMediaQuery, alpha } from '@mui/material';
+import { DashboardHeader, MobileActionBar } from '@/components';
 import {
+  Add as AddIcon,
+  FilterList as FilterIcon,
+  ShoppingCart as ShoppingCartIcon,
+} from '@mui/icons-material';
+import {
+  alpha,
   Box,
-  Container,
   Button,
   Card,
   CardContent,
-  Typography,
+  Container,
   Grid,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import {
-  ShoppingCart as ShoppingCartIcon,
-  Add as AddIcon,
-  FilterList as FilterIcon,
-  Visibility as VisibilityIcon,
-} from '@mui/icons-material';
-import { DashboardHeader, MobileActionBar } from '@/components';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const MisProductosExample = () => {
   const theme = useTheme();
@@ -130,9 +131,9 @@ export const MisProductosExample = () => {
                   Productos Activos
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Esta sección mostraría la lista de productos activos del proveedor.
-                  El header y las acciones móviles están completamente abstraídos
-                  y pueden reutilizarse en cualquier otra sección del dashboard.
+                  Esta sección mostraría la lista de productos activos del proveedor. El header y
+                  las acciones móviles están completamente abstraídos y pueden reutilizarse en
+                  cualquier otra sección del dashboard.
                 </Typography>
               </CardContent>
             </Card>

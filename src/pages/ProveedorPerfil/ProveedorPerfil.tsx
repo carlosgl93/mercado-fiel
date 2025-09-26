@@ -27,12 +27,9 @@ import {
   CircularProgress,
   Container,
   Divider,
-  FormControlLabel,
   Grid,
   IconButton,
-  Paper,
   Snackbar,
-  Switch,
   TextField,
   Typography,
   useMediaQuery,
@@ -66,9 +63,7 @@ export const ProveedorPerfil = () => {
 
   const [userProfileData, setUserProfileData] = useState({
     nombre: '',
-    email: '',
     isEditingName: false,
-    isEditingEmail: false,
   });
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -97,8 +92,34 @@ export const ProveedorPerfil = () => {
   const updateBusinessMutation = useMutation({
     mutationFn: (businessData: UpdateBusinessRequest) =>
       suppliersApi.updateBusiness(supplier?.idProveedor || 0, businessData),
+    onMutate: async (businessData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(['supplier', 'current']);
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['supplier', 'current']);
+
+      // Optimistically update cache
+      queryClient.setQueryData(['supplier', 'current'], (old: any) => {
+        if (old?.data) {
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              ...businessData,
+            },
+          };
+        }
+        return old;
+      });
+
+      return { previousData };
+    },
     onSuccess: (response) => {
+      // Invalidate and refetch to ensure consistency
+      queryClient.invalidateQueries(['supplier', 'current']);
       queryClient.invalidateQueries(['supplier']);
+
       setSnackbar({
         open: true,
         message: response.message || 'Información actualizada exitosamente',
@@ -106,7 +127,12 @@ export const ProveedorPerfil = () => {
       });
       navigate('/proveedor-dashboard');
     },
-    onError: (error: any) => {
+    onError: (error: any, businessData, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(['supplier', 'current'], context.previousData);
+      }
+
       const message = error.response?.data?.message || 'Error al actualizar la información';
       setSnackbar({
         open: true,
@@ -120,8 +146,25 @@ export const ProveedorPerfil = () => {
   const updateProfileMutation = useMutation({
     mutationFn: (profilePictureUrl: string) =>
       usersApi.updateProfile(user?.data?.id_usuario || 0, { profilePictureUrl }),
+    onMutate: async (profilePictureUrl) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(['supplier', 'current']);
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['supplier', 'current']);
+
+      // Optimistically update profile picture in UI
+      setProfileData((prev) => ({
+        ...prev,
+        profilePictureUrl,
+        previewUrl: profilePictureUrl,
+      }));
+
+      return { previousData };
+    },
     onSuccess: (response) => {
-      queryClient.invalidateQueries(['supplier']);
+      // Invalidate and refetch
+      queryClient.invalidateQueries(['supplier', 'current']);
       queryClient.invalidateQueries(['user']);
       setSnackbar({
         open: true,
@@ -129,7 +172,17 @@ export const ProveedorPerfil = () => {
         severity: 'success',
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, profilePictureUrl, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(['supplier', 'current'], context.previousData);
+        setProfileData((prev) => ({
+          ...prev,
+          profilePictureUrl: user?.data?.profile_picture_url || '',
+          previewUrl: user?.data?.profile_picture_url || '',
+        }));
+      }
+
       const message = error.response?.data?.message || 'Error al actualizar la foto de perfil';
       setSnackbar({
         open: true,
@@ -139,21 +192,73 @@ export const ProveedorPerfil = () => {
     },
   });
 
-  // Mutation for updating user profile (name, email)
+  // Mutation for updating user profile (name only)
   const updateUserProfileMutation = useMutation({
-    mutationFn: (userData: { nombre?: string; email?: string }) =>
-      usersApi.updateProfile(user?.data?.id_usuario || 0, userData),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries(['supplier']);
-      queryClient.invalidateQueries(['user']);
-      setSnackbar({
-        open: true,
-        message: 'Perfil actualizado exitosamente',
-        severity: 'success',
-      });
+    mutationFn: async (userData: { nombre?: string }) => {
+      // Handle name updates through the users API
+      const dbResponse = await usersApi.updateProfile(user?.data?.id_usuario || 0, userData);
+
+      return {
+        ...dbResponse,
+        authUpdateSuccessful: true, // No auth update needed for name changes
+        dbUpdateSuccessful: true,
+        emailChanged: false,
+      };
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Error al actualizar el perfil';
+    onMutate: async (userData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(['supplier', 'current']);
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['supplier', 'current']);
+
+      // Optimistically update local state immediately
+      setUserProfileData((prev) => ({
+        ...prev,
+        nombre: userData.nombre || prev.nombre,
+      }));
+
+      return { previousData, userData };
+    },
+    onSuccess: async (response, userData) => {
+      // Only proceed if both auth and DB updates were successful
+      if (response.authUpdateSuccessful && response.dbUpdateSuccessful) {
+        // Update local state with server response
+        setUserProfileData((prev) => ({
+          ...prev,
+          nombre: userData.nombre || prev.nombre,
+          isEditingName: false,
+        }));
+
+        // Invalidate and refetch
+        queryClient.invalidateQueries(['supplier', 'current']);
+        queryClient.invalidateQueries(['user']);
+
+        // Show success message
+        setSnackbar({
+          open: true,
+          message: 'Perfil actualizado exitosamente',
+          severity: 'success',
+        });
+      }
+    },
+    onError: (error: any, userData, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(['supplier', 'current'], context.previousData);
+        setUserProfileData((prev) => ({
+          ...prev,
+          nombre: user?.data?.nombre || '',
+          isEditingName: false,
+        }));
+      }
+
+      // Handle error
+      const message =
+        error.response?.data?.message || error.message || 'Error al actualizar el perfil';
+
+      console.error('Profile update error:', error);
+
       setSnackbar({
         open: true,
         message,
@@ -181,22 +286,31 @@ export const ProveedorPerfil = () => {
   // Initialize profile picture when user data loads
   useEffect(() => {
     if (user?.data?.profile_picture_url) {
-      setProfileData({
-        profilePictureUrl: user.data.profile_picture_url,
-        previewUrl: user.data.profile_picture_url,
-      });
+      setProfileData((prev) => ({
+        ...prev,
+        profilePictureUrl: user.data.profile_picture_url || '',
+        previewUrl: prev.previewUrl || user.data.profile_picture_url || '',
+      }));
     }
 
     // Initialize user profile data
     if (user?.data) {
-      setUserProfileData({
-        nombre: user.data.nombre || '',
-        email: user.data.email || '',
-        isEditingName: false,
-        isEditingEmail: false,
-      });
+      setUserProfileData((prev) => ({
+        ...prev,
+        nombre: prev.nombre || user.data.nombre || '',
+      }));
     }
   }, [user]);
+
+  // Sync local state when server data updates
+  useEffect(() => {
+    if (user?.data && !userProfileData.isEditingName) {
+      setUserProfileData((prev) => ({
+        ...prev,
+        nombre: user.data.nombre || '',
+      }));
+    }
+  }, [user?.data?.nombre, userProfileData.isEditingName]);
 
   const handleInputChange =
     (field: keyof UpdateBusinessRequest) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,34 +397,34 @@ export const ProveedorPerfil = () => {
     }
   };
 
-  const handleUserFieldEdit = (field: 'nombre' | 'email', isEditing: boolean) => {
+  const handleUserFieldEdit = (isEditing: boolean) => {
     setUserProfileData((prev) => ({
       ...prev,
-      [field === 'nombre' ? 'isEditingName' : 'isEditingEmail']: isEditing,
+      isEditingName: isEditing,
     }));
   };
 
-  const handleUserFieldChange = (field: 'nombre' | 'email', value: string) => {
+  const handleUserFieldChange = (value: string) => {
     setUserProfileData((prev) => ({
       ...prev,
-      [field]: value,
+      nombre: value,
     }));
   };
 
-  const handleUserFieldSave = (field: 'nombre' | 'email') => {
-    const value = userProfileData[field];
-    if (value.trim() && value !== user?.data?.[field]) {
-      updateUserProfileMutation.mutate({ [field]: value.trim() });
+  const handleUserFieldSave = () => {
+    const value = userProfileData.nombre;
+    if (value.trim() && value !== user?.data?.nombre) {
+      updateUserProfileMutation.mutate({ nombre: value.trim() });
     }
-    handleUserFieldEdit(field, false);
+    handleUserFieldEdit(false);
   };
 
-  const handleUserFieldCancel = (field: 'nombre' | 'email') => {
+  const handleUserFieldCancel = () => {
     setUserProfileData((prev) => ({
       ...prev,
-      [field]: user?.data?.[field] || '',
+      nombre: user?.data?.nombre || '',
     }));
-    handleUserFieldEdit(field, false);
+    handleUserFieldEdit(false);
   };
 
   // Helper function to get missing profile requirements
@@ -386,7 +500,7 @@ export const ProveedorPerfil = () => {
     envioGratisDesde: formData.envioGratisDesde,
     profilePictureUrl: profileData.previewUrl || user?.data?.profile_picture_url || undefined,
     userName: userProfileData.nombre || user?.data?.nombre,
-    userEmail: userProfileData.email || user?.data?.email,
+    userEmail: user?.data?.email,
   });
 
   // Show preview if requested
@@ -556,7 +670,7 @@ export const ProveedorPerfil = () => {
                     justifyContent="center"
                   >
                     <PersonIcon sx={{ mr: 1 }} />
-                    Logo de tu Marca
+                    Logo de tu marca
                   </Typography>
 
                   <Box sx={{ mb: 3 }}>
@@ -572,14 +686,6 @@ export const ProveedorPerfil = () => {
                     >
                       <PersonIcon sx={{ fontSize: 60 }} />
                     </Avatar>
-
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mb: 2, display: 'block' }}
-                    >
-                      Esta imagen debería ser el logo de tu marca.
-                    </Typography>
 
                     <input
                       accept="image/*"
@@ -621,7 +727,7 @@ export const ProveedorPerfil = () => {
                   {/* User Profile Information */}
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Información Personal
+                      Información personal
                     </Typography>
 
                     {/* Name Field */}
@@ -631,18 +737,18 @@ export const ProveedorPerfil = () => {
                           <TextField
                             size="small"
                             value={userProfileData.nombre}
-                            onChange={(e) => handleUserFieldChange('nombre', e.target.value)}
+                            onChange={(e) => handleUserFieldChange(e.target.value)}
                             placeholder="Nombre"
                             autoFocus
                           />
                           <IconButton
                             size="small"
-                            onClick={() => handleUserFieldSave('nombre')}
+                            onClick={() => handleUserFieldSave()}
                             color="primary"
                           >
                             <CheckIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" onClick={() => handleUserFieldCancel('nombre')}>
+                          <IconButton size="small" onClick={() => handleUserFieldCancel()}>
                             <CloseIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -659,66 +765,34 @@ export const ProveedorPerfil = () => {
                               Nombre
                             </Typography>
                             <Typography variant="body2" fontWeight="medium">
-                              {user?.data?.nombre || 'Sin nombre'}
+                              {userProfileData.nombre || user?.data?.nombre || 'Sin nombre'}
                             </Typography>
                           </Box>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleUserFieldEdit('nombre', true)}
-                          >
+                          <IconButton size="small" onClick={() => handleUserFieldEdit(true)}>
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Box>
                       )}
                     </Box>
 
-                    {/* Email Field */}
+                    {/* Email Field - Display Only */}
                     <Box sx={{ mb: 2 }}>
-                      {userProfileData.isEditingEmail ? (
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <TextField
-                            size="small"
-                            type="email"
-                            value={userProfileData.email}
-                            onChange={(e) => handleUserFieldChange('email', e.target.value)}
-                            placeholder="Email"
-                            autoFocus
-                          />
-                          <IconButton
-                            size="small"
-                            onClick={() => handleUserFieldSave('email')}
-                            color="primary"
-                          >
-                            <CheckIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => handleUserFieldCancel('email')}>
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
+                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          gap={1}
+                          justifyContent={'start'}
+                          width={'100%'}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            Email
+                          </Typography>
+                          <Typography variant="body2" fontWeight="medium">
+                            {user?.data?.email || 'Sin email'}
+                          </Typography>
                         </Box>
-                      ) : (
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                          <Box
-                            display="flex"
-                            flexDirection="column"
-                            gap={1}
-                            justifyContent={'start'}
-                            width={'100%'}
-                          >
-                            <Typography variant="caption" color="text.secondary">
-                              Email
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium">
-                              {user?.data?.email || 'Sin email'}
-                            </Typography>
-                          </Box>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleUserFieldEdit('email', true)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      )}
+                      </Box>
                     </Box>
                   </Box>
 
@@ -727,7 +801,7 @@ export const ProveedorPerfil = () => {
                   {/* Profile Completion Status */}
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Estado del Perfil
+                      Estado del perfil
                     </Typography>
 
                     {(() => {
@@ -803,17 +877,16 @@ export const ProveedorPerfil = () => {
                                     }}
                                   />
                                 ))}
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ mt: 2, display: 'block' }}
+                                >
+                                  Completa tu perfil para habilitar la gestión de productos
+                                </Typography>
                               </Box>
                             </>
                           )}
-
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 2, display: 'block' }}
-                          >
-                            Completa tu perfil para habilitar la gestión de productos
-                          </Typography>
                         </>
                       );
                     })()}
@@ -901,7 +974,8 @@ export const ProveedorPerfil = () => {
                     </Grid>
 
                     {/* Delivery Settings */}
-                    <Grid item xs={12}>
+                    {/* escondiendo info relacionada a envios dado que los gestionara el benja por logistica interna */}
+                    {/* <Grid item xs={12}>
                       <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                         Configuración de Entregas
                       </Typography>
@@ -918,9 +992,10 @@ export const ProveedorPerfil = () => {
                         helperText={errors.radioEntregaKm || 'Distancia máxima para entregas'}
                         inputProps={{ min: 1, max: 100 }}
                       />
-                    </Grid>
+                    </Grid> */}
 
-                    <Grid item xs={12} sm={6}>
+                    {/* escondiendo info relacionada a envios dado que los gestionara el benja por logistica interna */}
+                    {/* <Grid item xs={12} sm={6}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -948,7 +1023,7 @@ export const ProveedorPerfil = () => {
                         }}
                         inputProps={{ min: 0 }}
                       />
-                    </Grid>
+                    </Grid> */}
 
                     {/* Action Buttons */}
                     <Grid item xs={12}>

@@ -13,7 +13,7 @@ model regiones {
   codigo_region String        @unique @db.VarChar(10)
   nombre        String        @db.VarChar(100)
   created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
+  updated_at    DateTime?     @updatedAt
   comunas       comunas[]
   direcciones   direcciones[]
 
@@ -25,7 +25,7 @@ model comunas {
   id_region   Int
   nombre      String        @db.VarChar(100)
   created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
+  updated_at  DateTime?     @updatedAt
   region      regiones      @relation(fields: [id_region], references: [id_region])
   direcciones direcciones[]
 
@@ -46,7 +46,7 @@ model direcciones {
   direccion_completa    String?
   activa                Boolean       @default(true)
   created_at            DateTime      @default(now())
-  updated_at            DateTime      @updatedAt
+  updated_at            DateTime?     @updatedAt
   clientes_direccion    clientes[]
   comuna                comunas       @relation(fields: [id_comuna], references: [id_comuna])
   region                regiones      @relation(fields: [id_region], references: [id_region])
@@ -66,7 +66,7 @@ model usuarios {
   profile_picture_url String?
   id_plan             Int?
   created_at          DateTime                @default(now())
-  updated_at          DateTime                @updatedAt
+  updated_at          DateTime?               @updatedAt
   auth_uid            String?                 @unique(map: "idx_usuarios_auth_uid") @db.Uuid
   carrito             carrito[]
   cliente             clientes?
@@ -118,7 +118,7 @@ model proveedores {
   cobra_envio         Boolean               @default(true)
   envio_gratis_desde  Decimal?              @db.Decimal(10, 2)
   created_at          DateTime              @default(now())
-  updated_at          DateTime              @updatedAt
+  updated_at          DateTime?             @updatedAt
   areas_servicio      areas_servicio[]
   campanas_colectivas compras_colectivas[]
   productos           productos[]
@@ -142,7 +142,7 @@ model areas_servicio {
   tiempo_entrega_dias Int?        @default(3)
   activa              Boolean     @default(true)
   created_at          DateTime    @default(now())
-  updated_at          DateTime    @updatedAt
+  updated_at          DateTime?   @updatedAt
   proveedor           proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("areas_servicio")
@@ -155,7 +155,7 @@ model clientes {
   telefono       String?      @db.VarChar(20)
   fecha_registro DateTime     @default(now()) @db.Timestamp(6)
   created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
+  updated_at     DateTime?    @updatedAt
   direccion      direcciones? @relation(fields: [id_direccion], references: [id_direccion])
   usuario        usuarios     @relation(fields: [id_usuario], references: [id_usuario])
 
@@ -166,7 +166,7 @@ model categorias {
   id_categoria Int         @id @default(autoincrement())
   nombre       String      @db.VarChar(100)
   created_at   DateTime    @default(now())
-  updated_at   DateTime    @updatedAt
+  updated_at   DateTime?   @updatedAt
   productos    productos[]
 
   @@map("categorias")
@@ -183,7 +183,7 @@ model productos {
   disponible          Boolean               @default(true)
   fecha_publicacion   DateTime              @default(now()) @db.Timestamp(6)
   created_at          DateTime              @default(now())
-  updated_at          DateTime              @default(now()) @updatedAt
+  updated_at          DateTime?             @default(now()) @updatedAt
   unit_type           String?               @default("unit") @db.VarChar(10)
   carrito             carrito[]
   comentarios         comentarios[]
@@ -205,7 +205,7 @@ model descuentos_cantidad {
   precio_descuento     Decimal?  @db.Decimal(10, 2)
   activo               Boolean   @default(true)
   created_at           DateTime  @default(now())
-  updated_at           DateTime  @default(now()) @updatedAt
+  updated_at           DateTime? @default(now()) @updatedAt
   producto             productos @relation(fields: [id_producto], references: [id_producto])
 
   @@unique([id_producto, cantidad_minima])
@@ -220,7 +220,7 @@ model comentarios {
   calificacion  Int
   fecha         DateTime  @default(now()) @db.Timestamp(6)
   created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  updated_at    DateTime? @updatedAt
   cliente       usuarios  @relation(fields: [id_cliente], references: [id_usuario])
   producto      productos @relation(fields: [id_producto], references: [id_producto])
 
@@ -235,7 +235,7 @@ model solicitudescontacto {
   fecha_solicitud DateTime    @default(now()) @db.Timestamp(6)
   estado          String      @default("pendiente")
   created_at      DateTime    @default(now())
-  updated_at      DateTime    @updatedAt
+  updated_at      DateTime?   @updatedAt
   cliente         usuarios    @relation(fields: [id_cliente], references: [id_usuario])
   proveedor       proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
@@ -248,7 +248,7 @@ model planes {
   precio_mensual Decimal         @db.Decimal(10, 2)
   descripcion    String?
   created_at     DateTime        @default(now())
-  updated_at     DateTime        @updatedAt
+  updated_at     DateTime?       @updatedAt
   suscripciones  suscripciones[]
   usuarios       usuarios[]
 
@@ -263,7 +263,7 @@ model suscripciones {
   fecha_fin      DateTime?   @db.Timestamp(6)
   activa         Boolean     @default(true)
   created_at     DateTime    @default(now())
-  updated_at     DateTime    @updatedAt
+  updated_at     DateTime?   @updatedAt
   plan           planes      @relation(fields: [id_plan], references: [id_plan])
   proveedor      proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
@@ -279,7 +279,7 @@ model pagos {
   estado      String   @default("pendiente")
   id_pedido   Int?
   created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime? @updatedAt
   pedido      pedidos? @relation(fields: [id_pedido], references: [id_pedido])
   usuario     usuarios @relation(fields: [id_usuario], references: [id_usuario])
 
@@ -295,7 +295,7 @@ model publicidad {
   fecha_fin        DateTime?   @db.Timestamp(6)
   activa           Boolean     @default(true)
   created_at       DateTime    @default(now())
-  updated_at       DateTime    @updatedAt
+  updated_at       DateTime?   @updatedAt
   proveedor        proveedores @relation(fields: [id_proveedor], references: [id_proveedor])
 
   @@map("publicidad")
@@ -318,7 +318,7 @@ model compras_colectivas {
   fecha_fin            DateTime?
   estado               String                  @default("abierta")
   created_at           DateTime                @default(now())
-  updated_at           DateTime                @updatedAt
+  updated_at           DateTime?               @updatedAt
   producto             productos               @relation(fields: [id_producto], references: [id_producto])
   proveedor            proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
   escalas_precios      escalas_precios[]
@@ -339,7 +339,7 @@ model ParticipanteColectivo {
   fecha_aporte    DateTime           @default(now())
   estado          String             @default("activo")
   created_at      DateTime           @default(now())
-  updated_at      DateTime           @updatedAt
+  updated_at      DateTime?          @updatedAt
   campana         compras_colectivas @relation(fields: [id_campana], references: [id_campana])
   usuario         usuarios           @relation(fields: [id_usuario], references: [id_usuario])
 
@@ -355,7 +355,7 @@ model escalas_precios {
   descuento_porcentaje Decimal?           @db.Decimal(5, 2)
   activa               Boolean            @default(true)
   created_at           DateTime           @default(now())
-  updated_at           DateTime           @updatedAt
+  updated_at           DateTime?          @updatedAt
   campana              compras_colectivas @relation(fields: [id_campana], references: [id_campana])
 
   @@map("escalas_precios")
@@ -371,7 +371,7 @@ model progreso_campana {
   precio_actual          Decimal?           @db.Decimal(10, 2)
   siguiente_tier         Int?
   created_at             DateTime           @default(now())
-  updated_at             DateTime           @updatedAt
+  updated_at             DateTime?          @updatedAt
   campana                compras_colectivas @relation(fields: [id_campana], references: [id_campana])
 
   @@map("progreso_campanas")
@@ -390,7 +390,7 @@ model pedidos {
   costo_envio          Decimal?            @db.Decimal(8, 2)
   notas                String?
   created_at           DateTime            @default(now())
-  updated_at           DateTime            @updatedAt
+  updated_at           DateTime?           @updatedAt
   items                ItemPedido[]
   pagos                pagos[]
   campana              compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
@@ -408,7 +408,7 @@ model ItemPedido {
   precio_unitario Decimal   @db.Decimal(10, 2)
   subtotal        Decimal   @db.Decimal(10, 2)
   created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  updated_at      DateTime? @updatedAt
   pedido          pedidos   @relation(fields: [id_pedido], references: [id_pedido])
   producto        productos @relation(fields: [id_producto], references: [id_producto])
 
@@ -425,7 +425,7 @@ model notificaciones {
   id_campana      Int?
   url_accion      String?             @db.VarChar(255)
   created_at      DateTime            @default(now())
-  updated_at      DateTime            @updatedAt
+  updated_at      DateTime?           @updatedAt
   campana         compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
   usuario         usuarios            @relation(fields: [id_usuario], references: [id_usuario])
 
@@ -440,7 +440,7 @@ model lista_deseos {
   cantidad_deseada  Int?
   precio_maximo     Decimal?  @db.Decimal(10, 2)
   created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
+  updated_at        DateTime? @updatedAt
   producto          productos @relation(fields: [id_producto], references: [id_producto])
   usuario           usuarios  @relation(fields: [id_usuario], references: [id_usuario])
 
@@ -455,7 +455,7 @@ model carrito {
   cantidad        Int
   precio_unitario Decimal   @db.Decimal(10, 2)
   created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  updated_at      DateTime? @updatedAt
   producto        productos @relation(fields: [id_producto], references: [id_producto])
   usuario         usuarios  @relation(fields: [id_usuario], references: [id_usuario])
 

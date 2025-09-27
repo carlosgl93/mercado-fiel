@@ -8,24 +8,15 @@ import { useAuth } from '../../hooks/useAuthSupabase';
 import RegistrarUsuarioController from './RegistrarUsuarioController';
 
 function RegistrarUsuario() {
-  const { state, handleChange, handleSubmit, handleAcceptTerms } = RegistrarUsuarioController();
+  const { state, handleChange, handleSubmit, handleAcceptTerms, isFormValid } =
+    RegistrarUsuarioController();
   const theme = useTheme();
 
   const { isSigningUp, signUpError } = useAuth();
 
   if (isSigningUp) return <Loading />;
 
-  const shouldDisable =
-    state.nombre === '' ||
-    state.apellido === '' ||
-    state.correo === '' ||
-    state.contrasena === '' ||
-    state.confirmarContrasena === '' ||
-    state.error !== '' ||
-    state.rut === '' ||
-    state.telefono === '' ||
-    !state.acceptedTerms ||
-    isSigningUp;
+  const shouldDisable = !isFormValid || !!state.error || isSigningUp;
 
   return (
     <>

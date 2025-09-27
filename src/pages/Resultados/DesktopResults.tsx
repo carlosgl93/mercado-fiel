@@ -1,9 +1,9 @@
 import { Box, useTheme } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/Loading';
-import { useAuth } from '../../hooks/useAuthSupabase';
 import { useCustomers, UserLookingFor, useUserLookingFor } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import DesktopFilters from './DesktopFilters';
 import DesktopResultList from './DesktopResultList';

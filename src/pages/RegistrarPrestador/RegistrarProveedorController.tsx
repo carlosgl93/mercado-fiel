@@ -1,45 +1,16 @@
 import useEntregaApoyo from '@/store/entregaApoyo';
 import { notificationState } from '@/store/snackbar';
+import { FormAction, getErrorMessage, useErrorHandler } from '@/utils/errorHandling';
+import {
+  isSupplierFormValid,
+  SupplierFormState,
+  validateSupplierForm,
+} from '@/utils/formValidation';
+import { navigateToUserDashboard } from '@/utils/navigationUtils';
 import { ChangeEvent, useEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { useAuth } from '../../hooks/useAuthSupabase';
-
-// Validation utilities
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RUT_REGEX = /^[0-9]+-[0-9kK]{1}$/;
-const MIN_PASSWORD_LENGTH = 6;
-
-interface ValidationError {
-  field: string;
-  message: string;
-}
-
-const validateForm = (state: FormState): ValidationError | null => {
-  const { correo, rut, contrasena, confirmarContrasena, telefono } = state;
-
-  if (!EMAIL_REGEX.test(correo)) {
-    return { field: 'correo', message: 'Email inválido' };
-  }
-  
-  if (!RUT_REGEX.test(rut)) {
-    return { field: 'rut', message: 'RUT inválido. Formato: 12345678-9' };
-  }
-  
-  if (contrasena.length < MIN_PASSWORD_LENGTH) {
-    return { field: 'contrasena', message: 'La contraseña debe tener al menos 6 caracteres' };
-  }
-  
-  if (confirmarContrasena !== contrasena) {
-    return { field: 'confirmarContrasena', message: 'Las contraseñas no coinciden' };
-  }
-  
-  if (!telefono.trim()) {
-    return { field: 'telefono', message: 'El teléfono es requerido' };
-  }
-  
-  return null;
-};
 
 const getCleanInitialState = (): FormState => ({
   error: '',
@@ -56,24 +27,14 @@ const getCleanInitialState = (): FormState => ({
   acceptedTerms: false,
 });
 
-type FormState = {
+interface FormState extends SupplierFormState {
   error?: string;
-  nombre: string;
-  apellido: string;
-  rut: string;
-  telefono: string;
-  correo: string;
-  contrasena: string;
-  confirmarContrasena: string;
-  nombreNegocio: string;
-  descripcion: string;
   comoEnteraste: string;
-  acceptedTerms: boolean;
   comunas?: any;
   servicio?: any;
   especialidad?: any;
   [key: string]: string | boolean | any;
-};
+}
 
 type FormActions =
   | {
@@ -86,12 +47,7 @@ type FormActions =
   | {
       type: 'ACCEPT TERMS';
     }
-  | {
-      type: 'ERROR';
-      payload: {
-        error: string;
-      };
-    }
+  | FormAction
   | {
       type: 'SET_STATE';
       payload: FormState;
@@ -110,10 +66,14 @@ const reducer = (state: FormState, action: FormActions) => {
         acceptedTerms: !state.acceptedTerms,
       };
     case 'ERROR':
-      console.log('### ACTION PAYLOAD ERROR ####', action.payload.error);
       return {
         ...state,
-        error: action.payload.error,
+        error: action.payload!.error,
+      };
+    case 'CLEAR_ERROR':
+      return {
+        ...state,
+        error: '',
       };
     case 'SET_STATE':
       return {
@@ -125,32 +85,9 @@ const reducer = (state: FormState, action: FormActions) => {
   }
 };
 
-// Utility functions for error handling
-const useErrorHandler = (
-  dispatch: React.Dispatch<FormActions>,
-  setNotification: (notification: any) => void,
-  notification: any
-) => {
-  const showError = (message: string) => {
-    dispatch({ type: 'ERROR', payload: { error: message } });
-    setNotification({
-      ...notification,
-      open: true,
-      message,
-      severity: 'error',
-    });
-    // Auto-clear error after 5 seconds
-    setTimeout(() => {
-      dispatch({ type: 'ERROR', payload: { error: '' } });
-    }, 5000);
-  };
-
-  return { showError };
-};
-
 const RegistrarPrestadorController = () => {
   const [notification, setNotification] = useRecoilState(notificationState);
-  const { signUp, isSigningUp, supplier, customer } = useAuth();
+  const { signUp, isSigningUp, supplier, customer, isLoggedIn } = useAuth();
   const [{ selectedComunas, selectedServicio, selectedEspecialidad }] = useEntregaApoyo();
 
   const navigate = useNavigate();
@@ -159,7 +96,7 @@ const RegistrarPrestadorController = () => {
   const createInitialState = (): FormState => {
     const savedState = localStorage.getItem('prestadorFormState');
     const cleanState = getCleanInitialState();
-    
+
     if (savedState) {
       const parsed = JSON.parse(savedState);
       // Merge saved data but always start with clean error state
@@ -172,7 +109,7 @@ const RegistrarPrestadorController = () => {
         especialidad: selectedEspecialidad,
       };
     }
-    
+
     return {
       ...cleanState,
       comunas: selectedComunas,
@@ -182,7 +119,6 @@ const RegistrarPrestadorController = () => {
   };
 
   const [state, dispatch] = useReducer(reducer, createInitialState());
-  console.log({ state });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -196,43 +132,13 @@ const RegistrarPrestadorController = () => {
   const { showError } = useErrorHandler(dispatch, setNotification, notification);
 
   // Check if form is valid for enabling/disabling submit button
-  const isFormValid = () => {
-    const {
-      nombre,
-      apellido,
-      telefono,
-      rut,
-      correo,
-      contrasena,
-      confirmarContrasena,
-      acceptedTerms,
-    } = state;
-
-    return (
-      nombre.trim() !== '' &&
-      apellido.trim() !== '' &&
-      telefono.trim() !== '' &&
-      rut.trim() !== '' &&
-      correo.trim() !== '' &&
-      contrasena.trim() !== '' &&
-      confirmarContrasena.trim() !== '' &&
-      acceptedTerms
-    );
-  };
+  const isFormValid = isSupplierFormValid(state);
 
   const handleSubmit = async () => {
-    const {
-      nombre,
-      apellido,
-      telefono,
-      nombreNegocio,
-      descripcion,
-      correo,
-      contrasena,
-    } = state;
+    const { nombre, apellido, telefono, nombreNegocio, descripcion, correo, contrasena } = state;
 
     // Validate form
-    const validationError = validateForm(state);
+    const validationError = validateSupplierForm(state);
     if (validationError) {
       showError(validationError.message);
       return;
@@ -251,7 +157,7 @@ const RegistrarPrestadorController = () => {
 
       // Clear form after successful registration
       localStorage.removeItem('prestadorFormState');
-      
+
       // Show success message
       setNotification({
         ...notification,
@@ -261,7 +167,8 @@ const RegistrarPrestadorController = () => {
       });
     } catch (error) {
       console.error('Error creating supplier account:', error);
-      showError('Error al crear cuenta de proveedor. Por favor intenta nuevamente.');
+      const errorMessage = getErrorMessage(error);
+      showError(errorMessage);
     }
   };
 
@@ -285,8 +192,6 @@ const RegistrarPrestadorController = () => {
 
     // Double-check: only prefill if BOTH conditions are true
     if (isDevEnvironment && isLocalhost) {
-      console.log('🔧 Development mode detected - checking if form should be prefilled');
-
       const dummyData = {
         nombre: 'Carlos',
         apellido: 'García',
@@ -326,14 +231,12 @@ const RegistrarPrestadorController = () => {
   }, []); // Empty dependency array to run only once on mount
 
   useEffect(() => {
-    if (customer?.email) {
-      navigate('/usuario-dashboard');
-      return;
-    }
-    if (supplier?.email) {
-      navigate('/proveedor-dashboard');
-      return;
-    }
+    navigateToUserDashboard({
+      pathname: window.location.pathname,
+      customer: customer as any,
+      supplier: supplier as any,
+      navigate,
+    });
   }, [customer, supplier, navigate]);
 
   return {
@@ -343,7 +246,7 @@ const RegistrarPrestadorController = () => {
     handleSelect,
     handleAcceptTerms,
     signUpLoading: isSigningUp,
-    isFormValid: isFormValid(),
+    isFormValid,
   };
 };
 

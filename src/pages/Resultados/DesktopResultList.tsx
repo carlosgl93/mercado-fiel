@@ -2,8 +2,8 @@ import { Avatar, Box, Button, ListItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Reviews from '../../components/Reviews';
 import { FlexBox } from '../../components/styled';
-import { Text, Title } from '../../components/StyledComponents';
-import { useUserLookingFor, UserLookingFor } from '../../hooks';
+import { Title } from '../../components/StyledComponents';
+import { UserLookingFor, useUserLookingFor } from '../../hooks';
 import { Customer, Supplier } from '../../models';
 
 const DesktopResultList = ({

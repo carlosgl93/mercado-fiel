@@ -1,6 +1,11 @@
+import { notificationState } from '@/store/snackbar';
 import { Comuna } from '@/types';
+import { FormAction, getErrorMessage, useErrorHandler } from '@/utils/errorHandling';
+import { isUserFormValid, UserFormState, validateUserForm } from '@/utils/formValidation';
+import { navigateToUserDashboard } from '@/utils/navigationUtils';
 import { ChangeEvent, useEffect, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 import { useUserLookingFor } from '../../hooks';
 import { useAuth } from '../../hooks/useAuthSupabase';
 
@@ -12,22 +17,14 @@ export type Patient = {
   speciality?: string;
 };
 
-type FormState = {
+interface FormState extends UserFormState {
   error: string;
-  nombre: string;
-  apellido: string;
   nombrePaciente: string;
-  rut: string;
-  telefono: string;
-  correo: string;
-  contrasena: string;
-  confirmarContrasena: string;
-  acceptedTerms: boolean;
   patientName?: string;
   patientAge?: string;
   patientRut?: string;
   [key: string]: string | null | boolean | Comuna | undefined;
-};
+}
 
 type FormActions =
   | {
@@ -40,12 +37,7 @@ type FormActions =
   | {
       type: 'ACCEPT TERMS';
     }
-  | {
-      type: 'ERROR';
-      payload: {
-        error: string;
-      };
-    }
+  | FormAction
   | {
       type: 'SET_STATE';
       payload: FormState;
@@ -58,7 +50,6 @@ const reducer = (state: FormState, action: FormActions) => {
         ...state,
         [action.payload.name]: action.payload.value,
       };
-
     case 'ACCEPT TERMS':
       return {
         ...state,
@@ -67,7 +58,12 @@ const reducer = (state: FormState, action: FormActions) => {
     case 'ERROR':
       return {
         ...state,
-        error: action.payload.error,
+        error: action.payload!.error,
+      };
+    case 'CLEAR_ERROR':
+      return {
+        ...state,
+        error: '',
       };
     case 'SET_STATE':
       return {
@@ -79,27 +75,46 @@ const reducer = (state: FormState, action: FormActions) => {
   }
 };
 
+// Utility to create clean initial state
+const getCleanInitialState = (): FormState => ({
+  error: '',
+  nombre: '',
+  apellido: '',
+  nombrePaciente: '',
+  rut: '',
+  telefono: '',
+  correo: '',
+  contrasena: '',
+  confirmarContrasena: '',
+  acceptedTerms: false,
+});
+
 const RegistrarUsuarioController = () => {
   const { signUp, customer, supplier } = useAuth();
   const navigate = useNavigate();
   const { translatedLookingFor } = useUserLookingFor();
+  const [notification, setNotification] = useRecoilState(notificationState);
 
-  const initialState = localStorage.getItem('formState')
-    ? JSON.parse(localStorage.getItem('formState') || '{}')
-    : {
-        error: '',
-        nombre: '',
-        apellido: '',
-        nombrePaciente: '',
-        rut: '',
-        telefono: '',
-        correo: '',
-        contrasena: '',
-        confirmarContrasena: '',
-        acceptedTerms: false,
+  // Create clean initial state and merge with saved data (but exclude error to prevent stale errors)
+  const createInitialState = (): FormState => {
+    const savedState = localStorage.getItem('formState');
+    const cleanState = getCleanInitialState();
+
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      // Merge saved data but always start with clean error state
+      return {
+        ...cleanState,
+        ...parsed,
+        error: '', // Always start with no error to prevent stale errors
       };
+    }
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+    return cleanState;
+  };
+
+  const [state, dispatch] = useReducer(reducer, createInitialState());
+  const { showError } = useErrorHandler(dispatch, setNotification, notification);
 
   const {
     nombre,
@@ -121,70 +136,31 @@ const RegistrarUsuarioController = () => {
     dispatch({ type: 'ACCEPT TERMS' });
   };
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const rutRegex = /^[0-9]+-[0-9kK]{1}$/;
-
   const handleSubmit = async () => {
-    if (!emailRegex.test(correo)) {
-      dispatch({
-        type: 'ERROR',
-        payload: {
-          error: 'Email inválido',
-        },
-      });
-      setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
-    } else if (!rutRegex.test(rut)) {
-      dispatch({
-        type: 'ERROR',
-        payload: {
-          error: 'RUT inválido. Formato: 12345678-9',
-        },
-      });
-      setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
-    } else if (confirmarContrasena !== contrasena) {
-      dispatch({
-        type: 'ERROR',
-        payload: {
-          error: 'Las contraseñas no coinciden',
-        },
-      });
-      setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
-    } else if (contrasena.length < 6) {
-      dispatch({
-        type: 'ERROR',
-        payload: {
-          error: 'La contraseña debe tener al menos 6 caracteres',
-        },
-      });
-      setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
-    } else if (!telefono) {
-      dispatch({
-        type: 'ERROR',
-        payload: {
-          error: 'El teléfono es requerido',
-        },
-      });
-      setTimeout(() => dispatch({ type: 'ERROR', payload: { error: '' } }), 5000);
-    } else {
-      try {
-        await signUp({
-          email: correo,
-          password: contrasena,
-          nombre: `${nombre} ${apellido}`,
-          type: 'customer',
-          telefono: telefono,
-        });
+    // Validate form
+    const validationError = validateUserForm(state);
+    if (validationError) {
+      showError(validationError.message);
+      return;
+    }
 
-        // Clear form after successful registration
-        localStorage.removeItem('formState');
-      } catch (error) {
-        dispatch({
-          type: 'ERROR',
-          payload: {
-            error: 'Error al crear usuario',
-          },
-        });
-      }
+    try {
+      await signUp({
+        email: correo,
+        password: contrasena,
+        nombre: `${nombre} ${apellido}`,
+        type: 'customer',
+        telefono: telefono,
+      });
+
+      // Clear form after successful registration
+      localStorage.removeItem('formState');
+
+      // Success message is handled by the useAuth hook
+    } catch (error) {
+      console.error('Error creating user account:', error);
+      const errorMessage = getErrorMessage(error);
+      showError(errorMessage);
     }
   };
 
@@ -193,28 +169,19 @@ const RegistrarUsuarioController = () => {
     dispatch({ type: 'CHANGE', payload: { name, value } });
   };
 
-  // Save state to localStorage whenever it changes
+  // Save state to localStorage whenever it changes (but exclude error to prevent persistence)
   useEffect(() => {
-    localStorage.setItem('formState', JSON.stringify(state));
+    const { error, ...stateToSave } = state;
+    localStorage.setItem('formState', JSON.stringify(stateToSave));
   }, [state]);
 
-  // Load state from localStorage on component mount
   useEffect(() => {
-    const savedState = localStorage.getItem('formState');
-    if (savedState) {
-      dispatch({ type: 'SET_STATE', payload: JSON.parse(savedState) });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (customer?.idCliente) {
-      navigate('/usuario-dashboard');
-      return;
-    }
-    if (supplier?.idProveedor) {
-      navigate('/proveedor-dashboard');
-      return;
-    }
+    navigateToUserDashboard({
+      pathname: window.location.pathname,
+      customer: customer as any,
+      supplier: supplier as any,
+      navigate,
+    });
   }, [customer, supplier, navigate]);
 
   useEffect(() => {
@@ -223,21 +190,13 @@ const RegistrarUsuarioController = () => {
     }
   }, [translatedLookingFor]);
 
-  useEffect(() => {
-    // reset the error state after 5 seconds
-    const timer = setTimeout(() => {
-      dispatch({ type: 'ERROR', payload: { error: '' } });
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [state.error, dispatch]);
-
   return {
     state,
     handleChange,
     handleSubmit,
     handleSelect,
     handleAcceptTerms,
+    isFormValid: isUserFormValid(state),
   };
 };
 

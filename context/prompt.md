@@ -116,3 +116,7 @@ The app is built using:
 - Prioritize code completions for React components, form logic, data fetching with TanStack Query, Supabase client usage, and Express route handling.
 - For backend, assume tRPC or REST handlers connected to Supabase queries/mutations.
 - For UI, use MUI or minimalist custom styling as needed.
+
+## DB SQL SCHEMA
+
+Schema located in: '/functions/schema.prisma'

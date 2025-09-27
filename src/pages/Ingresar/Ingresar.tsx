@@ -3,6 +3,7 @@ import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
 import { Title } from '@/components/StyledComponents';
 import { useAuth } from '@/hooks/useAuthSupabase';
+import { navigateToUserDashboard } from '@/utils/navigationUtils';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,15 +25,13 @@ function Ingresar() {
       supplier,
     });
 
-    // Only navigate if user is authenticated and we have clear role data
-    if (customer && customer.idCliente) {
-      navigate('/usuario-dashboard');
-      return;
-    }
-    if (supplier && supplier.idProveedor) {
-      navigate('/proveedor-dashboard');
-      return;
-    }
+    // Use centralized navigation utility
+    navigateToUserDashboard({
+      pathname: window.location.pathname,
+      customer: customer as any,
+      supplier: supplier as any,
+      navigate,
+    });
   }, [customer, supplier, navigate]);
 
   useEffect(() => {

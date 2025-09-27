@@ -36,7 +36,7 @@ export interface AuthUserData {
   profilePictureUrl: string | null;
   idPlan: number | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
   cliente: AuthCliente | null;
   proveedor: AuthProveedor | null;
   isLoggedIn: boolean;
@@ -51,7 +51,7 @@ export interface AuthUser {
 // Legacy types for backward compatibility
 export interface AuthCustomer extends AuthUserData {
   idCliente: number;
-  telefono?: string;
+  telefono?: string | null;
   idDireccion?: number;
   isLoggedIn: boolean;
 }

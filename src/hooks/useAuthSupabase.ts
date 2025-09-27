@@ -1,3 +1,4 @@
+import { navigateToUserDashboard } from '@/utils/navigationUtils';
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -90,7 +91,6 @@ export const useAuth = () => {
   const loadUserProfile = useCallback(
     async (supabaseUser: User): Promise<void> => {
       try {
-        console.log('🔄 Loading user profile for:', supabaseUser.email);
         setIsLoading(true);
 
         // Query user data with relations from Supabase database
@@ -153,7 +153,6 @@ export const useAuth = () => {
         const proveedorData = userData.proveedor?.[0];
 
         // Transform database user to auth types
-        console.log('🔍 User data from database:', userData);
         const authUser: AuthUser = {
           success: true,
           data: {
@@ -246,8 +245,6 @@ export const useAuth = () => {
           isInitialized: true,
           isLoading: false,
         });
-
-        console.log('✅ User profile loaded successfully');
       } catch (error) {
         console.error('❌ Error in loadUserProfile:', error);
         setNotification({
@@ -331,7 +328,6 @@ export const useAuth = () => {
 
     const initializeAuth = async () => {
       try {
-        console.log('🚀 Initializing authentication...');
         setIsLoading(true);
 
         const {
@@ -349,10 +345,8 @@ export const useAuth = () => {
         }
 
         if (session?.user && mounted) {
-          console.log('✅ Found existing session:', session.user.email);
           await loadUserProfile(session.user);
         } else {
-          console.log('ℹ️ No existing session found');
           if (mounted) {
             setIsInitialized(true);
             setIsLoading(false);
@@ -373,7 +367,12 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return;
 
-      console.log('🔔 Auth state changed:', event, session?.user?.email || 'no user');
+      // Use the centralized navigation utility
+      navigateToUserDashboard({
+        pathname: location.pathname,
+        user: user?.data,
+        navigate,
+      });
 
       switch (event) {
         case 'INITIAL_SESSION':
@@ -633,6 +632,7 @@ export const useAuth = () => {
       (user?.data?.cliente ? { ...user.data, ...user.data.cliente, isLoggedIn: true } : null), // Alias for backward compatibility
     isInitialized,
     isLoading: isLoading || isSigningIn || isSigningUp || isSigningOut,
+    isLoggedIn: !!user?.data?.isLoggedIn,
 
     // Auth actions
     signIn,

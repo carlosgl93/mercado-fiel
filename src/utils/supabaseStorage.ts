@@ -6,6 +6,9 @@ export interface UploadImageResult {
   error?: string;
 }
 
+const API_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:5001/mercado-fiel/us-central1/api';
+
 export const uploadImageToSupabase = async (
   file: File,
   bucket = 'product-images',
@@ -43,11 +46,11 @@ export const uploadImageToSupabase = async (
       }
 
       // Use our API to get user data (same as auth hook)
-      const response = await fetch(`http://127.0.0.1:5001/mercado-fiel/southamerica-west1/api/auth/user/${session.user.email}`, {
+      const response = await fetch(`${API_URL}/auth/user/${session.user.email}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentSession.access_token}`,
+          Authorization: `Bearer ${currentSession.access_token}`,
         },
       });
 

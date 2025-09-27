@@ -34,6 +34,21 @@ export const redirectToAfterLoginState = atom<string | null>({
   default: null,
 });
 
+export const isSigningOutState = atom<boolean>({
+  key: 'isSigningOutState',
+  default: false,
+});
+
+export const isSigningInState = atom<boolean>({
+  key: 'isSigningInState',
+  default: false,
+});
+
+export const isSigningUpState = atom<boolean>({
+  key: 'isSigningUpState',
+  default: false,
+});
+
 function useAuth(): [AuthState, Actions] {
   const [, setNotification] = useRecoilState(notificationState);
   const [_user, setUser] = useRecoilState(authState);

@@ -8,7 +8,6 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { getAllComunas } from '../api/comunas';
 import { Comuna } from '../models';
-import { useAuth } from './useAuth';
 
 const updateProviderComunas = async ({
   providerId,
@@ -60,7 +59,6 @@ export const useComunas = () => {
   const [matchedComunas, setMatchedComunas] = useState<Comuna[]>([]);
   const [selectedComunas, setSelectedComunas] = useRecoilState(comunasState);
   const [, setNotification] = useRecoilState(notificationState);
-  const { proveedor, user } = useAuth();
   const setPrestador = useSetRecoilState(proveedorState);
   const queryClient = useQueryClient();
 

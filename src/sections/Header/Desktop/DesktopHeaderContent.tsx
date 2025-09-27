@@ -172,14 +172,15 @@ const DesktopHeaderContent = () => {
 
       {/* Authentication and cart buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        {user?.data?.isLoggedIn &&
-        (user?.data?.cliente?.idCliente || user?.data?.proveedor?.idProveedor) ? (
+        {user?.data?.isLoggedIn && user?.data?.cliente?.idCliente ? (
           <>
             {/* Shopping cart for customers only */}
             {user?.data?.cliente && <ShoppingCartButton />}
             {/* Logout button for both customers and suppliers */}
             <UserHeaderContent />
           </>
+        ) : user?.data?.proveedor?.idProveedor ? (
+          <ProviderHeaderContent />
         ) : (
           <UnauthenticatedHeaderContent />
         )}
@@ -261,7 +262,11 @@ const AdminHeaderContent = () => {
               backgroundColor: theme.palette.primary.dark,
             },
           }}
-          onClick={() => signOut()}
+          onClick={() => {
+            console.log('🔴 Button clicked - AdminHeaderContent');
+            console.log('🔴 signOut function type:', typeof signOut);
+            signOut();
+          }}
         >
           Salir
         </Button>
@@ -273,10 +278,15 @@ const AdminHeaderContent = () => {
 const UserHeaderContent = () => {
   const theme = useTheme();
   const { signOut } = useAuth();
+
+  const handleSignOut = () => {
+    signOut();
+  };
+
   return (
     <>
       <Button
-        onClick={() => signOut()}
+        onClick={handleSignOut}
         variant="contained"
         sx={{
           backgroundColor: theme.palette.primary.main,
@@ -295,10 +305,18 @@ const UserHeaderContent = () => {
 const ProviderHeaderContent = () => {
   const theme = useTheme();
   const { signOut } = useAuth();
+
+  const handleSignOut = () => {
+    console.log('🔴 Button clicked - ProviderHeaderContent');
+    console.log('🔴 signOut function type:', typeof signOut);
+    console.log('🔴 signOut function:', signOut);
+    signOut();
+  };
+
   return (
     <>
       <Button
-        onClick={() => signOut()}
+        onClick={handleSignOut}
         variant="contained"
         sx={{
           backgroundColor: theme.palette.primary.main,

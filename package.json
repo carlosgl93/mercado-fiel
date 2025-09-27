@@ -24,7 +24,7 @@
     "test": "vitest --pool=forks",
     "test:e2e": "npx playwright test --headed",
     "coverage": "vitest run --coverage",
-    "dev": "vite",
+    "dev": "pnpm run env:dev && vite",
     "dev:setup": "./scripts/env-manager.sh create-env && ./scripts/env-manager.sh dev && vite",
     "build": "tsc && vite build",
     "preview": "vite preview",

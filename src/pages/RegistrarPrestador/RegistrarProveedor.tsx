@@ -10,6 +10,7 @@ function RegistrarProveedor() {
   const { state, handleChange, handleSubmit, handleAcceptTerms, signUpLoading } =
     RegistrarProveedorController();
   const theme = useTheme();
+  console.log(state.error);
   return (
     <>
       <Meta title="Registrar proveedor: Mercado Fiel" />

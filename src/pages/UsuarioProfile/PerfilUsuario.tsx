@@ -1,6 +1,5 @@
 import { usersApi } from '@/api/users';
 import { DashboardHeader, MobileActionBar } from '@/components';
-import { useAuth } from '@/hooks/useAuth';
 import { uploadImageToSupabase } from '@/utils/supabaseStorage';
 import {
   Close as CloseIcon,
@@ -33,6 +32,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuthSupabase';
 
 export const PerfilUsuario = () => {
   const theme = useTheme();

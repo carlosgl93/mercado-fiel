@@ -33,7 +33,7 @@ export type LocationState = {
 };
 
 export const PrestadorChat = () => {
-  const { proveedor } = useAuth();
+  const { supplier: proveedor } = useAuth();
 
   const conversation = useRecoilValue(chatState);
   const customerId = conversation?.userId;
@@ -52,7 +52,12 @@ export const PrestadorChat = () => {
   } = useChat(customerId, prestadorId);
 
   if (!proveedor) return <span>No hay proveedor disponible</span>;
-  const { idProveedor: id, nombreNegocio: firstname, profileImageUrl: imageUrl, email } = proveedor;
+  const {
+    idProveedor: id,
+    nombreNegocio: firstname,
+    profilePictureUrl: imageUrl,
+    email,
+  } = proveedor;
 
   return (
     <ChatContainer>

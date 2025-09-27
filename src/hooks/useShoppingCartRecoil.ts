@@ -91,7 +91,13 @@ export const useShoppingCartRecoil = () => {
   };
 
   const handleAddToCart = (productId: number, cantidad = 1) => {
-    if (!user) {
+    console.log('🛒 Cart operation starting...');
+    console.log('🛒 Full user object:', user);
+    console.log('🛒 User ID:', user?.data?.idUsuario);
+
+    if (!user || !user?.data?.idUsuario) {
+      console.log('🚫 No user ID available for cart operation');
+      console.log('🚫 User state:', user);
       setSnackbar({
         open: true,
         message: 'Debes iniciar sesión para agregar productos al carrito',
@@ -107,33 +113,53 @@ export const useShoppingCartRecoil = () => {
     if (!user) return;
 
     // Find the cart item for this product
-    const cartItem = cartData?.data.items.find((item: CartItem) => item.id_producto === productId);
+    const cartItem = cartData?.data.items.find(
+      (item: CartItem) => ((item as any).idProducto || item.id_producto) === productId,
+    );
     if (!cartItem) return;
 
     const newQuantity = cartItem.cantidad - cantidad;
+    const itemId = (cartItem as any).idCarrito || cartItem.id_carrito;
 
     if (newQuantity <= 0) {
       // Remove the item completely
-      removeFromCartMutation.mutate(cartItem.id_carrito);
+      removeFromCartMutation.mutate(itemId);
     } else {
       // Update the quantity
       updateCartMutation.mutate({
-        itemId: cartItem.id_carrito,
+        itemId: itemId,
         data: { cantidad: newQuantity },
       });
     }
   };
 
   const handleUpdateCartQuantity = (itemId: number, cantidad: number) => {
+    console.log('🛒 Update/Remove cart item - itemId:', itemId, 'cantidad:', cantidad);
+    console.log('🛒 Cart data items:', cartData?.data?.items);
+
+    if (!itemId) {
+      console.error('🚫 No itemId provided for cart operation');
+      setSnackbar({
+        open: true,
+        message: 'Error: ID del item no válido',
+        severity: 'error',
+      });
+      return;
+    }
+
     if (cantidad <= 0) {
+      console.log('🛒 Removing item with ID:', itemId);
       removeFromCartMutation.mutate(itemId);
     } else {
+      console.log('🛒 Updating item quantity - ID:', itemId, 'new quantity:', cantidad);
       updateCartMutation.mutate({ itemId, data: { cantidad } });
     }
   };
 
   const getCartItemQuantity = (productId: number): number => {
-    const cartItem = cartData?.data.items.find((item: CartItem) => item.id_producto === productId);
+    const cartItem = cartData?.data.items.find(
+      (item: CartItem) => ((item as any).idProducto || item.id_producto) === productId,
+    );
     return cartItem?.cantidad || 0;
   };
 

@@ -10,4 +10,6 @@ export const routesToExcludeInHeader = [
   '/producto/:id',
   '/proveedor/:id',
   '/cliente/:id',
+  '/cambiar-contrasena',
+  '/perfil-usuario',
 ];

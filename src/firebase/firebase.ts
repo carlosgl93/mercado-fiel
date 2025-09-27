@@ -1,6 +1,7 @@
 import { getAnalytics } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, getAuth } from 'firebase/auth';
+// ✅ REMOVED: Firebase Auth import - now using Supabase Auth exclusively
+// import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
@@ -30,7 +31,8 @@ export { projectId };
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig, 'mercado-fiel');
-export const auth = getAuth(app);
+// ✅ REMOVED: Firebase Auth - now using Supabase Auth exclusively
+// export const auth = getAuth(app); 
 // TODO: Migrate to Supabase - keeping Firestore temporarily for existing features
 export const db = getFirestore(app);
 export const storage = getStorage(app);
@@ -39,7 +41,8 @@ export const analytics = getAnalytics(app);
 
 if (import.meta.env.VITE_ENV === 'dev') {
   console.log('connecting to emulators');
-  connectAuthEmulator(auth, 'http://localhost:9099/auth');
+  // ✅ REMOVED: Firebase Auth Emulator - now using Supabase Auth exclusively
+  // connectAuthEmulator(auth, 'http://localhost:9099/auth');
   // TODO: Remove Firestore emulator when migration to Supabase is complete
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectStorageEmulator(storage, 'localhost', 9199);

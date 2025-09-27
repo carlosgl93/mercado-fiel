@@ -30,7 +30,7 @@ enum Pages {
   ConstruirPerfil,
   // Servicios,
   Disponibilidad,
-  PreviewPerfilPrestador,
+  // PreviewPerfilPrestador,
   // EditarComunasPrestador,
   PrestadorInbox,
   UsuarioInbox,

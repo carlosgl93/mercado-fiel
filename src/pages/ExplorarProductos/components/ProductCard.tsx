@@ -42,10 +42,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     ? Math.max(...(product.descuentosCantidad?.map((d) => d.descuentoPorcentaje || 0) || []))
     : 0;
 
-  // Find the applicable discount for current cart quantity
-  const applicableDiscount = product.descuentosCantidad?.find(
-    (discount) => cartQuantity >= discount.cantidadMinima,
-  );
+  // Find the best applicable discount for current cart quantity (highest discount)
+  const applicableDiscount = product.descuentosCantidad
+    ? [...product.descuentosCantidad]
+        .filter((discount) => cartQuantity >= discount.cantidadMinima)
+        .sort((a, b) => (b.descuentoPorcentaje || 0) - (a.descuentoPorcentaje || 0))[0]
+    : undefined;
 
   const finalPrice = applicableDiscount
     ? product.precioUnitario * (1 - (applicableDiscount.descuentoPorcentaje || 0) / 100)
@@ -274,9 +276,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {hasDiscounts && cartQuantity > 0 && (
           <Box sx={{ mt: 1 }}>
             {(() => {
-              const nextDiscount = product.descuentosCantidad?.find(
-                (discount) => discount.cantidadMinima > cartQuantity,
-              );
+              // Create a copy of the array before sorting to avoid mutating read-only array
+              const sortedDiscounts = product.descuentosCantidad
+                ? [...product.descuentosCantidad]
+                : [];
+              const nextDiscount = sortedDiscounts
+                .sort((a, b) => a.cantidadMinima - b.cantidadMinima)
+                .find((discount) => discount.cantidadMinima > cartQuantity);
 
               if (nextDiscount) {
                 const needed = nextDiscount.cantidadMinima - cartQuantity;
@@ -286,7 +292,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   </Typography>
                 );
               }
-              return null;
+              return (
+                <Typography variant="caption" color="success.main">
+                  ¡Máximo descuento aplicado!
+                </Typography>
+              );
             })()}
           </Box>
         )}

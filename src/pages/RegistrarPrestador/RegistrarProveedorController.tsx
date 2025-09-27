@@ -56,6 +56,7 @@ const reducer = (state: FormState, action: FormActions) => {
         acceptedTerms: !state.acceptedTerms,
       };
     case 'ERROR':
+      console.log(action.payload.error);
       return {
         ...state,
         error: action.payload.error,
@@ -206,7 +207,7 @@ const RegistrarPrestadorController = () => {
           password: contrasena,
           nombre: `${nombre} ${apellido}`,
           type: 'supplier',
-          telefono_contacto: telefono,
+          telefono: telefono,
           nombre_negocio: nombreNegocio || `${nombre} ${apellido}`,
           descripcion: descripcion || '',
         });

@@ -15,7 +15,7 @@ export const usePerfilPrestador = (proveedor: SupplierWithProducts) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
-  const { user } = useAuth();
+  const { user, isCustomer } = useAuth();
   const setRedirectToAfterLogin = useSetRecoilState(redirectToAfterLoginState);
   const history = useNavigationHistory();
   const prestadorId = proveedor?.idProveedor;
@@ -42,7 +42,7 @@ export const usePerfilPrestador = (proveedor: SupplierWithProducts) => {
           state: {
             prestador: proveedor,
             messages,
-            sentBy: user.role || 'user',
+            sentBy: isCustomer() ? 'user' : 'provider',
           },
         });
         return;

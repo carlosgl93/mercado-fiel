@@ -24,6 +24,7 @@ function PerfilProveedor() {
   return (
     <Suspense fallback={<Loading />}>
       <Meta title="Perfil Proveedor" />
+      asdf
       <MobileProfile proveedor={supplier as SupplierWithProducts} />
     </Suspense>
   );

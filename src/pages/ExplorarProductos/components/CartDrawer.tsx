@@ -44,10 +44,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const isEmpty = !cartData?.items.length;
 
   const handleIncreaseQuantity = (itemId: number, currentQuantity: number) => {
+    console.log(
+      '🛒 CartDrawer - Increase quantity, itemId:',
+      itemId,
+      'currentQuantity:',
+      currentQuantity,
+    );
     onUpdateQuantity(itemId, currentQuantity + 1);
   };
 
   const handleDecreaseQuantity = (itemId: number, currentQuantity: number) => {
+    console.log(
+      '🛒 CartDrawer - Decrease quantity, itemId:',
+      itemId,
+      'currentQuantity:',
+      currentQuantity,
+    );
     if (currentQuantity > 1) {
       onUpdateQuantity(itemId, currentQuantity - 1);
     } else {
@@ -78,7 +90,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <ShoppingCartIcon color="primary" />
           <Typography variant="h6" component="h2">
-            Carrito de Compras
+            Carrito
           </Typography>
         </Box>
         <IconButton onClick={onClose} edge="end">
@@ -120,7 +132,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <List sx={{ p: 0 }}>
             {cartData.items.map((item) => (
               <ListItem
-                key={item.id_carrito}
+                key={(item as any).idCarrito || item.id_carrito}
                 sx={{
                   flexDirection: 'column',
                   alignItems: 'stretch',
@@ -155,7 +167,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                   <IconButton
                     size="small"
-                    onClick={() => onRemoveItem(item.id_carrito)}
+                    onClick={() => {
+                      const itemId = (item as any).idCarrito || item.id_carrito;
+                      console.log('🛒 CartDrawer - Remove item clicked, itemId:', itemId);
+                      console.log('🛒 CartDrawer - Full item:', item);
+                      onRemoveItem(itemId);
+                    }}
                     disabled={isUpdating}
                     sx={{ alignSelf: 'flex-start' }}
                   >
@@ -209,7 +226,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton
                       size="small"
-                      onClick={() => handleDecreaseQuantity(item.id_carrito, item.cantidad)}
+                      onClick={() =>
+                        handleDecreaseQuantity(
+                          (item as any).idCarrito || item.id_carrito,
+                          item.cantidad,
+                        )
+                      }
                       disabled={isUpdating}
                       sx={{
                         border: 1,
@@ -233,7 +255,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                     <IconButton
                       size="small"
-                      onClick={() => handleIncreaseQuantity(item.id_carrito, item.cantidad)}
+                      onClick={() =>
+                        handleIncreaseQuantity(
+                          (item as any).idCarrito || item.id_carrito,
+                          item.cantidad,
+                        )
+                      }
                       disabled={isUpdating}
                       sx={{
                         border: 1,
@@ -249,6 +276,47 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     {formatCurrency(item.subtotal)}
                   </Typography>
                 </Box>
+
+                {/* Next discount hint for this product */}
+                {((item.producto as any).descuentosCantidad ||
+                  (item.producto as any).descuentos_cantidad) && (
+                  <Box sx={{ mt: 1, ml: 8 }}>
+                    {(() => {
+                      const discounts =
+                        (item.producto as any).descuentosCantidad ||
+                        (item.producto as any).descuentos_cantidad ||
+                        [];
+                      // Create a copy of the array before sorting to avoid mutating read-only array
+                      const sortedDiscounts = [...discounts].sort(
+                        (a: any, b: any) =>
+                          (a.cantidadMinima || a.cantidad_minima) -
+                          (b.cantidadMinima || b.cantidad_minima),
+                      );
+                      const nextDiscount = sortedDiscounts.find(
+                        (discount: any) =>
+                          (discount.cantidadMinima || discount.cantidad_minima) > item.cantidad,
+                      );
+
+                      if (nextDiscount) {
+                        const minQuantity =
+                          nextDiscount.cantidadMinima || nextDiscount.cantidad_minima;
+                        const discountPercent =
+                          nextDiscount.descuentoPorcentaje || nextDiscount.descuento_porcentaje;
+                        const needed = minQuantity - item.cantidad;
+                        return (
+                          <Typography variant="caption" color="info.main">
+                            Agrega {needed} más para {discountPercent}% de descuento
+                          </Typography>
+                        );
+                      }
+                      return (
+                        <Typography variant="caption" color="success.main">
+                          ¡Máximo descuento aplicado!
+                        </Typography>
+                      );
+                    })()}
+                  </Box>
+                )}
               </ListItem>
             ))}
           </List>

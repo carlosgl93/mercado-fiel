@@ -1,8 +1,6 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 export const usuarioDrawerOptions = [
   {
@@ -20,16 +18,16 @@ export const usuarioDrawerOptions = [
     path: '/explorar-productos',
     icon: InventoryIcon,
   },
-  {
-    title: 'Mis Pedidos',
-    path: '/mis-pedidos',
-    icon: ShoppingCartIcon,
-  },
-  {
-    title: 'Inbox',
-    path: '/usuario-inbox',
-    icon: MailOutlinedIcon,
-  },
+  // {
+  //   title: 'Mis Pedidos',
+  //   path: '/mis-pedidos',
+  //   icon: ShoppingCartIcon,
+  // },
+  // {
+  //   title: 'Inbox',
+  //   path: '/usuario-inbox',
+  //   icon: MailOutlinedIcon,
+  // },
 ];
 
 export const generalOptionsDrawerList = [

@@ -153,6 +153,7 @@ export const useAuth = () => {
         const proveedorData = userData.proveedor?.[0];
 
         // Transform database user to auth types
+        console.log('🔍 User data from database:', userData);
         const authUser: AuthUser = {
           success: true,
           data: {
@@ -162,7 +163,7 @@ export const useAuth = () => {
             fechaRegistro: userData.fecha_registro,
             activo: userData.activo,
             profilePictureUrl: userData.profile_picture_url,
-            idPlan: null, // TODO: Add plan support if needed
+            idPlan: null,
             createdAt: userData.created_at,
             updatedAt: userData.updated_at,
             cliente: clienteData
@@ -184,8 +185,8 @@ export const useAuth = () => {
                   descripcion: proveedorData.descripcion,
                   telefonoContacto: proveedorData.telefono_contacto,
                   idDireccion: proveedorData.id_direccion,
-                  latitud: undefined, // TODO: Add if needed
-                  longitud: undefined, // TODO: Add if needed
+                  latitud: undefined,
+                  longitud: undefined,
                   destacado: proveedorData.destacado,
                   email: proveedorData.email,
                   radioEntregaKm: proveedorData.radio_entrega_km,
@@ -278,7 +279,7 @@ export const useAuth = () => {
             supabaseUser.email?.split('@')[0] ||
             'Usuario',
           email: supabaseUser.email!,
-          contrasena_hash: '', // Not used with Supabase Auth
+          contrasena_hash: '',
           activo: true,
           auth_uid: supabaseUser.id,
         })
@@ -291,7 +292,6 @@ export const useAuth = () => {
       }
 
       console.log('✅ User created in database, reloading profile...');
-      // Reload the profile after creation
       await loadUserProfile(supabaseUser);
     } catch (error) {
       console.error('❌ Failed to create user in database:', error);
@@ -317,7 +317,6 @@ export const useAuth = () => {
     });
     setIsSigningOut(false);
 
-    // Navigate to home after state is cleared
     setTimeout(() => {
       console.log('🏠 Navigating to home');
       navigate('/', { replace: true });
@@ -335,7 +334,6 @@ export const useAuth = () => {
         console.log('🚀 Initializing authentication...');
         setIsLoading(true);
 
-        // Get current session
         const {
           data: { session },
           error,
@@ -379,7 +377,6 @@ export const useAuth = () => {
 
       switch (event) {
         case 'INITIAL_SESSION':
-          // Handle initial session in initializeAuth
           break;
 
         case 'SIGNED_IN':
@@ -410,7 +407,6 @@ export const useAuth = () => {
       }
     });
 
-    // Initialize
     initializeAuth();
 
     return () => {
@@ -426,38 +422,41 @@ export const useAuth = () => {
     console.log('🔐 Signing in:', email);
     setIsSigningIn(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.toLowerCase(),
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase(),
+        password,
+      });
 
-    if (error) {
-      console.error('❌ Sign in error:', error);
+      if (error) {
+        console.error('❌ Sign in error:', error);
 
-      let message = 'Error al iniciar sesión';
-      if (error.message.includes('Invalid login credentials')) {
-        message = 'Credenciales inválidas';
-      } else if (error.message.includes('Email not confirmed')) {
-        message = 'Por favor confirma tu email';
+        let message = 'Error al iniciar sesión';
+        if (error.message.includes('Invalid login credentials')) {
+          message = 'Credenciales inválidas';
+        } else if (error.message.includes('Email not confirmed')) {
+          message = 'Por favor confirma tu email';
+        }
+
+        setNotification({
+          open: true,
+          message,
+          severity: 'error',
+        });
+        throw error;
       }
 
+      console.log('✅ Sign in successful:', data.user?.email);
       setNotification({
         open: true,
-        message,
-        severity: 'error',
+        message: '¡Iniciaste sesión exitosamente!',
+        severity: 'success',
       });
-      throw error;
+
+      // Auth state change listener will handle loading user profile
+    } finally {
+      setIsSigningIn(false);
     }
-
-    console.log('✅ Sign in successful:', data.user?.email);
-    setNotification({
-      open: true,
-      message: '¡Iniciaste sesión exitosamente!',
-      severity: 'success',
-    });
-
-    // Auth state change listener will handle loading user profile
-    setIsSigningIn(false);
   };
 
   /**
@@ -467,114 +466,116 @@ export const useAuth = () => {
     console.log('📝 Signing up:', signUpData.email, signUpData.type);
     setIsSigningUp(true);
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: signUpData.email.toLowerCase(),
-      password: signUpData.password,
-      options: {
-        data: {
-          nombre: signUpData.nombre,
-          apellido: signUpData.apellido,
-          telefono: signUpData.telefono,
-          user_type: signUpData.type,
+    try {
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: signUpData.email.toLowerCase(),
+        password: signUpData.password,
+        options: {
+          data: {
+            nombre: signUpData.nombre,
+            apellido: signUpData.apellido,
+            telefono: signUpData.telefono,
+            user_type: signUpData.type,
+          },
         },
-      },
-    });
+      });
 
-    if (authError) {
-      console.error('❌ Supabase auth error:', authError);
+      if (authError) {
+        console.error('❌ Supabase auth error:', authError);
 
-      let message = 'Error al crear la cuenta';
-      if (authError.message.includes('User already registered')) {
-        message = 'El email ya está registrado';
-      } else if (authError.message.includes('Password should be')) {
-        message = 'La contraseña debe tener al menos 6 caracteres';
-      } else if (authError.message.includes('Invalid email')) {
-        message = 'Email inválido';
+        let message = 'Error al crear la cuenta';
+        if (authError.message.includes('User already registered')) {
+          message = 'El email ya está registrado';
+        } else if (authError.message.includes('Password should be')) {
+          message = 'La contraseña debe tener al menos 6 caracteres';
+        } else if (authError.message.includes('Invalid email')) {
+          message = 'Email inválido';
+        }
+
+        setNotification({
+          open: true,
+          message,
+          severity: 'error',
+        });
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('No user returned from signup');
+      }
+
+      console.log('✅ Supabase user created:', authData.user.email);
+
+      // Create user in database
+      const { data: userData, error: dbError } = await supabase
+        .from('usuarios')
+        .insert({
+          nombre: signUpData.nombre,
+          email: signUpData.email.toLowerCase(),
+          contrasena_hash: '',
+          activo: true,
+          auth_uid: authData.user.id,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('❌ Database user creation error:', dbError);
+        throw dbError;
+      }
+
+      // Create role-specific profile
+      if (signUpData.type === 'customer') {
+        const { error: customerError } = await supabase.from('clientes').insert({
+          id_usuario: userData.id_usuario,
+          telefono: signUpData.telefono,
+        });
+
+        if (customerError) {
+          console.error('❌ Customer creation error:', customerError);
+          throw customerError;
+        }
+
+        console.log('✅ Customer profile created');
+      } else if (signUpData.type === 'supplier') {
+        const { error: supplierError } = await supabase.from('proveedores').insert({
+          id_usuario: userData.id_usuario,
+          nombre_negocio: signUpData.nombre_negocio || signUpData.nombre,
+          descripcion: signUpData.descripcion || '',
+          telefono_contacto: signUpData.telefono,
+          destacado: false,
+          cobra_envio: true,
+          radio_entrega_km: 10,
+        });
+
+        if (supplierError) {
+          console.error('❌ Supplier creation error:', supplierError);
+          throw supplierError;
+        }
+
+        console.log('✅ Supplier profile created');
       }
 
       setNotification({
         open: true,
-        message,
-        severity: 'error',
-      });
-      throw authError;
-    }
-
-    if (!authData.user) {
-      throw new Error('No user returned from signup');
-    }
-
-    console.log('✅ Supabase user created:', authData.user.email);
-
-    // Create user in database
-    const { data: userData, error: dbError } = await supabase
-      .from('usuarios')
-      .insert({
-        nombre: signUpData.nombre,
-        email: signUpData.email.toLowerCase(),
-        contrasena_hash: '', // Not used with Supabase Auth
-        activo: true,
-        auth_uid: authData.user.id,
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error('❌ Database user creation error:', dbError);
-      throw dbError;
-    }
-
-    // Create role-specific profile
-    if (signUpData.type === 'customer') {
-      const { error: customerError } = await supabase.from('clientes').insert({
-        id_usuario: userData.id_usuario,
-        telefono: signUpData.telefono,
+        message: '¡Cuenta creada exitosamente! Por favor verifica tu email.',
+        severity: 'success',
       });
 
-      if (customerError) {
-        console.error('❌ Customer creation error:', customerError);
-        throw customerError;
+      // Navigate based on user type (if email confirmation is not required)
+      if (authData.session) {
+        if (signUpData.type === 'customer') {
+          navigate('/usuario-dashboard');
+        } else if (signUpData.type === 'supplier') {
+          navigate('/proveedor-dashboard');
+        }
+      } else {
+        navigate('/ingresar');
       }
-
-      console.log('✅ Customer profile created');
-    } else if (signUpData.type === 'supplier') {
-      const { error: supplierError } = await supabase.from('proveedores').insert({
-        id_usuario: userData.id_usuario,
-        nombre_negocio: signUpData.nombre_negocio || signUpData.nombre,
-        descripcion: signUpData.descripcion || '',
-        telefono_contacto: signUpData.telefono,
-        destacado: false,
-        cobra_envio: true,
-        radio_entrega_km: 10,
-      });
-
-      if (supplierError) {
-        console.error('❌ Supplier creation error:', supplierError);
-        throw supplierError;
-      }
-
-      console.log('✅ Supplier profile created');
+    } finally {
+      setIsSigningUp(false);
     }
-
-    setNotification({
-      open: true,
-      message: '¡Cuenta creada exitosamente! Por favor verifica tu email.',
-      severity: 'success',
-    });
-
-    // Navigate based on user type (if email confirmation is not required)
-    if (authData.session) {
-      if (signUpData.type === 'customer') {
-        navigate('/usuario-dashboard');
-      } else if (signUpData.type === 'supplier') {
-        navigate('/proveedor-dashboard');
-      }
-    } else {
-      // Email verification required
-      navigate('/ingresar');
-    }
-    setIsSigningUp(false);
   };
 
   /**
@@ -619,10 +620,17 @@ export const useAuth = () => {
   }, [isCustomer, isSupplier]);
 
   return {
-    // Auth state
+    // Auth state - Compatible with all components
     user,
-    customer,
-    supplier,
+    customer:
+      customer ||
+      (user?.data?.cliente ? { ...user.data, ...user.data.cliente, isLoggedIn: true } : null),
+    supplier:
+      supplier ||
+      (user?.data?.proveedor ? { ...user.data, ...user.data.proveedor, isLoggedIn: true } : null),
+    cliente:
+      customer ||
+      (user?.data?.cliente ? { ...user.data, ...user.data.cliente, isLoggedIn: true } : null), // Alias for backward compatibility
     isInitialized,
     isLoading: isLoading || isSigningIn || isSigningUp || isSigningOut,
 
@@ -641,5 +649,8 @@ export const useAuth = () => {
     isSigningIn,
     isSigningUp,
     isSigningOut,
+
+    // Legacy error properties for backward compatibility
+    signUpError: null, // No longer using mutations, errors handled via notifications
   };
 };

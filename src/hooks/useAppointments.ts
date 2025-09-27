@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { interactedProveedorState } from '../store/resultados/interactedPrestador';
-import { useAuth } from './useAuth';
+import { useAuth } from './useAuthSupabase';
 
 export const useAppointments = (appointmentsIds?: string) => {
   const interactedPrestador = useRecoilValue(interactedProveedorState);
@@ -31,9 +31,9 @@ export const useAppointments = (appointmentsIds?: string) => {
   );
 
   const setNotification = useSetRecoilState(notificationState);
-  const { user, proveedor } = useAuth();
-  const providerId = interactedPrestador?.id ?? proveedor?.id;
-  const userId = user?.id;
+  const { user, supplier } = useAuth();
+  const providerId = interactedPrestador?.id ?? supplier?.idProveedor;
+  const userId = user?.data?.idUsuario;
 
   const {
     data: providersAppointments,
@@ -41,7 +41,7 @@ export const useAppointments = (appointmentsIds?: string) => {
     error: providersAppointmentsError,
   } = useQuery(
     ['providerAppointments', providerId],
-    () => getProviderAppointments(providerId ?? ''),
+    () => getProviderAppointments(providerId?.toString() ?? ''),
     {
       enabled: !!providerId,
       onSuccess: (data) => {
@@ -62,8 +62,8 @@ export const useAppointments = (appointmentsIds?: string) => {
     data: userAppointments,
     isLoading: userAppointmentsLoading,
     error: userAppointmentsError,
-  } = useQuery(['userAppointments', userId], () => getUserAppointments(userId ?? ''), {
-    enabled: !!userId && user.role === 'user',
+  } = useQuery(['userAppointments', userId], () => getUserAppointments(userId?.toString() ?? ''), {
+    enabled: !!userId && !!user?.data?.cliente,
     onSuccess: (data) => {
       setUserAppointments(data);
     },

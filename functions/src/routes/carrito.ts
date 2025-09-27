@@ -125,6 +125,20 @@ carritoRouter.post('/:userId', async (req, res, next) => {
       });
     }
 
+    // Debug: Check if user exists
+    const userExists = await prisma.usuarios.findUnique({
+      where: { id_usuario: userId },
+    });
+
+    logger.log(`Cart POST request for user ${userId}, exists: ${!!userExists}`);
+
+    if (!userExists) {
+      return res.status(404).json({
+        success: false,
+        message: `Usuario con ID ${userId} no existe en la base de datos`,
+      });
+    }
+
     const { id_producto, cantidad, precio_unitario }: AddToCartRequest = req.body;
 
     if (!id_producto || !cantidad || cantidad <= 0) {
@@ -186,12 +200,28 @@ carritoRouter.post('/:userId', async (req, res, next) => {
     let cartItem;
 
     if (existingItem) {
+      // Calculate discount based on TOTAL quantity (existing + new)
+      const totalQuantity = existingItem.cantidad + cantidad;
+      let finalPriceForTotal = basePrice;
+
+      // Recalculate discount for total quantity
+      for (const discount of product.descuentos_cantidad) {
+        if (totalQuantity >= discount.cantidad_minima) {
+          if (discount.precio_descuento) {
+            finalPriceForTotal = Math.min(finalPriceForTotal, Number(discount.precio_descuento));
+          } else if (discount.descuento_porcentaje) {
+            const discountedPrice = basePrice * (1 - Number(discount.descuento_porcentaje) / 100);
+            finalPriceForTotal = Math.min(finalPriceForTotal, discountedPrice);
+          }
+        }
+      }
+
       // Update existing item
       cartItem = await prisma.carrito.update({
         where: { id_carrito: existingItem.id_carrito },
         data: {
-          cantidad: existingItem.cantidad + cantidad,
-          precio_unitario: finalPrice,
+          cantidad: totalQuantity,
+          precio_unitario: finalPriceForTotal,
           updated_at: new Date(),
         },
         include: {

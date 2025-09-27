@@ -48,7 +48,7 @@ function RegistrarUsuario() {
               my: '1rem',
             }}
           >
-            ¡Estas a un solo paso! Registrate para poder contactar a la persona que buscas.
+            ¡Estas a un solo paso!
           </Title>
         </TextContainer>
         <Box
@@ -210,7 +210,7 @@ function RegistrarUsuario() {
                     color: 'red',
                   }}
                 >
-                  Hubo un error al crear tu cuenta. {signUpError?.message}
+                  Hubo un error al crear tu cuenta.
                 </Text>
               </Box>
             )}

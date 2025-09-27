@@ -1,6 +1,6 @@
 import { SendMessageArgs } from '@/api/firebase/chat';
 import { Apoyo } from '@/api/supportRequests';
-import { useAuth, useChat } from '@/hooks';
+import { useChat } from '@/hooks';
 import { Prestador } from '@/store/auth/proveedor';
 import { User } from '@/store/auth/user';
 import { interactedProveedorState } from '@/store/resultados/interactedPrestador';
@@ -8,6 +8,7 @@ import { Box } from '@mui/material';
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import Loading from '../Loading';
 import { Title } from '../StyledComponents';
 import {
@@ -60,7 +61,7 @@ export const EnviarMensaje = ({
   const { user } = useAuth();
   const providerId =
     prestador?.id ?? prestadorId ?? interactedPrestador?.id ?? (id || prestador?.id);
-  const customerId = userId ?? user?.id ?? customer?.id;
+  const customerId = userId ?? user?.data?.idUsuario?.toString() ?? customer?.idUsuario?.toString();
 
   let firstMessage: SendMessageArgs;
   if (pathname.includes('/perfil-prestador')) {
@@ -69,13 +70,13 @@ export const EnviarMensaje = ({
       sentBy,
       providerId: providerId,
       userId: customerId,
-      username: user?.firstname,
+      username: user?.data?.nombre,
       providerName: interactedPrestador?.firstname?.length
         ? interactedPrestador.firstname
         : interactedPrestador.email,
       // providerEmail: interactedPrestador.email,k
       providerEmail: '',
-      userEmail: user?.email ?? '',
+      userEmail: user?.data?.email ?? '',
     };
   } else {
     firstMessage = {

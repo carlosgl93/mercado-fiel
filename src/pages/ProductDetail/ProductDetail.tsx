@@ -1,6 +1,6 @@
 import { campaignsApi } from '@/api/campaigns';
 import { productsApi } from '@/api/products';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import {
   Add as AddIcon,
   ArrowBack as ArrowBackIcon,
@@ -34,7 +34,7 @@ import {
   TableRow,
   TextField,
   Typography,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';

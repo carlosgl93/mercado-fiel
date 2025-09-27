@@ -77,10 +77,10 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/PerfilProveedor')),
     path: '/perfil-proveedor/:id',
   },
-  [Pages.PreviewPerfilPrestador]: {
-    component: asyncComponentLoader(() => import('@/pages/PreviewPerfilPrestador')),
-    path: '/preview-perfil-prestador/',
-  },
+  // [Pages.PreviewPerfilPrestador]: {
+  //   component: asyncComponentLoader(() => import('@/pages/PreviewPerfilPrestador')),
+  //   path: '/preview-perfil-prestador/',
+  // },
   [Pages.ConstruirPerfil]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil')),
     path: '/construir-perfil',

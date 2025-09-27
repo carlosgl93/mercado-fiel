@@ -294,10 +294,7 @@ export const PerfilUsuario = () => {
         title="Mi Perfil"
         description="Gestiona tu información personal"
         icon={<PersonIcon />}
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/usuario-dashboard' },
-          { label: 'Mi Perfil' },
-        ]}
+        breadcrumbs={[{ label: 'Dashboard', href: '/usuario-dashboard' }, { label: 'Mi Perfil' }]}
         onBack={() => navigate('/usuario-dashboard')}
         actions={
           <Button
@@ -320,16 +317,16 @@ export const PerfilUsuario = () => {
                 <Box position="relative" display="inline-block">
                   <Avatar
                     src={profileData.previewUrl || profileData.profilePictureUrl}
-                    sx={{ 
-                      width: 120, 
-                      height: 120, 
+                    sx={{
+                      width: 120,
+                      height: 120,
                       mb: 2,
                       mx: 'auto',
                     }}
                   >
                     <PersonIcon sx={{ fontSize: 60 }} />
                   </Avatar>
-                  
+
                   <IconButton
                     component="label"
                     disabled={isUploadingImage}
@@ -351,19 +348,14 @@ export const PerfilUsuario = () => {
                     ) : (
                       <PhotoCameraIcon fontSize="small" />
                     )}
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
+                    <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
                   </IconButton>
                 </Box>
-                
+
                 <Typography variant="h6" gutterBottom>
                   {userProfileData.nombre || 'Usuario'}
                 </Typography>
-                
+
                 <Chip
                   label={userProfileData.activo ? 'Activo' : 'Inactivo'}
                   color={userProfileData.activo ? 'success' : 'default'}
@@ -396,7 +388,7 @@ export const PerfilUsuario = () => {
                       {userProfileData.isEditingName ? <CloseIcon /> : <EditIcon />}
                     </IconButton>
                   </Box>
-                  
+
                   {userProfileData.isEditingName ? (
                     <Box display="flex" gap={1}>
                       <TextField
@@ -436,7 +428,7 @@ export const PerfilUsuario = () => {
                       {userProfileData.isEditingEmail ? <CloseIcon /> : <EditIcon />}
                     </IconButton>
                   </Box>
-                  
+
                   {userProfileData.isEditingEmail ? (
                     <Box display="flex" gap={1}>
                       <TextField
@@ -477,7 +469,7 @@ export const PerfilUsuario = () => {
                       {userProfileData.isEditingStatus ? <CloseIcon /> : <EditIcon />}
                     </IconButton>
                   </Box>
-                  
+
                   {userProfileData.isEditingStatus ? (
                     <Box display="flex" alignItems="center" gap={2}>
                       <FormControlLabel
@@ -509,14 +501,14 @@ export const PerfilUsuario = () => {
                 <Divider sx={{ my: 3 }} />
 
                 {/* Action Buttons */}
-                <Box display="flex" gap={2} justifyContent="flex-end">
+                {/* <Box display="flex" gap={2} justifyContent="flex-end">
                   <Button
                     variant="outlined"
                     onClick={() => navigate('/usuario-dashboard')}
                   >
                     Volver al Dashboard
                   </Button>
-                </Box>
+                </Box> */}
               </CardContent>
             </Card>
           </Grid>

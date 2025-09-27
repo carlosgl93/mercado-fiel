@@ -8,6 +8,7 @@ export const BrandHomeLinkMobile = () => {
       sx={{
         display: 'flex',
         justifyContent: 'center',
+        backgroundColor: '#fcf9f4',
       }}
     >
       <Link

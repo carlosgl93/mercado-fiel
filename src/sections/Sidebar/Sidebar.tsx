@@ -8,33 +8,39 @@ import { UsuarioDrawerList } from './UsuarioDrawerList';
 
 function Sidebar() {
   const [isSidebarOpen, sidebarActions] = useSidebar();
-  const { supplier, user, customer } = useAuth();
+  const { supplier, user } = useAuth();
 
-  const isLoggedIn = user !== null && user !== undefined;
+  const isLoggedIn = user?.data?.isLoggedIn;
+  const isSupplier = isLoggedIn && supplier?.idUsuario;
   const closeDrawer = sidebarActions.close;
 
-  if (!isLoggedIn) {
-    return (
-      <Drawer anchor="left" open={isSidebarOpen} onClose={closeDrawer}>
-        <BrandHomeLinkMobile />
-        <NotLoggedInDrawerList closeDrawer={closeDrawer} />
-      </Drawer>
-    );
-  } else if (isLoggedIn && supplier?.idUsuario) {
-    return (
-      <Drawer anchor="left" open={isSidebarOpen} onClose={closeDrawer}>
-        <BrandHomeLinkMobile />
-        <PrestadorDrawerList closeDrawer={closeDrawer} />;
-      </Drawer>
-    );
-  } else {
-    return (
-      <Drawer anchor="left" open={isSidebarOpen} onClose={closeDrawer}>
-        <BrandHomeLinkMobile />
-        <UsuarioDrawerList closeDrawer={closeDrawer} />
-      </Drawer>
-    );
-  }
+  // Determine which drawer content to render
+  const getDrawerContent = () => {
+    if (!isLoggedIn) {
+      return <NotLoggedInDrawerList closeDrawer={closeDrawer} />;
+    }
+
+    if (isSupplier) {
+      return <PrestadorDrawerList closeDrawer={closeDrawer} />;
+    }
+
+    return <UsuarioDrawerList closeDrawer={closeDrawer} />;
+  };
+
+  // Common drawer props
+  const drawerProps = {
+    anchor: 'left' as const,
+    open: isSidebarOpen,
+    onClose: closeDrawer,
+    ...(isLoggedIn ? {} : { sx: { backgroundColor: '#fcf9f4' } }),
+  };
+
+  return (
+    <Drawer {...drawerProps}>
+      <BrandHomeLinkMobile />
+      {getDrawerContent()}
+    </Drawer>
+  );
 }
 
 export default Sidebar;

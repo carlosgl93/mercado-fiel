@@ -35,8 +35,6 @@ export const productsApi = {
     // Map response to camelCase
     const mappedProducts = response.data.data.productos.map((product: any) => {
       const mapped = mapProductFromApi(product);
-      console.log('Original product:', product);
-      console.log('Mapped product:', mapped);
       return mapped;
     });
 

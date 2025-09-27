@@ -148,6 +148,7 @@ export const useAuth = () => {
 
   // Clear auth state
   const clearAuthState = useCallback(() => {
+    console.log('clearing auth state');
     setUser(null);
     setCustomer(null);
     setSupplier(null);
@@ -159,6 +160,7 @@ export const useAuth = () => {
       isLoading: false,
     });
     queryClient.clear();
+    console.log('auth state cleared');
   }, [setAuth, setUser, setCustomer, setSupplier, queryClient]);
 
   // Initialize auth
@@ -283,6 +285,12 @@ export const useAuth = () => {
         let apiResponse;
         if (type === 'customer') {
           console.log('Creating customer in database...');
+          console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
+          console.log('Customer data:', {
+            email: email.toLowerCase(),
+            nombre,
+            telefono: extraData.telefono,
+          });
           apiResponse = await authApi.createCustomer({
             email: email.toLowerCase(),
             nombre,
@@ -291,6 +299,14 @@ export const useAuth = () => {
           console.log('Customer created in database:', apiResponse);
         } else if (type === 'supplier') {
           console.log('Creating supplier in database...');
+          console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
+          console.log('Supplier data:', {
+            email: email.toLowerCase(),
+            nombre,
+            nombre_negocio: extraData.nombre_negocio || nombre,
+            descripcion: extraData.descripcion || '',
+            telefono_contacto: extraData.telefono_contacto,
+          });
           apiResponse = await authApi.createSupplier({
             email: email.toLowerCase(),
             nombre,
@@ -500,14 +516,14 @@ export const useAuth = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log('signed out');
-      clearAuthState();
       navigate('/');
+      clearAuthState();
       setNotification({
         open: true,
         message: '¡Cerraste sesión exitosamente!',
         severity: 'success',
       });
+      console.log('signed out');
     },
     onMutate: () => {
       console.log('sgining  out');

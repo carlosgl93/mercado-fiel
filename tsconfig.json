@@ -26,7 +26,8 @@
     "src/utils/seedDb.ts",
     "tests",
     "public/deprecated.sw.js",
-    "public/deprecated.swDev.js"
+    "public/deprecated.swDev.js",
+    "SW"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

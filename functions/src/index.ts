@@ -15,5 +15,5 @@ const app = initializeApp({
   storageBucket: 'mercado-fiel.appspot.com',
 });
 
-// Export the initialized services
+// Export the initialized services and functions
 export { api, app, getAuth, getFirestore, getStorage };

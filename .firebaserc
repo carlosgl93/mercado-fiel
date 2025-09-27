@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "mercado-fiel"
-  }
+    "default": "mercado-fiel",
+    "prod": "mercado-fiel"
+  },
+  "targets": {},
+  "etags": {}
 }

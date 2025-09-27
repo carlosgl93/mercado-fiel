@@ -65,6 +65,7 @@ authRouter.post(
           email: email.toLowerCase(),
           contrasena_hash: '', // Supabase handles authentication
           activo: true,
+          // Note: auth_uid will be updated when user logs in via Supabase webhook/RLS sync
         },
       });
 

@@ -88,9 +88,6 @@ export const ProveedorPerfil = () => {
     enabled: !!supplier?.idProveedor,
   });
 
-  console.log('supplierResponse', supplierResponse);
-
-  // Mutation for updating business info
   const updateBusinessMutation = useMutation({
     mutationFn: (businessData: UpdateBusinessRequest) =>
       suppliersApi.updateBusiness(supplier?.idProveedor || 0, businessData),

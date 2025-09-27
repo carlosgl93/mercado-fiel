@@ -378,7 +378,7 @@ deploy_prod() {
     
     print_success "Successfully deployed to production!"
     print_status "Production URL: https://mercado-fiel.web.app"
-    print_status "API URL: https://us-central1-mercado-fiel.cloudfunctions.net/api"
+    print_status "API URL: https://southamerica-west1-mercado-fiel.cloudfunctions.net/api"
 }
 
 # Function to show current environment

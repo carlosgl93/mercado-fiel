@@ -19,6 +19,34 @@ const app = express();
 
 // Middleware for JSON parsing
 app.use(express.json());
+
+// CORS middleware for additional safety
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://mercado-fiel.web.app', 
+    'https://mercado-fiel.firebaseapp.com',
+    'https://mercadofiel.cl'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin || '')) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
+  next();
+});
+
 app.use(loggerMiddleware);
 
 // Add a health check endpoint
@@ -48,7 +76,13 @@ app.use(errorHandler);
 // Configure the Cloud Function with appropriate settings
 export const api = onRequest(
   {
-    cors: true,
+    cors: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://mercado-fiel.web.app',
+      'https://mercado-fiel.firebaseapp.com',
+      'https://mercadofiel.cl',
+    ],
     timeoutSeconds: 15,
     memory: '512MiB',
     region: 'southamerica-west1',

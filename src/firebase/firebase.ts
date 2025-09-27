@@ -34,9 +34,8 @@ export const auth = getAuth(app);
 // TODO: Migrate to Supabase - keeping Firestore temporarily for existing features
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const functions = getFunctions(app);
+export const functions = getFunctions(app, 'southamerica-west1');
 export const analytics = getAnalytics(app);
-functions.region = 'southamerica-west1';
 
 if (import.meta.env.VITE_ENV === 'dev') {
   console.log('connecting to emulators');

@@ -33,27 +33,65 @@ export const uploadImageToSupabase = async (
 
     // Verify user is supplier for product uploads
     if (bucket === 'product-images') {
-      const { data: supplierCheck, error: supplierError } = await supabase
-        .from('usuarios')
-        .select(
-          `
-          proveedores (
-            id_proveedor
-          )
-        `,
-        )
-        .eq('email', session.user.email)
-        .single();
+      console.log('🔍 Checking supplier permissions for:', session.user.email);
+      
+      // Check if user exists and is a supplier by calling our API endpoint
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession?.access_token) {
+        throw new Error('No valid session token found');
+      }
 
-      if (supplierError || !supplierCheck?.proveedores?.length) {
-        console.error('Supplier verification failed:', supplierError);
+      // Use our API to get user data (same as auth hook)
+      const response = await fetch(`http://127.0.0.1:5001/mercado-fiel/southamerica-west1/api/auth/user/${session.user.email}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.error('❌ User not found in database:', session.user.email);
+          return {
+            success: false,
+            error: 'Usuario no encontrado en el sistema. Contacta al administrador.',
+          };
+        }
+        console.error('❌ API call failed:', response.status, await response.text());
         return {
           success: false,
-          error: 'Solo los proveedores pueden subir imágenes de productos.',
+          error: 'Error al verificar permisos de proveedor. Inténtalo de nuevo.',
         };
       }
 
-      console.log('Supplier verified:', supplierCheck.proveedores[0]);
+      const userData = await response.json();
+      console.log('🔍 Supplier check result:', userData);
+
+      if (!userData.success || !userData.data) {
+        console.error('❌ Invalid API response:', userData);
+        return {
+          success: false,
+          error: 'Error al verificar permisos de proveedor.',
+        };
+      }
+
+      const userRecord = userData.data;
+      console.log('👤 User record found:', userRecord);
+      
+      if (!userRecord.proveedor) {
+        console.error('❌ User is not a supplier:', {
+          email: session.user.email,
+          has_proveedor_record: !!userRecord.proveedor
+        });
+        return {
+          success: false,
+          error: 'Solo los proveedores pueden subir imágenes de productos. Verifica tus permisos.',
+        };
+      }
+
+      console.log('✅ Supplier verified:', userRecord.proveedor);
     }
 
     // Generate unique filename

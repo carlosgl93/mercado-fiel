@@ -1,6 +1,8 @@
 import { Box, useTheme } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/Loading';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import { useCustomers, UserLookingFor, useUserLookingFor } from '../../hooks';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import DesktopFilters from './DesktopFilters';
@@ -8,9 +10,28 @@ import DesktopResultList from './DesktopResultList';
 
 const DesktopResults = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
-  const { lookingFor, userLookingFor } = useUserLookingFor();
+  const { user, supplier, customer, isAuthenticated } = useAuth();
+  const { lookingFor, userLookingFor, handleSelectLookingFor } = useUserLookingFor();
+
+  // Smart logic: redirect non-logged users and infer looking preference
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/comienzo', { replace: true });
+      return;
+    }
+
+    // Auto-infer what user is looking for if not set
+    if (userLookingFor === null) {
+      if (supplier?.idProveedor) {
+        handleSelectLookingFor(UserLookingFor.CUSTOMERS);
+      } else if (customer?.idCliente || user?.data?.cliente) {
+        handleSelectLookingFor(UserLookingFor.SUPPLIERS);
+      }
+    }
+  }, [isAuthenticated, supplier, customer, user, userLookingFor, handleSelectLookingFor, navigate]);
 
   const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
   const { isLoadingCustomers, customers } = useCustomers(page, limit);

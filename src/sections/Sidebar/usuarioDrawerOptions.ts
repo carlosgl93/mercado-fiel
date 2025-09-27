@@ -1,6 +1,7 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import PeopleIcon from '@mui/icons-material/People';
 
 export const usuarioDrawerOptions = [
   {
@@ -17,6 +18,11 @@ export const usuarioDrawerOptions = [
     title: 'Productos',
     path: '/explorar-productos',
     icon: InventoryIcon,
+  },
+  {
+    title: 'Proveedores',
+    path: '/resultados',
+    icon: PeopleIcon,
   },
   // {
   //   title: 'Mis Pedidos',

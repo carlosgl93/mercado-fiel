@@ -7,7 +7,7 @@ import RegistrarProveedorController from './RegistrarProveedorController';
 import { formInputs } from './formInputs';
 
 function RegistrarProveedor() {
-  const { state, handleChange, handleSubmit, handleAcceptTerms, signUpLoading } =
+  const { state, handleChange, handleSubmit, handleAcceptTerms, signUpLoading, isFormValid } =
     RegistrarProveedorController();
   const theme = useTheme();
   console.log(state.error);
@@ -119,18 +119,7 @@ function RegistrarProveedor() {
             }}
           >
             <Button
-              disabled={
-                state.nombre === '' ||
-                state.apellido === '' ||
-                state.telefono === '' ||
-                state.rut === '' ||
-                !state.acceptedTerms ||
-                state.correo === '' ||
-                state.contrasena === '' ||
-                state.confirmarContrasena === '' ||
-                state.error !== '' ||
-                signUpLoading
-              }
+              disabled={!isFormValid || !!state.error || signUpLoading}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSubmit();

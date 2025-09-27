@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Reviews from '../../components/Reviews';
 import { FlexBox } from '../../components/styled';
 import { Text, Title } from '../../components/StyledComponents';
-import { useUserLookingFor } from '../../hooks';
+import { useUserLookingFor, UserLookingFor } from '../../hooks';
 import { Customer, Supplier } from '../../models';
 
 const DesktopResultList = ({
@@ -19,7 +19,7 @@ const DesktopResultList = ({
   const navigate = useNavigate();
   const handleNavigateToProfile = (liClicked: Supplier | Customer) => {
     console.log({ liClicked });
-    if (userLookingFor === 'customers') {
+    if (userLookingFor === UserLookingFor.CUSTOMERS) {
       navigate(`/perfil-cliente/${(liClicked as Customer).idCliente}`, {
         state: {
           prestador: liClicked as Customer,
@@ -50,13 +50,12 @@ const DesktopResultList = ({
     );
   }
 
+  // This should not happen now since parent components handle smart logic
   if (userLookingFor === null) {
-    return (
-      <Text>Selecciona si buscas proveedores o clientes en los filtros para ver resultados.</Text>
-    );
+    return null;
   }
 
-  if (userLookingFor === 'customers') {
+  if (userLookingFor === UserLookingFor.CUSTOMERS) {
     // render customer results
     return (
       <FlexBox flexDirection={'column'}>

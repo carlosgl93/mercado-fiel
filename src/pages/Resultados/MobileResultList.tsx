@@ -1,21 +1,46 @@
-import { Text, Title } from '@/components/StyledComponents';
+import { Title } from '@/components/StyledComponents';
 import { Avatar, Box, Button, List, ListItem, useTheme } from '@mui/material';
-import { Link } from 'react-router-dom';
-import { useUserLookingFor } from '../../hooks';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserLookingFor, useUserLookingFor } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import { Customer } from '../../models/Customer';
-import { Supplier } from '../../models/Supplier';
+import { SuppliersListResponse } from '../../types/supplier';
 
 export const MobileResultList = ({
   results,
   setPage,
   setLimit,
 }: {
-  results: Customer[] | Supplier[] | undefined;
+  results: Customer[] | SuppliersListResponse[] | undefined;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   setLimit: React.Dispatch<React.SetStateAction<number>>;
 }) => {
+  console.log({ results });
   const theme = useTheme();
-  const { userLookingFor } = useUserLookingFor();
+  const navigate = useNavigate();
+  const { user, supplier, customer, isAuthenticated } = useAuth();
+  const { userLookingFor, handleSelectLookingFor } = useUserLookingFor();
+
+  // Smart logic: infer what user is looking for based on their role
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      // Redirect non-logged users to /comienzo
+      navigate('/comienzo', { replace: true });
+      return;
+    }
+
+    // If userLookingFor is not set, infer from user role
+    if (userLookingFor === null) {
+      if (supplier?.idProveedor) {
+        // Supplier/Proveedor looks for customers/clientes
+        handleSelectLookingFor(UserLookingFor.CUSTOMERS);
+      } else if (customer?.idCliente || user?.data?.cliente) {
+        // Customer/Cliente looks for suppliers/proveedores
+        handleSelectLookingFor(UserLookingFor.SUPPLIERS);
+      }
+    }
+  }, [isAuthenticated, supplier, customer, user, userLookingFor, handleSelectLookingFor, navigate]);
 
   if (!results || results.length === 0) {
     return (
@@ -33,13 +58,12 @@ export const MobileResultList = ({
     );
   }
 
+  // This should not happen now since we auto-infer or redirect
   if (userLookingFor === null) {
-    return (
-      <Text>Selecciona si buscas proveedores o clientes en los filtros para ver resultados.</Text>
-    );
+    return null;
   }
 
-  if (userLookingFor === 'customers') {
+  if (userLookingFor === UserLookingFor.CUSTOMERS) {
     return (
       <>
         <List
@@ -152,7 +176,7 @@ export const MobileResultList = ({
         <Box className="bottomSentinel" />
       </>
     );
-  } else if (userLookingFor === 'suppliers') {
+  } else if (userLookingFor === UserLookingFor.SUPPLIERS) {
     return (
       <>
         <List
@@ -163,7 +187,7 @@ export const MobileResultList = ({
             p: 0,
           }}
         >
-          {(results as Supplier[]).map((s) => {
+          {results?.data?.map((s) => {
             const { idProveedor: id, usuario } = s;
             const { nombre, profilePictureUrl } = usuario || {};
             if (!usuario) return null; // Ensure usuario exists

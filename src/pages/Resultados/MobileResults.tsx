@@ -1,8 +1,10 @@
 import Loading from '@/components/Loading';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import { Box, Button, Drawer, useTheme } from '@mui/material';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCustomers, UserLookingFor, useUserLookingFor } from '../../hooks';
+import { useAuth } from '../../hooks/useAuthSupabase';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import { MobileFilters } from './MobileFilters';
 import { MobileResultList } from './MobileResultList';
@@ -10,12 +12,32 @@ import { MobileResultList } from './MobileResultList';
 const MobileResults = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const theme = useTheme();
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
-  const { lookingFor, userLookingFor } = useUserLookingFor();
+  const { user, supplier, customer, isAuthenticated } = useAuth();
+  const { lookingFor, userLookingFor, handleSelectLookingFor } = useUserLookingFor();
+
+  // Smart logic: redirect non-logged users and infer looking preference
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/comienzo', { replace: true });
+      return;
+    }
+
+    // Auto-infer what user is looking for if not set
+    if (userLookingFor === null) {
+      if (supplier?.idProveedor) {
+        handleSelectLookingFor(UserLookingFor.CUSTOMERS);
+      } else if (customer?.idCliente || user?.data?.cliente) {
+        handleSelectLookingFor(UserLookingFor.SUPPLIERS);
+      }
+    }
+  }, [isAuthenticated, supplier, customer, user, userLookingFor, handleSelectLookingFor, navigate]);
 
   const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
   const { isLoadingCustomers, customers } = useCustomers(page, limit);
+  console.log({ suppliers, customers });
 
   const isLoading = isLoadingCustomers || isLoadingSuppliers;
 
@@ -79,7 +101,7 @@ const MobileResults = () => {
           <MobileResultList
             results={
               lookingFor === null
-                ? [suppliers, customers]
+                ? [suppliers?.data, customers?.data]
                 : userLookingFor === UserLookingFor.CUSTOMERS
                 ? customers
                 : suppliers

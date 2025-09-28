@@ -1,12 +1,9 @@
-import { Appointment } from '@/api/appointments';
 import { Text, Title } from '@/components/StyledComponents';
-import { formatDate } from '@/utils/formatDate';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { Box, Button, styled, Theme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 type FailedPaymentProps = {
-  appointments: Appointment[];
   theme?: Theme;
 };
 
@@ -23,21 +20,9 @@ const ButtonContainer = styled(Box)({
   marginTop: '2rem',
 });
 
-export const SuccessPayment = ({ appointments, theme }: FailedPaymentProps) => {
+export const SuccessPayment = ({ theme }: FailedPaymentProps) => {
   const navigate = useNavigate();
-  const appointment = appointments[0];
-  const appDateFormatted = formatDate(appointment.scheduledDate, true);
-  const sameDayAppointmetNode = (
-    <Text data-testid="same-day-app">
-      Recuerda que tu siguiente sesión es hoy a las {appointment.scheduledTime}.
-    </Text>
-  );
-  const differentDayAppointmentNode = (
-    <Text data-testid="future-app">
-      Recuerda que tu siguiente sesión será el día {appDateFormatted} a las{' '}
-      {appointment.scheduledTime}.
-    </Text>
-  );
+
   return (
     <>
       <CheckCircleOutlinedIcon
@@ -47,39 +32,9 @@ export const SuccessPayment = ({ appointments, theme }: FailedPaymentProps) => {
         }}
       />
       <StyledTitle>Pago exitoso</StyledTitle>
-      <Text>
-        <b>
-          {appointment.customer.firstname}, {appointments.length > 1 ? 'tus sesiones' : 'tu sesión'}{' '}
-          con {appointment.provider.firstname}{' '}
-          {appointments.length > 1 ? 'fueron pagadas ' : 'fue pagada '} exitosamente.
-        </b>
-      </Text>
-      <Text>
-        Si agendaste más sesiones sin pagarlas, estas quedaron agendadas y se te solicitara
-        confirmarlas en el futuro.
-      </Text>
-      {appDateFormatted === 'Hoy' ? sameDayAppointmetNode : differentDayAppointmentNode}
-      <Text>{/* Servicio: <b>{appointment.servicio.name}</b> */}</Text>
-      <Text>
-        Proveedor:{' '}
-        <b>
-          {appointment.provider.firstname} {appointment.provider.lastname}
-        </b>
-      </Text>
+
       <Text>Fechas: </Text>
-      <Text
-        sx={{
-          textJustify: 'left',
-        }}
-      >
-        {appointments
-          .map((app) => formatDate(app.scheduledDate, true) + ' a las ' + app.scheduledTime)
-          .join(' - ')}
-      </Text>
-      <Text>
-        Puedes seguir chateando con {appointment.provider.firstname} en la sección "Mis sesiones" de
-        tu perfil.
-      </Text>
+
       <Text>
         Por favor, revisa tu correo electrónico para más detalles e instrucciones adicionales.
       </Text>

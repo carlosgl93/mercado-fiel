@@ -37,7 +37,7 @@ export const StyledNameContainer = styled(Box)(() => ({
 export const StyledTitle = styled(Title)(({ theme }) => ({
   fontSize: '2rem',
   fontWeight: 600,
-  lineHeight: '1.5rem',
+  lineHeight: '3rem',
   textAlign: 'center',
   color: theme.palette.primary.contrastText,
   maxWidth: '80vw',

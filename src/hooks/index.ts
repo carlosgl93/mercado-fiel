@@ -1,4 +1,3 @@
-export * from './useAppointment';
 export { useAuth } from './useAuthSupabase';
 export * from './useCategories';
 export * from './useChat';
@@ -19,4 +18,3 @@ export * from './useRetrieveCustomerAndPrestador';
 export * from './useUser';
 export * from './useUserLookingFor';
 export * from './useWidth';
-

@@ -3,7 +3,6 @@ import { SubTitle } from '@/pages/ProveedorDashboard/StyledPrestadorDashboardCom
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import { Box, List, ListItem, styled } from '@mui/material';
-import { AvailabilityData } from '../ConstruirPerfil/Disponibilidad/ListAvailableDays';
 
 const StyledList = styled(List)(() => ({
   display: 'flex',
@@ -45,7 +44,7 @@ const StyledUnAvailableIcon = styled(CloseOutlinedIcon)(({ theme }) => ({
 }));
 
 type ListAvailableDaysProps = {
-  disponibilidad: AvailabilityData[];
+  disponibilidad: unknown[];
 };
 
 export const ListAvailableDays = ({ disponibilidad }: ListAvailableDaysProps) => {
@@ -53,7 +52,7 @@ export const ListAvailableDays = ({ disponibilidad }: ListAvailableDaysProps) =>
   return (
     <StyledList>
       {disponibilidad.map((d) => {
-        const { day, isAvailable, times } = d;
+        const { day, isAvailable, times } = d as any;
         const { startTime, endTime } = times;
         console.log(endTime);
 

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserLookingFor, useUserLookingFor } from '../../hooks';
 import { useAuth } from '../../hooks/useAuthSupabase';
+import { Supplier } from '../../models';
 import { Customer } from '../../models/Customer';
 import { SuppliersListResponse } from '../../types/supplier';
 
@@ -16,7 +17,6 @@ export const MobileResultList = ({
   setPage: React.Dispatch<React.SetStateAction<number>>;
   setLimit: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  console.log({ results });
   const theme = useTheme();
   const navigate = useNavigate();
   const { user, supplier, customer, isAuthenticated } = useAuth();
@@ -187,7 +187,7 @@ export const MobileResultList = ({
             p: 0,
           }}
         >
-          {results?.data?.map((s) => {
+          {results?.data?.map((s: Supplier) => {
             const { idProveedor: id, usuario } = s;
             const { nombre, profilePictureUrl } = usuario || {};
             if (!usuario) return null; // Ensure usuario exists

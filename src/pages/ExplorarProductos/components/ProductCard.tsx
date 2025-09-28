@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           image={product.imagenUrl || '/images/product-placeholder.png'}
           alt={product.nombreProducto}
           sx={{
-            objectFit: 'cover',
+            objectFit: 'contain',
           }}
         />
 
@@ -200,7 +200,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Unit */}
         <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-          Por unidad
+          {product.unitType === 'kg' ? 'Por kilogramo' : 'Por unidad'}
         </Typography>
 
         {/* Stock - Note: Stock field not available in current Product type */}

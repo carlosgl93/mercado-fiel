@@ -1,14 +1,12 @@
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { useAppointments } from '@/hooks/useAppointments';
-import { IconButtonBox, StyledOutlinedInput, Wrapper } from '../styledBackOffice';
 import Loading from '@/components/Loading';
-import { PaymentsGridController } from './PaymentsGridController';
-import { IconButton, InputAdornment } from '@mui/material';
 import { Search } from '@mui/icons-material';
+import { IconButton, InputAdornment } from '@mui/material';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { IconButtonBox, StyledOutlinedInput, Wrapper } from '../styledBackOffice';
 import { PaymentDialog } from './PaymentDialog';
+import { PaymentsGridController } from './PaymentsGridController';
 
 export const Pagos = () => {
-  const { getTotalAppointments, getTotalAppointmentsIsLoading } = useAppointments();
   const {
     columns,
     isLoadingPaymentVerificationFailed,
@@ -23,10 +21,7 @@ export const Pagos = () => {
   } = PaymentsGridController();
 
   const isLoading =
-    isLoadingPaymentVerificationFailed ||
-    isLoadingVerifyPayment ||
-    getTotalAppointmentsIsLoading ||
-    duePaymentsIsLoading;
+    isLoadingPaymentVerificationFailed || isLoadingVerifyPayment || duePaymentsIsLoading;
 
   if (duePayments)
     return (
@@ -62,7 +57,6 @@ export const Pagos = () => {
               rows={duePayments}
               getRowId={(row) => row.appointmentId}
               paginationMode="server"
-              rowCount={getTotalAppointments?.count || 0}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
               pageSizeOptions={[10, 25]}

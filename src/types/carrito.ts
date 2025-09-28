@@ -20,6 +20,26 @@ export interface CartItem {
   ahorro: number;
 }
 
+export interface CamelCartItem {
+  idCarrito: number;
+  idUsuario: number;
+  idProducto: number;
+  cantidad: number;
+  precioUnitario: number;
+  createdAt: string;
+  updatedAt: string;
+  producto: Product;
+  precioFinal: number;
+  subtotal: number;
+  descuentoAplicado?: {
+    idDescuento: number;
+    cantidadMinima: number;
+    descuentoPorcentaje?: number;
+    precioDescuento?: number;
+  };
+  ahorro: number;
+}
+
 export interface CartSummary {
   cantidad_items: number;
   cantidad_productos: number;

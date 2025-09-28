@@ -1,10 +1,8 @@
-import { useSearchParams } from 'react-router-dom';
-import { Title } from '@/components/StyledComponents';
-import { SuccessPayment } from './SuccessPayment';
 import Loading from '@/components/Loading';
-import { Box, Card, CardContent, Container, styled, useTheme } from '@mui/material';
-import { FailedPayment } from './FailedPayment';
+import { Title } from '@/components/StyledComponents';
 import { useAppointments } from '@/hooks/useAppointments';
+import { Box, Card, CardContent, Container, styled, useTheme } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 
 export const Payment = () => {
   const [params] = useSearchParams();
@@ -47,11 +45,11 @@ export const Payment = () => {
     <StyledBox>
       <StyledCard variant="outlined">
         <CardContent>
-          {multipleAppointments.some((appointment) => appointment.isPaid === 'Pagado') ? (
+          {/* {multipleAppointments.some((appointment) => appointment.isPaid === 'Pagado') ? (
             <SuccessPayment appointments={multipleAppointments} theme={theme} />
           ) : (
             <FailedPayment appointments={multipleAppointments} theme={theme} />
-          )}
+          )} */}
         </CardContent>
       </StyledCard>
     </StyledBox>

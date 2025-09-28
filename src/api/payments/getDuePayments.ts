@@ -1,8 +1,7 @@
 import { db } from '@/firebase';
-import { PaymentRecord } from '../appointments';
 import { collection, getDocs, query } from 'firebase/firestore';
 
-export const getDuePayments = async (): Promise<PaymentRecord[]> => {
+export const getDuePayments = async () => {
   try {
     const paymentsRef = collection(db, 'payments');
     // Create a Timestamp for the start of today
@@ -16,8 +15,8 @@ export const getDuePayments = async (): Promise<PaymentRecord[]> => {
       // where('paymentDueDate', '<', startOfTodayTimestamp),
     );
     const querySnapshot = await getDocs(duePaymentsQuery);
-    const docs: PaymentRecord[] = [];
-    querySnapshot.forEach((doc) => docs.push(doc.data() as PaymentRecord));
+    const docs: unknown[] = [];
+    querySnapshot.forEach((doc) => docs.push(doc.data()));
     return docs;
   } catch (error) {
     throw new Error(

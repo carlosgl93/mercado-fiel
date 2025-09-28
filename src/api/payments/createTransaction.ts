@@ -7,19 +7,14 @@
 
 import { paymentSettings } from '@/config';
 import { v4 as uuidv4 } from 'uuid';
-import { Appointment } from '../appointments';
 import paykuApi from '../paykuApi';
 import { CreatedTransaction } from './payku/models';
 
 export async function createTransaction(paykuParams: {
-  appointments: Appointment[];
   totalToPay: number;
   sessionsToConfirm: number;
 }): Promise<CreatedTransaction> {
-  const { appointments, totalToPay, sessionsToConfirm } = paykuParams;
-  if (!appointments) {
-    throw new Error('Missing appointment details / no appointment object passed');
-  }
+  const { totalToPay, sessionsToConfirm } = paykuParams;
 
   if (!totalToPay) {
     throw new Error('Missing total price to pay');
@@ -29,25 +24,20 @@ export async function createTransaction(paykuParams: {
   const notifyUrl: string = import.meta.env.VITE_PAYMENT_NOTIFY_URL;
   const orderId = uuidv4();
 
-  const appsIds = appointments.map((a) => a.id); // ['id1', 'id2', 'id3'];
-  const idsToConfirm = appsIds.slice(0, sessionsToConfirm); // ['id1', 'id2'];
-  const jointIds = idsToConfirm.join('-'); // 'id1-id2';
-  const urlReturn = `${baseUrl}/payment?appointmentsIds=${jointIds}`;
-  console.log({ urlReturn, length: urlReturn.length });
-  const urlNotify = `${String(notifyUrl)}?appointmentsIds=${jointIds}`;
-  console.log({ urlNotify, length: urlNotify.length });
+  // const appsIds = appointments.map((a) => a.id); // ['id1', 'id2', 'id3'];
+  // const idsToConfirm = appsIds.slice(0, sessionsToConfirm); // ['id1', 'id2'];
+  // const jointIds = idsToConfirm.join('-'); // 'id1-id2';
+  // const urlReturn = `${baseUrl}/payment?appointmentsIds=${jointIds}`;
 
   try {
     const paykuRes = await paykuApi.post('/transaction', {
-      email: appointments[0]?.customer?.email,
+      // email: appointments[0]?.customer?.email,
       order: orderId,
       subject: 'Pago por servicio de sesión',
       // subject: `Pago por servicio de ${appointments[0]?.servicio?.name} al prestador ${appointments[0].provider.firstname} ${appointments[0].provider.lastname}`,
       amount: Math.round(+totalToPay * paymentSettings.appCommission),
       currency: paymentSettings.currency,
       payment: paymentSettings.paymentMethods,
-      urlreturn: urlReturn,
-      urlNotify: urlNotify,
     });
 
     console.log({ paykuRes });

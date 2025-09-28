@@ -1,14 +1,12 @@
-import { Box, Dialog } from '@mui/material';
-import { ProviderBankDetails } from './ProviderBankDetails';
 import { ButtonCTA } from '@/pages/UsuarioDashboard/StyledComponents';
-import { PaymentsGridController } from './PaymentsGridController';
+import { Box, Dialog } from '@mui/material';
 import dayjs from 'dayjs';
-import { PaymentRecord } from '@/api/appointments';
+import { PaymentsGridController } from './PaymentsGridController';
 
 type PaymentDialogProps = {
   open: boolean;
-  paymentDetails: PaymentRecord | null;
-  onClose: (params: PaymentRecord) => void;
+  paymentDetails: null;
+  onClose: (params: unknown) => void;
 };
 
 export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogProps) => {
@@ -44,11 +42,6 @@ export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogPr
       >
         {providerBankDetails ? (
           <>
-            <ProviderBankDetails
-              amountToPay={amountToPay ? amountToPay : 0}
-              providerBankDetails={providerBankDetails}
-              providerEmail={provider.email!}
-            />
             <ButtonCTA
               variant="contained"
               sx={{
@@ -68,10 +61,6 @@ export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogPr
             variant="contained"
             onClick={() => {
               console.log({ provider });
-              notifyMissingBankDetailsMutation({
-                providerEmail: provider.email!,
-                providerName: provider.firstname!,
-              });
             }}
           >
             Notificar falta detalles bancarios

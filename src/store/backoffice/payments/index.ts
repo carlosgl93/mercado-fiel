@@ -1,4 +1,3 @@
-import { PaymentRecord } from '@/api/appointments';
 import { atom } from 'recoil';
 
 export type PaginationModel = {
@@ -22,7 +21,7 @@ export const showPaymentsDetailsState = atom<boolean>({
   default: false,
 });
 
-export const paymentDetailsParamsState = atom<PaymentRecord | null>({
+export const paymentDetailsParamsState = atom({
   key: 'paymentDetailsParamsState',
   default: null,
 });

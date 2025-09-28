@@ -1,8 +1,6 @@
-import { PaymentRecord } from '@/api/appointments';
-import { getProviderBankDetails, notifyMissingBankDetails } from '@/api/cuentaBancaria';
+import { notifyMissingBankDetails } from '@/api/cuentaBancaria';
 import { markAsPaid } from '@/api/payments';
 import { paymentSettings } from '@/config';
-import { PaymentController } from '@/pages/Sesiones/PaymentController';
 import {
   paymentDetailsParamsState,
   paymentsGridPaginationModelState,
@@ -14,7 +12,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import { GridActionsCellItem, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 
 export const PaymentsGridController = () => {
@@ -24,16 +22,7 @@ export const PaymentsGridController = () => {
   const setNotification = useSetRecoilState(notificationState);
   const client = useQueryClient();
 
-  const {
-    handleVerifyPayment,
-    handlePaymentVerificationFailed,
-    isLoadingVerifyPayment,
-    isLoadingPaymentVerificationFailed,
-    duePayments,
-    duePaymentsIsLoading,
-  } = PaymentController();
-
-  const columns = useMemo<GridColDef<PaymentRecord>[]>(
+  const columns = useMemo<GridColDef[]>(
     () => [
       { field: 'appointmentId', headerName: 'ID', width: 90 },
       {
@@ -128,16 +117,16 @@ export const PaymentsGridController = () => {
         ],
       },
     ],
-    [handlePaymentVerificationFailed, handleVerifyPayment],
+    [],
   );
 
-  const { data: providerBankDetails, isLoading: providerBankDetailsIsLoading } = useQuery(
-    ['providerBankDetails', paymentDetailsParams?.provider?.id],
-    () => getProviderBankDetails(paymentDetailsParams?.provider?.id),
-    {
-      enabled: !!paymentDetailsParams?.provider?.id,
-    },
-  );
+  // const { data: providerBankDetails, isLoading: providerBankDetailsIsLoading } = useQuery(
+  //   ['providerBankDetails', paymentDetailsParams?.provider?.id],
+  //   () => getProviderBankDetails(paymentDetailsParams?.provider?.id),
+  //   {
+  //     enabled: !!paymentDetailsParams?.provider?.id,
+  //   },
+  // );
 
   const { mutate: markAsPaidMutation, isLoading: markAsPaidIsLoading } = useMutation(markAsPaid, {
     onSuccess() {
@@ -176,7 +165,7 @@ export const PaymentsGridController = () => {
         });
       },
     });
-  const handleOpenPaymentDetails = async (params: PaymentRecord) => {
+  const handleOpenPaymentDetails = async (params: any) => {
     setPaymentDetailsParams(params);
     setShowPaymentsDetails(!showPaymentsDetails);
   };
@@ -188,14 +177,14 @@ export const PaymentsGridController = () => {
   return {
     columns,
     paginationModel,
-    isLoadingPaymentVerificationFailed,
-    isLoadingVerifyPayment,
-    duePayments,
-    duePaymentsIsLoading,
+    // isLoadingPaymentVerificationFailed,
+    // isLoadingVerifyPayment,
+    // duePayments,
+    // duePaymentsIsLoading,
     showPaymentsDetails,
     paymentDetailsParams,
-    providerBankDetails,
-    providerBankDetailsIsLoading,
+    // providerBankDetails,
+    // providerBankDetailsIsLoading,
     markAsPaidIsLoading,
     notifyMissingBankDetailsIsLoading,
     setPaginationModel,

@@ -1,15 +1,7 @@
-import { CuentaBancariaInputs } from '@/pages/ConstruirPerfil/CuentaBancaria/CuentaBancaria';
 import { db } from '@/firebase/firebase';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 
-interface SaveCuentaBancaria extends CuentaBancariaInputs {
-  id: string;
-}
-
-export const postCuentaBancaria = async (
-  prestadorId: string | undefined,
-  data: SaveCuentaBancaria,
-) => {
+export const postCuentaBancaria = async (prestadorId: string | undefined, data: any) => {
   if (!prestadorId) {
     throw new Error('Prestador no encontrado, intenta ingresando nuevamente');
   }

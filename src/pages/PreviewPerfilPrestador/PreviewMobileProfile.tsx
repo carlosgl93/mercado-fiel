@@ -1,9 +1,7 @@
 import Reviews from '@/components/Reviews';
-import { ScheduleController } from '@/components/Schedule/ScheduleController';
 import { Prestador } from '@/store/auth/proveedor';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import { Box, styled } from '@mui/material';
-import { DateCalendar } from '@mui/x-date-pickers';
 import {
   AboutContainer,
   AboutDescription,
@@ -54,8 +52,6 @@ export const PreviewMobileProfile = ({ fullProvider }: PreviewMobileProfileProps
     profileImageUrl,
   } = fullProvider as Prestador;
 
-  const { shouldDisableDay, renderAvailableDay } = ScheduleController();
-
   return (
     <Wrapper
       sx={{
@@ -104,18 +100,7 @@ export const PreviewMobileProfile = ({ fullProvider }: PreviewMobileProfileProps
         }}
       >
         <SectionTitle>Servicios</SectionTitle>
-        {/* <ServiciosCarousel createdServicios={createdServicios} /> */}
       </SectionContainer>
-      <AboutContainer>
-        <SectionTitle>Disponibilidad</SectionTitle>
-        <DateCalendar
-          shouldDisableDate={shouldDisableDay}
-          disablePast={true}
-          slots={{ day: renderAvailableDay }}
-          readOnly
-        />
-        {/* <ListAvailableDays disponibilidad={availability ?? []} /> */}
-      </AboutContainer>
     </Wrapper>
   );
 };

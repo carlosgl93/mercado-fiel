@@ -5,12 +5,9 @@
  *
  */
 
-import { userAppointmentsState } from '@/store/appointments';
-import { providerAppointmentsState } from '@/store/appointments/providerAppointmentsState';
 import { defaultProveedor, proveedorState } from '@/store/auth/proveedor';
 import { userState } from '@/store/auth/user';
 import { chatState } from '@/store/chat/chatStore';
-import { availabilityState } from '@/store/construirPerfil/availability';
 import { comunasState } from '@/store/construirPerfil/comunas';
 import { aggregatedExperienceState } from '@/store/construirPerfil/experiencia';
 import { defaultServicio, servicioState } from '@/store/construirPerfil/servicios';
@@ -25,10 +22,7 @@ import { useSetRecoilState } from 'recoil';
 import { navigationHistoryState } from '../store/history/index';
 
 export function useResetState() {
-  const setProviderAppointments = useSetRecoilState(providerAppointmentsState);
-  const setUserAppointments = useSetRecoilState(userAppointmentsState);
   const setExperience = useSetRecoilState(aggregatedExperienceState);
-  const setAvailability = useSetRecoilState(availabilityState);
   const setPrestador = useSetRecoilState(proveedorState);
   const setServicio = useSetRecoilState(servicioState);
   const setComunas = useSetRecoilState(comunasState);
@@ -43,8 +37,6 @@ export function useResetState() {
   const setSchedule = useSetRecoilState(scheduleState);
 
   const resetState = () => {
-    setUserAppointments([]);
-    setProviderAppointments([]);
     setUser(null);
     setPrestador(defaultProveedor);
     setChat({
@@ -54,7 +46,6 @@ export function useResetState() {
       providerName: '',
       messages: [],
     });
-    setAvailability([]);
     setComunas([]);
     setExperience([]);
     setServicio(defaultServicio);

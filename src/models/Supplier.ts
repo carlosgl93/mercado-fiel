@@ -1,6 +1,7 @@
+import { Product } from '../types/products';
 import { Address, AddressDB, mapDBAddress } from './Address';
 import { UsuarioDB } from './Customer';
-import { ProductDB, ProductForSupplier } from './Product';
+import { ProductDB } from './Product';
 import { mapDBUser, User } from './User';
 
 // Backend interface (matches DB schema, snake_case)
@@ -84,7 +85,7 @@ export interface Supplier {
 }
 
 export interface SupplierWithProducts extends Supplier {
-  productos: ProductForSupplier[];
+  productos: Product[];
 }
 
 export const mapDBSupplier = (dbSupplier: SupplierDB): SupplierWithProducts => {
@@ -104,21 +105,29 @@ export const mapDBSupplier = (dbSupplier: SupplierDB): SupplierWithProducts => {
     updatedAt: dbSupplier.updated_at,
     productos:
       dbSupplier.productos?.map((p: ProductDB) => ({
-        ...p,
+        idProducto: p.id_producto,
+        idProveedor: p.id_proveedor,
+        idCategoria: p.id_categoria,
         nombreProducto: p.nombre_producto,
-        precioUnitario: p.precio_unitario?.toString(),
-        fechaPublicacion: p.fecha_publicacion.toString(),
-        comentarios: p.comentarios.map((c) => ({
-          idComentario: c.id_comentario,
-          texto: c.texto,
-          calificacion: c.calificacion,
-        })),
+        descripcion: p.descripcion || undefined,
+        precioUnitario: parseFloat(p.precio_unitario?.toString() || '0'),
+        unitType: p.unit_type as 'kg' | 'unit' | undefined,
+        imagenUrl: p.imagen_url || undefined,
+        disponible: p.disponible,
+        fechaPublicacion: new Date(p.fecha_publicacion),
+        createdAt: new Date(p.created_at || new Date()),
+        updatedAt: new Date(p.updated_at || new Date()),
         categoria: {
           idCategoria: p.categoria.id_categoria,
           nombre: p.categoria.nombre,
         },
-        descripcion: p.descripcion,
-        imagenUrl: p.imagen_url,
+        proveedor: {
+          idProveedor: dbSupplier.id_proveedor,
+          nombreNegocio: dbSupplier.nombre_negocio,
+          destacado: dbSupplier.destacado,
+        },
+        // Note: descuentosCantidad and _count would need to be populated from separate queries
+        descuentosCantidad: [],
       })) || [],
   };
 };

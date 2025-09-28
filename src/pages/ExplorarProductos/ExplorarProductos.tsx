@@ -1,5 +1,5 @@
 import { productsApi } from '@/api';
-import { useShoppingCartRecoil } from '@/hooks/useShoppingCartRecoil';
+import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product, ProductFilters } from '@/types/products';
 import { FilterList as FilterListIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
@@ -32,13 +32,13 @@ export const ExplorarProductos: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const {
-    handleAddToCart,
-    handleRemoveFromCart,
-    getCartItemQuantity,
-    getTotalCartItems,
+    addProductToCart,
+    removeProductFromCart,
+    getProductQuantityInCart,
+    cartItems,
     snackbar,
     closeSnackbar,
-  } = useShoppingCartRecoil();
+  } = useShoppingCartService();
 
   // State for filters
   const [filters, setFilters] = useState<ProductFilters>({
@@ -71,16 +71,18 @@ export const ExplorarProductos: React.FC = () => {
     keepPreviousData: true,
   });
 
+  console.log({ productsData });
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setFilters((prev) => ({ ...prev, page: value }));
   };
 
   const handleAddToCartProduct = (product: Product, cantidad = 1) => {
-    handleAddToCart(product.idProducto, cantidad);
+    addProductToCart(product, cantidad);
   };
 
   const handleRemoveFromCartProduct = (product: Product, cantidad = 1) => {
-    handleRemoveFromCart(product.idProducto, cantidad);
+    removeProductFromCart(product, cantidad);
   };
 
   return (
@@ -172,7 +174,7 @@ export const ExplorarProductos: React.FC = () => {
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.idProducto}>
                   <ProductCard
                     product={product}
-                    cartQuantity={getCartItemQuantity(product.idProducto)}
+                    cartQuantity={getProductQuantityInCart(product.idProducto)}
                     onAddToCart={handleAddToCartProduct}
                     onRemoveFromCart={handleRemoveFromCartProduct}
                     disabled={false}

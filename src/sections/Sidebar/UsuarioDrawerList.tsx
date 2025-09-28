@@ -53,7 +53,6 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
   const { user, customer, signOut } = useAuth();
 
   if (!customer) return null;
-  console.log({ customer });
 
   const { nombre, profilePictureUrl } = customer;
 

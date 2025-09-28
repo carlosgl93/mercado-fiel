@@ -23,7 +23,7 @@ const routes: Routes = {
     // title: 'Registrarse',
   },
   [Pages.ProveedorPerfil]: {
-    component: asyncComponentLoader(() => import('@/pages/ProveedorPerfil')),
+    component: asyncComponentLoader(() => import('@/pages/AdminProveedorPerfil')),
     path: '/proveedor-perfil',
     // title: 'Registrarse',
   },
@@ -85,30 +85,9 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil')),
     path: '/construir-perfil',
   },
-  // [Pages.Servicios]: {
-  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Servicio')),
-  //   path: '/construir-perfil/servicios',
-  // },
-  [Pages.Disponibilidad]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Disponibilidad')),
-    path: '/construir-perfil/disponibilidad',
-  },
-  // [Pages.EditarComunasPrestador]: {
-  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Comunas')),
-  //   path: '/construir-perfil/comunas',
-  // },
-  // [Pages.Tarifas]: {
-  //   component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Tarifas')),
-  //   path: '/construir-perfil/tarifas',
-  // },
   [Pages.Experiencia]: {
     component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/Experiencia')),
     path: '/construir-perfil/experiencia',
-  },
-
-  [Pages.CuentaBancaria]: {
-    component: asyncComponentLoader(() => import('@/pages/ConstruirPerfil/CuentaBancaria')),
-    path: '/construir-perfil/cuentaBancaria',
   },
 
   [Pages.DetallesBasicos]: {
@@ -150,10 +129,6 @@ const routes: Routes = {
   [Pages.ProveedorDashboard]: {
     component: asyncComponentLoader(() => import('@/pages/ProveedorDashboard')),
     path: '/proveedor-dashboard',
-  },
-  [Pages.Sesiones]: {
-    component: asyncComponentLoader(() => import('@/pages/Sesiones')),
-    path: '/sesiones',
   },
   [Pages.BackOffice]: {
     component: asyncComponentLoader(() => import('@/pages/BackOffice')),

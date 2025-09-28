@@ -1,4 +1,3 @@
-import { AvailabilityData } from '@/pages/ConstruirPerfil/Disponibilidad/ListAvailableDays';
 import { Comuna } from '../models/Comuna';
 
 export interface Prestador {
@@ -13,7 +12,6 @@ export interface Prestador {
   especialidad?: string | undefined;
   telefono?: string;
   isLoggedIn?: boolean;
-  availability?: AvailabilityData[];
   averageReviews?: number;
   description?: string;
   totalReviews?: number;

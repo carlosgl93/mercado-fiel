@@ -1,17 +1,19 @@
 import Meta from '@/components/Meta';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { DesktopProfile } from './DesktopProfile';
 import { MobileProfile } from './MobileProfile';
 
 import Loading from '@/components/Loading';
+import { useMediaQuery, useTheme } from '@mui/material';
 import { Suspense, useEffect } from 'react';
 import { SupplierWithProducts } from '../../models';
 
 function PerfilProveedor() {
-  const { id } = useParams();
-  // const { prestador, isLoading } = usePrestador(id ?? '');
   const location = useLocation();
   const { supplier } = location.state;
-  console.log({ location, supplier });
+  console.log({ supplier });
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const navigate = useNavigate();
 
@@ -24,8 +26,12 @@ function PerfilProveedor() {
   return (
     <Suspense fallback={<Loading />}>
       <Meta title="Perfil Proveedor" />
-      asdf
-      <MobileProfile proveedor={supplier as SupplierWithProducts} />
+
+      {isMobile ? (
+        <MobileProfile proveedor={supplier as SupplierWithProducts} />
+      ) : (
+        <DesktopProfile proveedor={supplier as SupplierWithProducts} />
+      )}
     </Suspense>
   );
 }

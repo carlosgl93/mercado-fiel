@@ -162,25 +162,20 @@ export const useShoppingCartService = () => {
    */
   const removeProductFromCart = (product: Product | number, quantity = 1) => {
     if (!ensureAuthenticated()) return;
-    console.log('🛒 Removing from cart:', { product, quantity });
 
     const productId = typeof product === 'number' ? product : product.idProducto;
-    console.log({productId})
-    
+
     // Find the cart item for this product
-    console.log({cartData})
-    const cartItem = cartData?.data?.items?.find(
-      (item: CartItem) => {
-        const itemProductId = (item as any).idProducto || item.id_producto;
-        return itemProductId === productId;
-      }
-    );
+    const cartItem = cartData?.data?.items?.find((item: CartItem) => {
+      const itemProductId = (item as any).idProducto || item.id_producto;
+      return itemProductId === productId;
+    });
 
     if (!cartItem) {
       console.warn('Cart item not found for product:', productId);
       return;
     }
-    console.log({cartItem})
+    console.log({ cartItem });
 
     const currentQuantity = cartItem.cantidad;
     const newQuantity = currentQuantity - quantity;
@@ -192,9 +187,9 @@ export const useShoppingCartService = () => {
     } else {
       // Update quantity
       const itemId = cartItem.id_carrito || cartItem.idCarrito;
-      updateCartMutation.mutate({ 
-        itemId, 
-        data: { cantidad: newQuantity } 
+      updateCartMutation.mutate({
+        itemId,
+        data: { cantidad: newQuantity },
       });
     }
   };

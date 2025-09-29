@@ -15,6 +15,7 @@ import {
 } from '../store/authAtoms';
 import { notificationState } from '../store/snackbar';
 import { AuthCustomer, AuthSupplier, AuthUser } from '../types/auth';
+import { UserLookingFor, useUserLookingFor } from './useUserLookingFor';
 
 interface SignInCredentials {
   email: string;
@@ -70,6 +71,7 @@ interface DatabaseUser {
 
 export const useAuth = () => {
   const navigate = useNavigate();
+  const { setUserLookingFor } = useUserLookingFor();
 
   // Recoil state
   const [auth, setAuth] = useRecoilState(authState);
@@ -208,6 +210,7 @@ export const useAuth = () => {
         let supplierData: AuthSupplier | null = null;
 
         if (clienteData) {
+          setUserLookingFor(UserLookingFor.SUPPLIERS);
           customerData = {
             ...authUser.data,
             idCliente: clienteData.id_cliente,
@@ -219,6 +222,7 @@ export const useAuth = () => {
         }
 
         if (proveedorData) {
+          setUserLookingFor(UserLookingFor.CUSTOMERS);
           supplierData = {
             ...authUser.data,
             idProveedor: proveedorData.id_proveedor,

@@ -1,9 +1,7 @@
 import Reviews from '@/components/Reviews';
-import { useAuth } from '@/hooks';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
 import { Alert, Box, Snackbar, styled } from '@mui/material';
-import { useParams } from 'react-router-dom';
 import { SupplierWithProducts } from '../../models';
 import {
   AboutContainer,
@@ -49,10 +47,6 @@ type MobileProfileProps = {
 };
 
 export const MobileProfile = ({ proveedor }: MobileProfileProps) => {
-  const { id } = useParams();
-  const { user } = useAuth();
-
-  // Shopping cart functionality
   const {
     addProductToCart,
     removeProductFromCart,

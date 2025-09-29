@@ -31,5 +31,6 @@ export const useUserLookingFor = () => {
     lookingFor,
     handleSelectLookingFor,
     translatedLookingFor,
+    setUserLookingFor,
   };
 };

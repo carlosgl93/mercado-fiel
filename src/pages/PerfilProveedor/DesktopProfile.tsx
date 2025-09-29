@@ -33,7 +33,7 @@ export const DesktopProfile = ({ proveedor }: DesktopProfileProps) => {
     closeSnackbar,
     isUpdating,
   } = useShoppingCartService();
-
+  console.log({ proveedor });
   const { nombreNegocio, usuario, descripcion, productos } = proveedor;
   const { nombre, profilePictureUrl } = usuario || {};
 

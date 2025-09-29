@@ -1,7 +1,7 @@
 import Loading from '@/components/Loading';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import { Box, Button, Drawer, useTheme } from '@mui/material';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomers, UserLookingFor, useUserLookingFor } from '../../hooks';
 import { useAuth } from '../../hooks/useAuthSupabase';
@@ -18,26 +18,25 @@ const MobileResults = () => {
   const { user, supplier, customer, isAuthenticated } = useAuth();
   const { lookingFor, userLookingFor, handleSelectLookingFor } = useUserLookingFor();
 
-  // Smart logic: redirect non-logged users and infer looking preference
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/comienzo', { replace: true });
-      return;
-    }
+  // // Smart logic: redirect non-logged users and infer looking preference
+  // useEffect(() => {
+  //   if (!isAuthenticated()) {
+  //     navigate('/comienzo', { replace: true });
+  //     return;
+  //   }
 
-    // Auto-infer what user is looking for if not set
-    if (userLookingFor === null) {
-      if (supplier?.idProveedor) {
-        handleSelectLookingFor(UserLookingFor.CUSTOMERS);
-      } else if (customer?.idCliente || user?.data?.cliente) {
-        handleSelectLookingFor(UserLookingFor.SUPPLIERS);
-      }
-    }
-  }, [isAuthenticated, supplier, customer, user, userLookingFor, handleSelectLookingFor, navigate]);
+  //   // Auto-infer what user is looking for if not set
+  //   if (userLookingFor === null) {
+  //     if (supplier?.idProveedor) {
+  //       handleSelectLookingFor(UserLookingFor.CUSTOMERS);
+  //     } else if (customer?.idCliente || user?.data?.cliente) {
+  //       handleSelectLookingFor(UserLookingFor.SUPPLIERS);
+  //     }
+  //   }
+  // }, [isAuthenticated, supplier, customer, user, userLookingFor, handleSelectLookingFor, navigate]);
 
   const { isLoadingSuppliers, suppliers } = useSuppliers(page, limit);
   const { isLoadingCustomers, customers } = useCustomers(page, limit);
-  console.log({ suppliers, customers });
 
   const isLoading = isLoadingCustomers || isLoadingSuppliers;
 

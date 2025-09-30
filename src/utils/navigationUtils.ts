@@ -29,7 +29,7 @@ export const navigateToUserDashboard = ({
 }: NavigateToUserDashboardParams): boolean => {
   // Define paths where authenticated users should be redirected
   const authRestrictedPaths = ['/ingresar', '/registrar-usuario', '/registrar-proveedor'];
-  
+
   // Check if current path requires redirection for authenticated users
   if (!authRestrictedPaths.includes(pathname)) {
     return false;

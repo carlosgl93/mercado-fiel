@@ -133,21 +133,25 @@ export const useAuth = () => {
           .single();
 
         if (error) {
+          console.log({ error });
+          if (error.details === 'The result contains 0 rows') {
+            return;
+          }
           console.error('❌ Error loading user profile:', error);
 
           // If user doesn't exist in database, create them
-          if (error.code === 'PGRST116') {
-            console.log('👤 User not found in database, creating...');
-            await createUserInDatabase(supabaseUser);
-            return;
-          }
+          // if (error.code === 'PGRST116') {
+          //   console.log('👤 User not found in database, creating...');
+          //   await createUserInDatabase(supabaseUser);
+          //   return;
+          // }
 
           throw error;
         }
 
         if (!userData) {
           console.log('👤 No user data found, creating user in database...');
-          await createUserInDatabase(supabaseUser);
+
           return;
         }
 
@@ -449,6 +453,13 @@ export const useAuth = () => {
         throw error;
       }
 
+      await loadUserProfile(data.user!);
+      navigateToUserDashboard({
+        pathname: location.pathname,
+        user: user?.data,
+        navigate,
+      });
+
       console.log('✅ Sign in successful:', data.user?.email);
       setNotification({
         open: true,
@@ -509,6 +520,7 @@ export const useAuth = () => {
       }
 
       console.log('✅ Supabase user created:', authData.user.email);
+      console.log({ signUpData });
 
       // Create user in database
       const { data: userData, error: dbError } = await supabase
@@ -527,7 +539,6 @@ export const useAuth = () => {
         console.error('❌ Database user creation error:', dbError);
         throw dbError;
       }
-
       // Create role-specific profile
       if (signUpData.type === 'customer') {
         const { error: customerError } = await supabase.from('clientes').insert({

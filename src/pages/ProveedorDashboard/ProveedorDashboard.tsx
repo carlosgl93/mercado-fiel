@@ -56,8 +56,8 @@ export const ProveedorDashboard = () => {
             isMobile={isMobile}
             text="Agrega, edita y administra tus productos. Define precios, inventario, descripciones e imágenes para atraer más clientes."
             ctaText="Gestionar productos"
-            ctaDisabled={shouldDisablePublicarProductos}
-            disabledText="Completa tu perfil primero"
+            // ctaDisabled={shouldDisablePublicarProductos}
+            // disabledText="Completa tu perfil primero"
           />
           <DashboardTile
             goToPath="/compras-colectivas"

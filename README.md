@@ -237,22 +237,6 @@ Supabase se utiliza como complemento para:
 - **Row Level Security**: Políticas de seguridad granulares
 - **PostgREST**: API REST automática para consultas complejas
 
-### Hybrid Data Strategy
-
-```text
-Firebase Firestore:
-├── users/             # Perfiles de usuario
-├── products/          # Catálogo de productos
-├── orders/            # Pedidos y transacciones
-└── chats/             # Mensajes de chat
-
-Supabase PostgreSQL:
-├── analytics/         # Métricas y reportes
-├── inventory/         # Control de inventario detallado
-├── reviews/           # Sistema de reseñas complejo
-└── logs/              # Auditoría y logs del sistema
-```
-
 ## Configuración de Supabase
 
 ### Emuladores Locales
@@ -344,21 +328,6 @@ git checkout -b fix/corregir-bug
 git checkout -b docs/actualizar-readme
 ```
 
-### Tipos de commit
-
-- `feat`: Nueva funcionalidad
-- `fix`: Corrección de bugs
-- `docs`: Documentación
-- `style`: Cambios de estilo/formato
-- `refactor`: Refactorización de código
-- `test`: Añadir o modificar tests
-
-### Proceso de Deploy
-
-1. Crear PR con cambios
-2. Review de código
-3. Merge a main
-4. Auto-deploy a producción via GitHub Actions
 
 ## Troubleshooting
 

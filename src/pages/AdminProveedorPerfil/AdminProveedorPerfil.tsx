@@ -23,7 +23,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   Container,
   Divider,
@@ -798,7 +797,7 @@ export const ProveedorPerfil = () => {
                   <Divider sx={{ my: 2 }} />
 
                   {/* Profile Completion Status */}
-                  <Box>
+                  {/* <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       Estado del perfil
                     </Typography>
@@ -889,7 +888,7 @@ export const ProveedorPerfil = () => {
                         </>
                       );
                     })()}
-                  </Box>
+                  </Box> */}
                 </CardContent>
               </Card>
             )}

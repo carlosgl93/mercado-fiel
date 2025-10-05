@@ -187,6 +187,12 @@ const routes: Routes = {
     title: 'Explorar Productos',
   },
 
+  [Pages.ComprasColectivas]: {
+    component: asyncComponentLoader(() => import('@/pages/ComprasColectivas')),
+    path: '/compras-colectivas',
+    title: 'Compras Colectivas',
+  },
+
   [Pages.SearchResults]: {
     component: asyncComponentLoader(() => import('@/pages/SearchResults')),
     path: '/buscar',

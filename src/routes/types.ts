@@ -48,6 +48,7 @@ enum Pages {
   PreguntasFrecuentes,
   MisProductos,
   ExplorarProductos,
+  ComprasColectivas,
   SearchResults,
   ProductDetail,
   PublicSupplierProfile,

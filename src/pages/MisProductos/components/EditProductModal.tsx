@@ -3,7 +3,7 @@ import { categoriesApi } from '@/api/categories';
 import { CLPCurrencyInput, NumberInput, PercentageInput } from '@/components/NumberInput';
 import { Category } from '@/types/api/categories';
 import { Product, UpdateProductRequest } from '@/types/products';
-import { uploadImageToSupabase } from '@/utils/supabaseStorage';
+import { useImageUpload } from '@/utils/supabaseStorage';
 import {
   Add as AddIcon,
   Close as CloseIcon,
@@ -51,6 +51,7 @@ interface QuantityDiscountForm {
 
 export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClose, product }) => {
   const queryClient = useQueryClient();
+  const { uploadImage } = useImageUpload();
 
   const [formData, setFormData] = useState<UpdateProductRequest>({
     nombreProducto: '',
@@ -58,6 +59,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
     precioUnitario: 0,
     imagenUrl: '',
     disponible: true,
+    elegibleCompraColectiva: false,
     idCategoria: 0,
   });
 
@@ -83,6 +85,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
         precioUnitario: Number(product.precioUnitario),
         imagenUrl: product.imagenUrl || '',
         disponible: product.disponible,
+        elegibleCompraColectiva: product.elegibleCompraColectiva || false,
         idCategoria: product.idCategoria,
       });
 
@@ -203,13 +206,14 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
     setImageUploading(true);
 
     try {
-      const result = await uploadImageToSupabase(file, 'product-images', 'products');
+      const result = await uploadImage(file, 'product-images', 'products');
 
       if (!result.success) {
         throw new Error(result.error || 'Error al subir la imagen');
       }
 
-      return result.url!;
+      // Return the key instead of URL - this should be stored in the database
+      return result.key || result.url!;
     } finally {
       setImageUploading(false);
     }
@@ -580,6 +584,18 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
                 <Switch checked={formData.disponible} onChange={handleSwitchChange('disponible')} />
               }
               label="Producto disponible"
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.elegibleCompraColectiva || false}
+                  onChange={handleSwitchChange('elegibleCompraColectiva')}
+                />
+              }
+              label="Elegible para compras colectivas"
             />
           </Grid>
 

@@ -1,16 +1,48 @@
 import { supabase } from '@/lib/supabase';
+import { authSupplierState, authUserState } from '@/store/authAtoms';
+import { useRecoilValue } from 'recoil';
 
 export interface UploadImageResult {
   success: boolean;
   url?: string;
+  key?: string;
+  id?: string;
   error?: string;
 }
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5001/mercado-fiel/us-central1/api';
+// Interface for user validation
+interface UserValidation {
+  isLoggedIn: boolean;
+  isSupplier: boolean;
+  email: string;
+}
+
+// Hook version for use in React components
+export const useImageUpload = () => {
+  const user = useRecoilValue(authUserState);
+  const supplier = useRecoilValue(authSupplierState);
+
+  const uploadImage = async (
+    file: File,
+    bucket = 'product-images',
+    folder = 'products',
+  ): Promise<UploadImageResult> => {
+    // Create user validation from auth store
+    const userValidation: UserValidation = {
+      isLoggedIn: !!user?.data?.isLoggedIn,
+      isSupplier: !!(supplier || user?.data?.proveedor),
+      email: user?.data?.email || '',
+    };
+
+    return uploadImageToSupabase(file, userValidation, bucket, folder);
+  };
+
+  return { uploadImage };
+};
 
 export const uploadImageToSupabase = async (
   file: File,
+  userValidation: UserValidation,
   bucket = 'product-images',
   folder = 'products',
 ): Promise<UploadImageResult> => {
@@ -34,59 +66,22 @@ export const uploadImageToSupabase = async (
 
     console.log('Authenticated user:', session.user.email);
 
-    // Verify user is supplier for product uploads
+    // Verify user is supplier for product uploads using provided validation
     if (bucket === 'product-images') {
-      console.log('🔍 Checking supplier permissions for:', session.user.email);
-      
-      // Check if user exists and is a supplier by calling our API endpoint
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      if (!currentSession?.access_token) {
-        throw new Error('No valid session token found');
-      }
+      console.log('🔍 Checking supplier permissions for:', userValidation.email);
 
-      // Use our API to get user data (same as auth hook)
-      const response = await fetch(`${API_URL}/auth/user/${session.user.email}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentSession.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.error('❌ User not found in database:', session.user.email);
-          return {
-            success: false,
-            error: 'Usuario no encontrado en el sistema. Contacta al administrador.',
-          };
-        }
-        console.error('❌ API call failed:', response.status, await response.text());
+      if (!userValidation.isLoggedIn) {
+        console.error('❌ User not logged in');
         return {
           success: false,
-          error: 'Error al verificar permisos de proveedor. Inténtalo de nuevo.',
+          error: 'Debes iniciar sesión para subir archivos.',
         };
       }
 
-      const userData = await response.json();
-      console.log('🔍 Supplier check result:', userData);
-
-      if (!userData.success || !userData.data) {
-        console.error('❌ Invalid API response:', userData);
-        return {
-          success: false,
-          error: 'Error al verificar permisos de proveedor.',
-        };
-      }
-
-      const userRecord = userData.data;
-      console.log('👤 User record found:', userRecord);
-      
-      if (!userRecord.proveedor) {
+      if (!userValidation.isSupplier) {
         console.error('❌ User is not a supplier:', {
-          email: session.user.email,
-          has_proveedor_record: !!userRecord.proveedor
+          email: userValidation.email,
+          isSupplier: userValidation.isSupplier,
         });
         return {
           success: false,
@@ -94,7 +89,7 @@ export const uploadImageToSupabase = async (
         };
       }
 
-      console.log('✅ Supplier verified:', userRecord.proveedor);
+      console.log('✅ Supplier verified from auth validation:', userValidation.isSupplier);
     }
 
     // Generate unique filename
@@ -142,12 +137,21 @@ export const uploadImageToSupabase = async (
       };
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+    // Generate a unique ID for consistency with backend response format
+    const id = crypto.randomUUID();
+
+    // Return the key and id like backend does, instead of full URL
+    // The full path including bucket name for compatibility
+    const fullKey = `${bucket}/${data.path}`;
+
+    console.log('✅ Upload successful:', { key: fullKey, id, path: data.path });
 
     return {
       success: true,
-      url: urlData.publicUrl,
+      key: fullKey,
+      id: id,
+      // Also return URL for backward compatibility, but use the key as primary
+      url: `https://xnehuzmpesnelhdboijy.supabase.co/storage/v1/object/public/${fullKey}`,
     };
   } catch (error) {
     console.error('Error uploading image:', error);

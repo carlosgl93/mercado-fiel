@@ -1,3 +1,5 @@
+import { categoriesApi } from '@/api/categories';
+import { Category } from '@/types/api/categories';
 import { ProductFilters as ProductFiltersType } from '@/types/products';
 import {
   Close as CloseIcon,
@@ -10,16 +12,14 @@ import {
   Chip,
   Divider,
   FormControl,
-  FormControlLabel,
-  FormGroup,
   IconButton,
   InputLabel,
   MenuItem,
   Select,
-  Switch,
   Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
+import { useQuery } from 'react-query';
 
 interface ProductFiltersComponentProps {
   filters: ProductFiltersType;
@@ -34,8 +34,23 @@ export const ProductFiltersComponent: React.FC<ProductFiltersComponentProps> = (
 }) => {
   const [localFilters, setLocalFilters] = useState<ProductFiltersType>(filters);
 
+  // Query for categories
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesApi.getCategories(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const categories = categoriesResponse?.data || [];
+
   const handleApplyFilters = () => {
-    onFiltersChange({ ...localFilters, page: 1 });
+    // Always ensure disponible is true
+    const filtersToApply = {
+      ...localFilters,
+      page: 1,
+      disponible: true,
+    };
+    onFiltersChange(filtersToApply);
     onClose();
   };
 
@@ -63,7 +78,7 @@ export const ProductFiltersComponent: React.FC<ProductFiltersComponentProps> = (
     if (localFilters.search) count++;
     if (localFilters.categoria) count++;
     if (localFilters.proveedor) count++;
-    if (localFilters.disponible !== true) count++;
+    if (localFilters.elegibleCompraColectiva !== undefined) count++;
     return count;
   };
 
@@ -103,22 +118,63 @@ export const ProductFiltersComponent: React.FC<ProductFiltersComponentProps> = (
 
       {/* Filters Content */}
       <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        {/* Availability */}
+        {/* Category Filter */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-            Disponibilidad
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+            Categoría
           </Typography>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={localFilters.disponible !== false}
-                  onChange={(e) => handleLocalFilterChange('disponible', e.target.checked)}
-                />
+          <FormControl fullWidth size="small">
+            <InputLabel>Seleccionar categoría</InputLabel>
+            <Select
+              value={localFilters.categoria || ''}
+              label="Seleccionar categoría"
+              onChange={(e) => handleLocalFilterChange('categoria', e.target.value)}
+            >
+              <MenuItem value="">
+                <em>Todas las categorías</em>
+              </MenuItem>
+              {categories?.map((category: Category) => (
+                <MenuItem key={category.idCategoria} value={category.idCategoria.toString()}>
+                  {category.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Collective Purchase Filter */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+            Tipo de compra
+          </Typography>
+          <FormControl fullWidth size="small">
+            <InputLabel>Tipo de compra</InputLabel>
+            <Select
+              value={
+                localFilters.elegibleCompraColectiva === undefined
+                  ? ''
+                  : localFilters.elegibleCompraColectiva
+                  ? 'true'
+                  : 'false'
               }
-              label="Solo productos disponibles"
-            />
-          </FormGroup>
+              label="Tipo de compra"
+              onChange={(e) => {
+                const value = e.target.value;
+                handleLocalFilterChange(
+                  'elegibleCompraColectiva',
+                  value === '' ? undefined : value === 'true',
+                );
+              }}
+            >
+              <MenuItem value="">
+                <em>Todos los productos</em>
+              </MenuItem>
+              <MenuItem value="true">Solo compras colectivas</MenuItem>
+              <MenuItem value="false">Solo compras individuales</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         <Divider sx={{ my: 2 }} />

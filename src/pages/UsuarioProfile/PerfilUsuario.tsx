@@ -1,12 +1,12 @@
 import { usersApi } from '@/api/users';
 import { DashboardHeader, MobileActionBar } from '@/components';
-import { uploadImageToSupabase } from '@/utils/supabaseStorage';
+import { useImageUpload } from '@/utils/supabaseStorage';
 import {
   Close as CloseIcon,
   Edit as EditIcon,
   Person as PersonIcon,
   PhotoCamera as PhotoCameraIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -27,7 +27,7 @@ import {
   TextField,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -39,6 +39,7 @@ export const PerfilUsuario = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { cliente, user: authUser } = useAuth();
+  const { uploadImage } = useImageUpload();
   const queryClient = useQueryClient();
 
   const [userProfileData, setUserProfileData] = useState({
@@ -77,10 +78,10 @@ export const PerfilUsuario = () => {
 
   // Mutation for updating user profile
   const updateUserProfileMutation = useMutation({
-    mutationFn: async (userData: { 
-      nombre?: string; 
-      email?: string; 
-      profilePictureUrl?: string; 
+    mutationFn: async (userData: {
+      nombre?: string;
+      email?: string;
+      profilePictureUrl?: string;
       activo?: boolean;
     }) => {
       return await usersApi.updateProfile(cliente?.idUsuario || 0, userData);
@@ -184,7 +185,7 @@ export const PerfilUsuario = () => {
       ...prev,
       [field]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
@@ -199,12 +200,14 @@ export const PerfilUsuario = () => {
 
     const updateData: Record<string, any> = {};
     updateData[field] = userProfileData[field as keyof typeof userProfileData];
-    
+
     await updateUserProfileMutation.mutateAsync(updateData);
   };
 
   const handleToggleEdit = (field: string) => {
-    const editingField = `isEditing${field.charAt(0).toUpperCase() + field.slice(1)}` as keyof typeof userProfileData;
+    const editingField = `isEditing${
+      field.charAt(0).toUpperCase() + field.slice(1)
+    }` as keyof typeof userProfileData;
     setUserProfileData((prev) => ({
       ...prev,
       [editingField]: !prev[editingField],
@@ -236,19 +239,20 @@ export const PerfilUsuario = () => {
     }
 
     setIsUploadingImage(true);
-    
+
     try {
-      const uploadResult = await uploadImageToSupabase(file, 'profile-images', 'users');
-      
-      if (uploadResult.success && uploadResult.url) {
-        // Update profile picture
+      const uploadResult = await uploadImage(file, 'profile-images', 'users');
+
+      if (uploadResult.success && (uploadResult.key || uploadResult.url)) {
+        const imageUrl = uploadResult.key || uploadResult.url!;
+        // Update profile picture with key or URL
         await updateUserProfileMutation.mutateAsync({
-          profilePictureUrl: uploadResult.url,
+          profilePictureUrl: imageUrl,
         });
 
         setProfileData({
-          profilePictureUrl: uploadResult.url,
-          previewUrl: uploadResult.url,
+          profilePictureUrl: imageUrl,
+          previewUrl: imageUrl,
         });
       } else {
         throw new Error(uploadResult.error || 'Error al subir la imagen');

@@ -162,7 +162,7 @@ const RegistrarPrestadorController = () => {
       setNotification({
         ...notification,
         open: true,
-        message: '¡Cuenta de proveedor creada exitosamente!',
+        message: '¡Cuenta creada exitosamente, por favor verifica tu email!',
         severity: 'success',
       });
     } catch (error) {

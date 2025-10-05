@@ -170,7 +170,7 @@ export const useAuth = () => {
             profilePictureUrl: userData.profile_picture_url,
             idPlan: null,
             createdAt: userData.created_at,
-            updatedAt: userData.updated_at,
+            updatedAt: userData.updated_at || null,
             cliente: clienteData
               ? {
                   idCliente: clienteData.id_cliente,
@@ -481,6 +481,27 @@ export const useAuth = () => {
     setIsSigningUp(true);
 
     try {
+      // Check if user already exists by email
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('usuarios')
+        .select('email')
+        .eq('email', signUpData.email.toLowerCase());
+
+      if (checkError) {
+        console.error('❌ Error checking existing users:', checkError);
+        throw checkError;
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
+        const errorMessage = 'Ya existe un usuario registrado con este email';
+
+        setNotification({
+          open: true,
+          message: errorMessage,
+          severity: 'error',
+        });
+        throw new Error(errorMessage);
+      }
       // Create user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: signUpData.email.toLowerCase(),
@@ -518,9 +539,6 @@ export const useAuth = () => {
       if (!authData.user) {
         throw new Error('No user returned from signup');
       }
-
-      console.log('✅ Supabase user created:', authData.user.email);
-      console.log({ signUpData });
 
       // Create user in database
       const { data: userData, error: dbError } = await supabase

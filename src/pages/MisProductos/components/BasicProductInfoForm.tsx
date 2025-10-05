@@ -123,13 +123,21 @@ export const BasicProductInfoForm: React.FC<BasicProductInfoFormProps> = ({
       {/* Availability Switch */}
       <Grid item xs={12}>
         <FormControlLabel
+          control={<Switch checked={formData.disponible} onChange={onSwitchChange('disponible')} />}
+          label="Producto disponible"
+        />
+      </Grid>
+
+      {/* Collective Purchase Eligibility Switch */}
+      <Grid item xs={12}>
+        <FormControlLabel
           control={
-            <Switch 
-              checked={formData.disponible} 
-              onChange={onSwitchChange('disponible')} 
+            <Switch
+              checked={formData.elegibleCompraColectiva || false}
+              onChange={onSwitchChange('elegibleCompraColectiva')}
             />
           }
-          label="Producto disponible"
+          label="Elegible para compras colectivas"
         />
       </Grid>
     </>

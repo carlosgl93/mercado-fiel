@@ -47,6 +47,7 @@ export const ExplorarProductos: React.FC = () => {
     limit: 12,
     sortBy: 'created_at',
     sortOrder: 'desc',
+    elegibleCompraColectiva: true,
   });
 
   // State for UI

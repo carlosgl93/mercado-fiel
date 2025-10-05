@@ -114,6 +114,7 @@ export const mapDBSupplier = (dbSupplier: SupplierDB): SupplierWithProducts => {
         unitType: p.unit_type as 'kg' | 'unit' | undefined,
         imagenUrl: p.imagen_url || undefined,
         disponible: p.disponible,
+        elegibleCompraColectiva: p.elegible_compra_colectiva || false,
         fechaPublicacion: new Date(p.fecha_publicacion),
         createdAt: new Date(p.created_at || new Date()),
         updatedAt: new Date(p.updated_at || new Date()),

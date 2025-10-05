@@ -183,9 +183,43 @@ authRouter.get(
 
       const user = await prisma.usuarios.findUnique({
         where: { email: email.toLowerCase() },
-        include: {
-          cliente: true,
-          proveedor: true,
+        select: {
+          id_usuario: true,
+          nombre: true,
+          email: true,
+          fecha_registro: true,
+          activo: true,
+          profile_picture_url: true,
+          id_plan: true,
+          created_at: true,
+          updated_at: true,
+          auth_uid: true,
+          cliente: {
+            select: {
+              id_cliente: true,
+              telefono: true,
+              id_direccion: true,
+              fecha_registro: true,
+              created_at: true,
+              updated_at: true,
+            },
+          },
+          proveedor: {
+            select: {
+              id_proveedor: true,
+              nombre_negocio: true,
+              descripcion: true,
+              telefono_contacto: true,
+              id_direccion: true,
+              destacado: true,
+              email: true,
+              radio_entrega_km: true,
+              cobra_envio: true,
+              envio_gratis_desde: true,
+              created_at: true,
+              updated_at: true,
+            },
+          },
         },
       });
 
@@ -197,14 +231,30 @@ authRouter.get(
         return;
       }
 
-      // Return user data without sensitive fields
-      const sanitizedUser = excludeFields(user);
+      // Properly handle nullable updated_at field and exclude sensitive fields
+      const sanitizedUser = {
+        ...user,
+        updated_at: user.updated_at || null,
+        cliente: user.cliente
+          ? {
+              ...user.cliente,
+              updated_at: user.cliente.updated_at || null,
+            }
+          : null,
+        proveedor: user.proveedor
+          ? {
+              ...user.proveedor,
+              updated_at: user.proveedor.updated_at || null,
+            }
+          : null,
+      };
 
       res.json({
         success: true,
         data: sanitizedUser,
       });
     } catch (error) {
+      console.error('Error in /auth/user/:email:', error);
       next(error);
     }
   },

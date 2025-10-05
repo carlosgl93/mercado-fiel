@@ -15,6 +15,7 @@ interface CreateProductoRequest {
   unit_type?: string;
   imagen_url?: string;
   disponible?: boolean;
+  elegible_compra_colectiva?: boolean;
   descuentos_cantidad?: {
     cantidad_minima: number;
     descuento_porcentaje?: number;
@@ -29,6 +30,7 @@ interface UpdateProductoRequest {
   precio_unitario?: number;
   imagen_url?: string;
   disponible?: boolean;
+  elegible_compra_colectiva?: boolean;
 }
 
 // Helper function to safely parse query parameters
@@ -52,8 +54,11 @@ productosRouter.get('/', async (req: Request, res: Response, next: NextFunction)
     const categoria = parseQueryParam(req.query.categoria);
     const proveedor = parseQueryParam(req.query.proveedor);
     const disponible = parseQueryParam(req.query.disponible);
+    const elegibleCompraColectiva = parseQueryParam(req.query.elegibleCompraColectiva);
     const sortBy = parseQueryParam(req.query.sortBy) || 'created_at';
     const sortOrder = parseQueryParam(req.query.sortOrder) || 'desc';
+
+    console.log({ elegibleCompraColectiva });
 
     const skip = (page - 1) * limit;
 
@@ -82,6 +87,10 @@ productosRouter.get('/', async (req: Request, res: Response, next: NextFunction)
 
     if (disponible !== '') {
       where.disponible = disponible === 'true';
+    }
+
+    if (elegibleCompraColectiva !== '') {
+      where.elegible_compra_colectiva = elegibleCompraColectiva === 'true';
     }
 
     // Build orderBy
@@ -268,6 +277,7 @@ productosRouter.post(
         unit_type = 'unit',
         imagen_url,
         disponible = true,
+        elegible_compra_colectiva = false,
         descuentos_cantidad = [],
       } = req.body;
 
@@ -319,6 +329,7 @@ productosRouter.post(
           unit_type,
           imagen_url: imagen_url || null,
           disponible,
+          elegible_compra_colectiva,
           fecha_publicacion: now,
           created_at: now,
           updated_at: now,
@@ -416,6 +427,7 @@ productosRouter.put(
         precio_unitario,
         imagen_url,
         disponible,
+        elegible_compra_colectiva,
       } = req.body;
 
       // Check if product exists
@@ -454,6 +466,8 @@ productosRouter.put(
       if (precio_unitario !== undefined) updateData.precio_unitario = precio_unitario;
       if (imagen_url !== undefined) updateData.imagen_url = imagen_url;
       if (disponible !== undefined) updateData.disponible = disponible;
+      if (elegible_compra_colectiva !== undefined)
+        updateData.elegible_compra_colectiva = elegible_compra_colectiva || false;
 
       const producto = await prisma.productos.update({
         where: { id_producto: parseInt(id) },

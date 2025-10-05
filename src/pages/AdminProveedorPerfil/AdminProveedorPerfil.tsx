@@ -4,7 +4,7 @@ import { DashboardHeader, MobileActionBar } from '@/components';
 import { SupplierPreview } from '@/components/SupplierPreview';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { UpdateBusinessRequest } from '@/types/supplier';
-import { uploadImageToSupabase } from '@/utils/supabaseStorage';
+import { useImageUpload } from '@/utils/supabaseStorage';
 import {
   Business as BusinessIcon,
   Check as CheckIcon,
@@ -43,6 +43,7 @@ export const ProveedorPerfil = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { supplier, user } = useAuth();
+  const { uploadImage } = useImageUpload();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<UpdateBusinessRequest>({
@@ -346,12 +347,13 @@ export const ProveedorPerfil = () => {
         }));
 
         // Upload to Supabase Storage
-        const uploadResult = await uploadImageToSupabase(file, 'profile-images', 'suppliers');
+        const uploadResult = await uploadImage(file, 'profile-images', 'suppliers');
 
-        if (uploadResult.success && uploadResult.url) {
+        if (uploadResult.success && (uploadResult.key || uploadResult.url)) {
+          const imageUrl = uploadResult.key || uploadResult.url!;
           setProfileData((prev) => ({
             ...prev,
-            profilePictureUrl: uploadResult.url!,
+            profilePictureUrl: imageUrl,
           }));
 
           setSnackbar({

@@ -3,7 +3,7 @@ import { categoriesApi } from '@/api/categories';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { Category } from '@/types/api/categories';
 import { CreateProductRequest } from '@/types/products';
-import { uploadImageToSupabase } from '@/utils/supabaseStorage';
+import { useImageUpload } from '@/utils/supabaseStorage';
 import { Close as CloseIcon } from '@mui/icons-material';
 import {
   Box,
@@ -46,6 +46,7 @@ interface CreateProductModalProps {
 
 export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, onClose }) => {
   const { supplier } = useAuth();
+  const { uploadImage } = useImageUpload();
   const queryClient = useQueryClient();
 
   // Initialize form with fixtures in development mode
@@ -59,6 +60,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
       unitType: 'unit' as 'kg' | 'unit',
       imagenUrl: '',
       disponible: true,
+      elegibleCompraColectiva: false,
       descuentosCantidad: [],
     };
 
@@ -196,11 +198,13 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
   const uploadProductImage = async (file: File): Promise<string> => {
     setImageUploading(true);
     try {
-      const result = await uploadImageToSupabase(file, 'product-images', 'products');
+      const result = await uploadImage(file, 'product-images', 'products');
       if (!result.success) {
         throw new Error(result.error || 'Error al subir la imagen');
       }
-      return result.url!;
+      // Return the key instead of URL - this should be stored in the database
+      // The backend should construct the proper URL when serving the product data
+      return result.key || result.url!;
     } finally {
       setImageUploading(false);
     }

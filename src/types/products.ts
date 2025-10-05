@@ -10,6 +10,7 @@ export interface Product {
   unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible: boolean;
+  elegibleCompraColectiva: boolean;
   fechaPublicacion: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -56,6 +57,7 @@ export interface CreateProductRequest {
   unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible?: boolean;
+  elegibleCompraColectiva?: boolean;
   descuentosCantidad?: {
     cantidadMinima: number;
     descuentoPorcentaje?: number;
@@ -71,6 +73,7 @@ export interface UpdateProductRequest {
   unitType?: 'kg' | 'unit';
   imagenUrl?: string;
   disponible?: boolean;
+  elegibleCompraColectiva?: boolean;
 }
 
 export interface CreateQuantityDiscountRequest {
@@ -117,6 +120,7 @@ export interface ProductFilters {
   categoria?: string;
   proveedor?: string;
   disponible?: boolean;
+  elegibleCompraColectiva?: boolean;
   sortBy?: 'created_at' | 'updated_at' | 'nombre_producto' | 'precio_unitario';
   sortOrder?: 'asc' | 'desc';
 }

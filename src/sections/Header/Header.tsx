@@ -16,9 +16,12 @@ function Header() {
         elevation={1}
         sx={{
           borderBottom: '1px solid #e0e0e0',
-          zIndex: 1000,
+          zIndex: 1200,
           backgroundColor: '#fcf9f4',
-          position: 'static',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between', pr: 0 }}>

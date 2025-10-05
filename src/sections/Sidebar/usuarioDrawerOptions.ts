@@ -21,7 +21,7 @@ export const usuarioDrawerOptions = [
   },
   {
     title: 'Proveedores',
-    path: '/resultados',
+    path: '/buscar',
     icon: PeopleIcon,
   },
   // {

@@ -132,7 +132,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <List sx={{ p: 0 }}>
             {cartData.items.map((item) => (
               <ListItem
-                key={(item as any).idCarrito || item.id_carrito}
+                key={item.idCarrito}
                 sx={{
                   flexDirection: 'column',
                   alignItems: 'stretch',
@@ -168,7 +168,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <IconButton
                     size="small"
                     onClick={() => {
-                      const itemId = (item as any).idCarrito || item.id_carrito;
+                      const itemId = item.idCarrito;
                       console.log('🛒 CartDrawer - Remove item clicked, itemId:', itemId);
                       console.log('🛒 CartDrawer - Full item:', item);
                       onRemoveItem(itemId);
@@ -182,7 +182,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                 {/* Price and discount info */}
                 <Box sx={{ mt: 1, ml: 8 }}>
-                  {item.descuento_aplicado ? (
+                  {item.descuentoAplicado ? (
                     <Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography
@@ -190,17 +190,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           color="text.secondary"
                           sx={{ textDecoration: 'line-through' }}
                         >
-                          {item.producto.precioUnitario}
+                          {/* {item.producto.precioUnitario} */}
                           {formatCurrency(item.producto.precioUnitario)}
                         </Typography>
                         <Chip
-                          label={`-${item.descuento_aplicado.descuento_porcentaje}%`}
+                          label={`-${item.descuentoAplicado.descuentoPorcentaje}%`}
                           color="success"
                           size="small"
                         />
                       </Box>
                       <Typography variant="body1" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                        {formatCurrency(item.precio_final)}
+                        {formatCurrency(item.precioFinal)}
                       </Typography>
                       <Typography variant="caption" color="success.main">
                         Ahorras {formatCurrency(item.ahorro)}
@@ -208,7 +208,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </Box>
                   ) : (
                     <Typography variant="body1" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                      {formatCurrency(item.precio_final || item.producto.precioUnitario)}
+                      {formatCurrency(item.precioFinal || item.producto.precioUnitario)}
                     </Typography>
                   )}
                 </Box>
@@ -226,12 +226,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton
                       size="small"
-                      onClick={() =>
-                        handleDecreaseQuantity(
-                          (item as any).idCarrito || item.id_carrito,
-                          item.cantidad,
-                        )
-                      }
+                      onClick={() => handleDecreaseQuantity(item.idCarrito, item.cantidad)}
                       disabled={isUpdating}
                       sx={{
                         border: 1,
@@ -257,7 +252,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       size="small"
                       onClick={() =>
                         handleIncreaseQuantity(
-                          (item as any).idCarrito || item.id_carrito,
+                          item.idCarrito,
                           item.cantidad,
                         )
                       }
@@ -334,9 +329,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         >
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2">
-                Subtotal ({cartData.resumen.cantidad_productos} productos)
-              </Typography>
+              <Typography variant="body2">Subtotal</Typography>
               <Typography variant="body2">{formatCurrency(cartData.resumen.subtotal)}</Typography>
             </Box>
 

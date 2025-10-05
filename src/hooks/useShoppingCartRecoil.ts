@@ -1,6 +1,6 @@
 import { carritoApi } from '@/api';
 import { cartTotalItemsSelector, shoppingCartState } from '@/store/shoppingCart/shoppingCartState';
-import { AddCartItemRequest, CartItem } from '@/types/carrito';
+import { AddCartItemRequest, CamelCartItem } from '@/types/carrito';
 import { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -114,12 +114,12 @@ export const useShoppingCartRecoil = () => {
 
     // Find the cart item for this product
     const cartItem = cartData?.data.items.find(
-      (item: CartItem) => ((item as any).idProducto || item.id_producto) === productId,
+      (item: CamelCartItem) => item.idProducto === productId,
     );
     if (!cartItem) return;
 
     const newQuantity = cartItem.cantidad - cantidad;
-    const itemId = (cartItem as any).idCarrito || cartItem.id_carrito;
+    const itemId = cartItem.idCarrito;
 
     if (newQuantity <= 0) {
       // Remove the item completely
@@ -131,6 +131,40 @@ export const useShoppingCartRecoil = () => {
         data: { cantidad: newQuantity },
       });
     }
+  };
+
+  const handleRemoveProductCompletely = (productId: number) => {
+    if (!user) return;
+
+    // Find the cart item for this product
+    const cartItem = cartData?.data.items.find(
+      (item: CamelCartItem) => item.idProducto === productId,
+    );
+    if (!cartItem) {
+      console.warn(`🛒 Product with ID ${productId} not found in cart`);
+      return;
+    }
+
+    const itemId = cartItem.idCarrito;
+    console.log(`🛒 Removing product ${productId} completely from cart (item ID: ${itemId})`);
+
+    // Remove the item completely regardless of quantity
+    removeFromCartMutation.mutate(itemId);
+  };
+
+  const handleRemoveItemById = (itemId: number) => {
+    if (!user || !itemId) {
+      console.error('🚫 No user or itemId provided for cart operation');
+      setSnackbar({
+        open: true,
+        message: 'Error: Usuario o ID del item no válido',
+        severity: 'error',
+      });
+      return;
+    }
+
+    console.log(`🛒 Removing cart item with ID: ${itemId}`);
+    removeFromCartMutation.mutate(itemId);
   };
 
   const handleUpdateCartQuantity = (itemId: number, cantidad: number) => {
@@ -158,14 +192,17 @@ export const useShoppingCartRecoil = () => {
 
   const getCartItemQuantity = (productId: number): number => {
     const cartItem = cartData?.data.items.find(
-      (item: CartItem) => ((item as any).idProducto || item.id_producto) === productId,
+      (item: CamelCartItem) => item.idProducto === productId,
     );
     return cartItem?.cantidad || 0;
   };
 
   const getTotalCartItems = (): number => {
     return (
-      cartData?.data.items.reduce((total: number, item: CartItem) => total + item.cantidad, 0) || 0
+      cartData?.data.items.reduce(
+        (total: number, item: CamelCartItem) => total + item.cantidad,
+        0,
+      ) || 0
     );
   };
 
@@ -186,6 +223,8 @@ export const useShoppingCartRecoil = () => {
     closeCart,
     handleAddToCart,
     handleRemoveFromCart,
+    handleRemoveProductCompletely,
+    handleRemoveItemById,
     handleUpdateCartQuantity,
     closeSnackbar,
 

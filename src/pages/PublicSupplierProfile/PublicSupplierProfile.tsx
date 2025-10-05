@@ -1,14 +1,13 @@
 import { productsApi } from '@/api/products';
 import { suppliersApi } from '@/api/suppliers';
+import { ProductCard } from '@/pages/ExplorarProductos/components/ProductCard';
+import { useShoppingCartService } from '@/services/shoppingCartService';
+import { Product } from '@/types/products';
 import {
   ArrowBack as ArrowBackIcon,
-  Email as EmailIcon,
   Favorite as FavoriteIcon,
-  LocationOn as LocationIcon,
-  Phone as PhoneIcon,
   Share as ShareIcon,
-  LocalShipping as ShippingIcon,
-  Star as StarIcon
+  Star as StarIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -24,8 +23,9 @@ import {
   Grid,
   IconButton,
   Paper,
+  Snackbar,
   Typography,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import React from 'react';
 import { useQuery } from 'react-query';
@@ -35,6 +35,23 @@ export const PublicSupplierProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
+
+  // Shopping cart service
+  const {
+    addProductToCart,
+    removeProductFromCart,
+    getProductQuantityInCart,
+    snackbar,
+    closeSnackbar,
+  } = useShoppingCartService();
+
+  const handleAddToCartProduct = (product: Product, cantidad = 1) => {
+    addProductToCart(product, cantidad);
+  };
+
+  const handleRemoveFromCartProduct = (product: Product, cantidad = 1) => {
+    removeProductFromCart(product, cantidad);
+  };
 
   // Query for supplier data
   const {
@@ -48,10 +65,7 @@ export const PublicSupplierProfile: React.FC = () => {
   });
 
   // Query for supplier's products
-  const {
-    data: productsResponse,
-    isLoading: isLoadingProducts,
-  } = useQuery({
+  const { data: productsResponse, isLoading: isLoadingProducts } = useQuery({
     queryKey: ['products', 'supplier', id],
     queryFn: () => productsApi.getProducts({ proveedor: id }),
     enabled: !!id,
@@ -190,11 +204,7 @@ export const PublicSupplierProfile: React.FC = () => {
             </Typography>
 
             {supplier.destacado && (
-              <Chip
-                label="Proveedor Destacado"
-                color="primary"
-                sx={{ mb: 2 }}
-              />
+              <Chip label="Proveedor Destacado" color="primary" sx={{ mb: 2 }} />
             )}
 
             {/* Action Buttons */}
@@ -270,7 +280,7 @@ export const PublicSupplierProfile: React.FC = () => {
                     >
                       Productos Disponibles ({products.length})
                     </Typography>
-                    {products.length > 0 && (
+                    {/* {products.length > 0 && (
                       <Button
                         variant="outlined"
                         size="small"
@@ -278,7 +288,7 @@ export const PublicSupplierProfile: React.FC = () => {
                       >
                         Ver todos
                       </Button>
-                    )}
+                    )} */}
                   </Box>
 
                   {isLoadingProducts ? (
@@ -288,63 +298,14 @@ export const PublicSupplierProfile: React.FC = () => {
                   ) : products.length > 0 ? (
                     <Grid container spacing={2}>
                       {products.slice(0, 8).map((product) => (
-                        <Grid item xs={6} sm={4} md={3} key={product.idProducto}>
-                          <Card
-                            sx={{
-                              cursor: 'pointer',
-                              transition: 'transform 0.2s, box-shadow 0.2s',
-                              '&:hover': {
-                                transform: 'scale(1.03)',
-                                boxShadow: theme.shadows[4],
-                              },
-                            }}
-                            onClick={() => navigate(`/producto/${product.idProducto}`)}
-                          >
-                            <Box
-                              sx={{
-                                width: '100%',
-                                height: 100,
-                                bgcolor: product.imagenUrl
-                                  ? 'transparent'
-                                  : alpha(theme.palette.primary.main, 0.1),
-                                backgroundImage: product.imagenUrl
-                                  ? `url(${product.imagenUrl})`
-                                  : 'none',
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              {!product.imagenUrl && (
-                                <Typography variant="h6" color="primary">
-                                  {product.nombreProducto.charAt(0)}
-                                </Typography>
-                              )}
-                            </Box>
-                            <CardContent sx={{ p: 1.5 }}>
-                              <Typography
-                                variant="body2"
-                                fontWeight="600"
-                                sx={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {product.nombreProducto}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="primary"
-                                fontWeight="bold"
-                              >
-                                ${product.precioUnitario}
-                                {product.unitType === 'kg' ? '/kg' : '/unidad'}
-                              </Typography>
-                            </CardContent>
-                          </Card>
+                        <Grid item xs={12} sm={6} md={4} key={product.idProducto}>
+                          <ProductCard
+                            product={product}
+                            cartQuantity={getProductQuantityInCart(product.idProducto)}
+                            onAddToCart={handleAddToCartProduct}
+                            onRemoveFromCart={handleRemoveFromCartProduct}
+                            disabled={false}
+                          />
                         </Grid>
                       ))}
                     </Grid>
@@ -368,7 +329,7 @@ export const PublicSupplierProfile: React.FC = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ position: 'sticky', top: 20 }}>
                   {/* Contact Information Card */}
-                  <Card sx={{ mb: 3 }}>
+                  {/* <Card sx={{ mb: 3 }}>
                     <CardContent>
                       <Typography
                         variant="h6"
@@ -407,16 +368,12 @@ export const PublicSupplierProfile: React.FC = () => {
                         )}
                       </Box>
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
                   {/* Shipping Information Card */}
-                  <Card sx={{ mb: 3 }}>
+                  {/* <Card sx={{ mb: 3 }}>
                     <CardContent>
-                      <Typography
-                        variant="h6"
-                        fontWeight="600"
-                        sx={{ mb: 2 }}
-                      >
+                      <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
                         Información de Envío
                       </Typography>
 
@@ -429,16 +386,12 @@ export const PublicSupplierProfile: React.FC = () => {
                         </Typography>
                       </Box>
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
                   {/* Rating Card */}
                   <Card>
                     <CardContent>
-                      <Typography
-                        variant="h6"
-                        fontWeight="600"
-                        sx={{ mb: 2 }}
-                      >
+                      <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
                         Valoración
                       </Typography>
 
@@ -456,6 +409,14 @@ export const PublicSupplierProfile: React.FC = () => {
           </Box>
         </Paper>
       </Container>
+
+      {/* Snackbar for cart notifications */}
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        autoHideDuration={3000}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 };

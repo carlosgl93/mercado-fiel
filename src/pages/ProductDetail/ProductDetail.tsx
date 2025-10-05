@@ -3,6 +3,7 @@ import { campaignsApi } from '@/api/campaigns';
 import { productsApi } from '@/api/products';
 import { CreateCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
+import { useShoppingCartService } from '@/services/shoppingCartService';
 import {
   Add as AddIcon,
   ArrowBack as ArrowBackIcon,
@@ -28,6 +29,7 @@ import {
   IconButton,
   LinearProgress,
   Paper,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -61,7 +63,15 @@ export const ProductDetail: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const [quantity, setQuantity] = useState(1);
+  // Use standardized shopping cart service
+  const {
+    addProductToCart,
+    removeProductFromCart,
+    getProductQuantityInCart,
+    snackbar,
+    closeSnackbar,
+  } = useShoppingCartService();
+
   const [campaignQuantity, setCampaignQuantity] = useState(1);
   const [createCampaignModalOpen, setCreateCampaignModalOpen] = useState(false);
 
@@ -111,9 +121,19 @@ export const ProductDetail: React.FC = () => {
   const campaigns = campaignsResponse?.data || [];
   const collectiveCampaigns = collectiveCampaignsResponse?.data?.campaigns || [];
 
-  const handleQuantityChange = (delta: number) => {
-    console.log({ quantity, product });
-    setQuantity(Math.max(1, quantity + delta));
+  // Get current cart quantity for this product
+  const cartQuantity = product ? getProductQuantityInCart(product.idProducto) : 0;
+
+  const handleAddToCart = () => {
+    if (product) {
+      addProductToCart(product, 1);
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (product) {
+      removeProductFromCart(product, 1);
+    }
   };
 
   const handleCampaignQuantityChange = (delta: number) => {
@@ -143,9 +163,11 @@ export const ProductDetail: React.FC = () => {
       .sort((a, b) => b.cantidadMinima - a.cantidadMinima)[0];
 
     if (!applicableDiscount) return basePrice;
-    console.log({ applicableDiscount, basePrice, quantity });
 
-    return basePrice * (1 - applicableDiscount.porcentajeDescuento / 100);
+    // Use the correct property name and ensure it's a valid number
+    const discountPercentage =
+      applicableDiscount.descuentoPorcentaje || applicableDiscount.porcentajeDescuento || 0;
+    return basePrice * (1 - discountPercentage / 100);
   };
 
   const formatCurrency = (amount: number) => {
@@ -178,14 +200,14 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
+  // Use cart quantity for price calculations (default to 1 if not in cart)
+  const effectiveQuantity = cartQuantity || 1;
   const currentPrice = calculateCurrentPrice(
     product.precioUnitario,
-    quantity,
+    effectiveQuantity,
     product.descuentosCantidad || [],
   );
-  const totalPrice = currentPrice * quantity;
-
-  console.log({ currentPrice, totalPrice, quantity, product });
+  const totalPrice = currentPrice * effectiveQuantity;
 
   return (
     <Box
@@ -558,42 +580,84 @@ export const ProductDetail: React.FC = () => {
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
               <Typography variant="h6" fontWeight="600" sx={{ mb: 3 }}>
-                Comprar Producto
+                Agregar al Carrito
               </Typography>
 
-              {/* Quantity Selector */}
+              {/* Cart Integration - Standardized */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Cantidad:
-                </Typography>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <IconButton onClick={() => handleQuantityChange(-1)}>
-                    <RemoveIcon />
-                  </IconButton>
-                  <TextField
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    size="small"
-                    sx={{ width: 80 }}
-                    inputProps={{ min: 1, style: { textAlign: 'center' } }}
-                  />
-                  <IconButton onClick={() => handleQuantityChange(1)}>
-                    <AddIcon />
-                  </IconButton>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.unitType === 'kg' ? 'kg' : 'unidades'}
-                  </Typography>
-                </Box>
+                {cartQuantity > 0 ? (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      En tu carrito: {cartQuantity} {product.unitType === 'kg' ? 'kg' : 'unidades'}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <IconButton
+                        size="small"
+                        onClick={handleRemoveFromCart}
+                        sx={{
+                          border: 1,
+                          borderColor: 'primary.main',
+                          '&:hover': { bgcolor: 'primary.light' },
+                        }}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          minWidth: 40,
+                          textAlign: 'center',
+                          fontWeight: 'bold',
+                          mx: 2,
+                        }}
+                      >
+                        {cartQuantity}
+                      </Typography>
+
+                      <IconButton
+                        size="small"
+                        onClick={handleAddToCart}
+                        sx={{
+                          border: 1,
+                          borderColor: 'primary.main',
+                          '&:hover': { bgcolor: 'primary.light' },
+                        }}
+                      >
+                        <AddIcon />
+                      </IconButton>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                        {product.unitType === 'kg' ? 'kg' : 'unidades'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={handleAddToCart}
+                    disabled={!product.disponible}
+                    startIcon={<ShoppingCartIcon />}
+                    sx={{
+                      borderRadius: '20px',
+                      py: 1.5,
+                      mb: 2,
+                    }}
+                  >
+                    Agregar al carrito
+                  </Button>
+                )}
               </Box>
 
-              {/* Price Breakdown */}
+              {/* Price Information */}
               <Box sx={{ mb: 3 }}>
                 <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography variant="body2">Precio unitario:</Typography>
                   <Typography variant="body2">{formatCurrency(product.precioUnitario)}</Typography>
                 </Box>
 
-                {currentPrice < product.precioUnitario && (
+                {currentPrice < product.precioUnitario && cartQuantity > 0 && (
                   <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography variant="body2" color="primary">
                       Precio con descuento:
@@ -604,28 +668,29 @@ export const ProductDetail: React.FC = () => {
                   </Box>
                 )}
 
-                <Divider sx={{ my: 1 }} />
+                {cartQuantity > 0 && (
+                  <>
+                    <Divider sx={{ my: 1 }} />
+                    <Box display="flex" justifyContent="space-between">
+                      <Typography variant="h6" fontWeight="600">
+                        Subtotal ({cartQuantity} {product.unitType === 'kg' ? 'kg' : 'unidades'}):
+                      </Typography>
+                      <Typography variant="h6" fontWeight="600" color="primary">
+                        {formatCurrency(totalPrice)}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
+              </Box>
 
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="h6" fontWeight="600">
-                    Total:
-                  </Typography>
-                  <Typography variant="h6" fontWeight="600" color="primary">
-                    {formatCurrency(totalPrice)}
-                  </Typography>
+              {/* Quick Purchase Action */}
+              {cartQuantity > 0 && (
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <Button variant="outlined" fullWidth size="large">
+                    Proceder al Pago
+                  </Button>
                 </Box>
-              </Box>
-
-              {/* Action Buttons */}
-              <Box display="flex" flexDirection="column" gap={2}>
-                <Button variant="contained" fullWidth startIcon={<ShoppingCartIcon />} size="large">
-                  Agregar al Carrito
-                </Button>
-
-                <Button variant="outlined" fullWidth size="large">
-                  Comprar Ahora
-                </Button>
-              </Box>
+              )}
 
               {/* Discount Notice */}
               {product.descuentosCantidad && product.descuentosCantidad.length > 0 && (
@@ -652,6 +717,14 @@ export const ProductDetail: React.FC = () => {
           }}
         />
       )}
+
+      {/* Snackbar for cart notifications */}
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        autoHideDuration={3000}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 };

@@ -49,7 +49,7 @@ export interface CartSummary {
 }
 
 export interface CartItemsData {
-  items: CartItem[];
+  items: CamelCartItem[];
   resumen: CartSummary;
 }
 

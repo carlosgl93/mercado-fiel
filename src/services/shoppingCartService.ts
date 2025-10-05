@@ -1,7 +1,7 @@
 import { carritoApi } from '@/api';
 import { useAuth } from '@/hooks';
 import { shoppingCartState } from '@/store/shoppingCart/shoppingCartState';
-import { AddCartItemRequest, CartItem } from '@/types/carrito';
+import { AddCartItemRequest } from '@/types/carrito';
 import { Product } from '@/types/products';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -66,21 +66,67 @@ export const useShoppingCartService = () => {
   const addToCartMutation = useMutation(
     (data: AddCartItemRequest) => carritoApi.addCartItem(user!.data.idUsuario, data),
     {
-      onSuccess: () => {
-        setSnackbar({ 
-          open: true, 
-          message: 'Producto agregado al carrito', 
-          severity: 'success' 
+      onMutate: async (newItem) => {
+        // Cancel any outgoing refetches so they don't overwrite our optimistic update
+        await queryClient.cancelQueries(['cart', user?.data?.idUsuario]);
+
+        // Snapshot the previous value
+        const previousCart = queryClient.getQueryData(['cart', user?.data?.idUsuario]);
+
+        // Optimistically update the cache
+        queryClient.setQueryData(['cart', user?.data?.idUsuario], (old: any) => {
+          if (!old?.data?.items) return old;
+
+          // Check if item already exists in cart
+          const existingItemIndex = old.data.items.findIndex(
+            (item: any) =>
+              item.id_producto === newItem.id_producto || item.idProducto === newItem.id_producto,
+          );
+
+          if (existingItemIndex >= 0) {
+            // Update existing item quantity
+            const updatedItems = [...old.data.items];
+            updatedItems[existingItemIndex] = {
+              ...updatedItems[existingItemIndex],
+              cantidad: updatedItems[existingItemIndex].cantidad + newItem.cantidad,
+            };
+            return {
+              ...old,
+              data: {
+                ...old.data,
+                items: updatedItems,
+              },
+            };
+          }
+
+          return old;
         });
-        refetchCart();
+
+        return { previousCart };
       },
-      onError: (error: any) => {
+      onError: (error: any, newItem, context) => {
+        // If the mutation fails, use the context returned from onMutate to roll back
+        if (context?.previousCart) {
+          queryClient.setQueryData(['cart', user?.data?.idUsuario], context.previousCart);
+        }
         console.error('Error adding to cart:', error);
         setSnackbar({
           open: true,
           message: error?.response?.data?.message || 'Error al agregar producto al carrito',
           severity: 'error',
         });
+      },
+      onSuccess: () => {
+        setSnackbar({
+          open: true,
+          message: 'Producto agregado al carrito',
+          severity: 'success',
+        });
+        refetchCart();
+      },
+      onSettled: () => {
+        // Always refetch after error or success to ensure we have the latest data
+        queryClient.invalidateQueries(['cart', user?.data?.idUsuario]);
       },
     },
   );
@@ -90,16 +136,49 @@ export const useShoppingCartService = () => {
     ({ itemId, data }: { itemId: number; data: { cantidad: number } }) =>
       carritoApi.updateCartItem(user!.data.idUsuario, itemId, data),
     {
+      onMutate: async ({ itemId, data }) => {
+        await queryClient.cancelQueries(['cart', user?.data?.idUsuario]);
+        const previousCart = queryClient.getQueryData(['cart', user?.data?.idUsuario]);
+
+        // Optimistically update the cache
+        queryClient.setQueryData(['cart', user?.data?.idUsuario], (old: any) => {
+          if (!old?.data?.items) return old;
+
+          const updatedItems = old.data.items.map((item: any) => {
+            const currentItemId = item.id_carrito || item.idCarrito;
+            if (currentItemId === itemId) {
+              return { ...item, cantidad: data.cantidad };
+            }
+            return item;
+          });
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              items: updatedItems,
+            },
+          };
+        });
+
+        return { previousCart };
+      },
+      onError: (error: any, variables, context) => {
+        if (context?.previousCart) {
+          queryClient.setQueryData(['cart', user?.data?.idUsuario], context.previousCart);
+        }
+        console.error('Error updating cart item:', error);
+        setSnackbar({
+          open: true,
+          message: 'Error al actualizar cantidad',
+          severity: 'error',
+        });
+      },
       onSuccess: () => {
         refetchCart();
       },
-      onError: (error: any) => {
-        console.error('Error updating cart item:', error);
-        setSnackbar({ 
-          open: true, 
-          message: 'Error al actualizar cantidad', 
-          severity: 'error' 
-        });
+      onSettled: () => {
+        queryClient.invalidateQueries(['cart', user?.data?.idUsuario]);
       },
     },
   );
@@ -108,21 +187,51 @@ export const useShoppingCartService = () => {
   const removeFromCartMutation = useMutation(
     (itemId: number) => carritoApi.removeCartItem(user!.data.idUsuario, itemId),
     {
+      onMutate: async (itemId) => {
+        await queryClient.cancelQueries(['cart', user?.data?.idUsuario]);
+        const previousCart = queryClient.getQueryData(['cart', user?.data?.idUsuario]);
+
+        // Optimistically update the cache
+        queryClient.setQueryData(['cart', user?.data?.idUsuario], (old: any) => {
+          if (!old?.data?.items) return old;
+
+          const updatedItems = old.data.items.filter((item: any) => {
+            const currentItemId = item.id_carrito || item.idCarrito;
+            return currentItemId !== itemId;
+          });
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              items: updatedItems,
+            },
+          };
+        });
+
+        return { previousCart };
+      },
+      onError: (error: any, itemId, context) => {
+        if (context?.previousCart) {
+          queryClient.setQueryData(['cart', user?.data?.idUsuario], context.previousCart);
+        }
+        console.error('Error removing from cart:', error);
+        setSnackbar({
+          open: true,
+          message: 'Error al eliminar producto',
+          severity: 'error',
+        });
+      },
       onSuccess: () => {
-        setSnackbar({ 
-          open: true, 
-          message: 'Producto eliminado del carrito', 
-          severity: 'success' 
+        setSnackbar({
+          open: true,
+          message: 'Producto eliminado del carrito',
+          severity: 'success',
         });
         refetchCart();
       },
-      onError: (error: any) => {
-        console.error('Error removing from cart:', error);
-        setSnackbar({ 
-          open: true, 
-          message: 'Error al eliminar producto', 
-          severity: 'error' 
-        });
+      onSettled: () => {
+        queryClient.invalidateQueries(['cart', user?.data?.idUsuario]);
       },
     },
   );
@@ -136,7 +245,7 @@ export const useShoppingCartService = () => {
     if (!ensureAuthenticated()) return;
 
     const productId = typeof product === 'number' ? product : product.idProducto;
-    
+
     if (!productId) {
       console.error('Invalid product ID:', product);
       setSnackbar({
@@ -148,10 +257,10 @@ export const useShoppingCartService = () => {
     }
 
     console.log('🛒 Adding to cart:', { id_producto: productId, cantidad: quantity });
-    
-    addToCartMutation.mutate({ 
-      id_producto: productId, 
-      cantidad: quantity 
+
+    addToCartMutation.mutate({
+      id_producto: productId,
+      cantidad: quantity,
     });
   };
 
@@ -166,8 +275,8 @@ export const useShoppingCartService = () => {
     const productId = typeof product === 'number' ? product : product.idProducto;
 
     // Find the cart item for this product
-    const cartItem = cartData?.data?.items?.find((item: CartItem) => {
-      const itemProductId = (item as any).idProducto || item.id_producto;
+    const cartItem = cartData?.data?.items?.find((item) => {
+      const itemProductId = item.idProducto;
       return itemProductId === productId;
     });
 
@@ -182,11 +291,11 @@ export const useShoppingCartService = () => {
 
     if (newQuantity <= 0) {
       // Remove item completely
-      const itemId = cartItem.id_carrito || cartItem.idCarrito;
+      const itemId = (cartItem as any).id_carrito || (cartItem as any).idCarrito;
       removeFromCartMutation.mutate(itemId);
     } else {
       // Update quantity
-      const itemId = cartItem.id_carrito || cartItem.idCarrito;
+      const itemId = (cartItem as any).id_carrito || (cartItem as any).idCarrito;
       updateCartMutation.mutate({
         itemId,
         data: { cantidad: newQuantity },
@@ -202,8 +311,8 @@ export const useShoppingCartService = () => {
   const getProductQuantityInCart = (productId: number): number => {
     if (!cartData?.data?.items) return 0;
 
-    const cartItem = cartData.data.items.find((item: CartItem) => {
-      const itemProductId = (item as any).idProducto || item.id_producto;
+    const cartItem = cartData.data.items.find((item) => {
+      const itemProductId = item.idProducto;
       return itemProductId === productId;
     });
 
@@ -225,10 +334,10 @@ export const useShoppingCartService = () => {
    */
   const getCartQuantitiesMap = (): Record<number, number> => {
     const quantities: Record<number, number> = {};
-    
+
     if (cartData?.data?.items) {
-      cartData.data.items.forEach((item: CartItem) => {
-        const productId = (item as any).idProducto || item.id_producto;
+      cartData.data.items.forEach((item) => {
+        const productId = item.idProducto;
         if (productId) {
           quantities[productId] = item.cantidad;
         }
@@ -247,11 +356,11 @@ export const useShoppingCartService = () => {
     try {
       // Remove all items one by one (if API doesn't have bulk clear)
       if (cartData?.data?.items) {
-        const removePromises = cartData.data.items.map((item: CartItem) => {
-          const itemId = item.id_carrito;
+        const removePromises = cartData.data.items.map((item) => {
+          const itemId = item.idCarrito;
           return carritoApi.removeCartItem(user!.data.idUsuario, itemId);
         });
-        
+
         await Promise.all(removePromises);
         refetchCart();
         setSnackbar({
@@ -304,7 +413,10 @@ export const useShoppingCartService = () => {
     cartItems: cartData?.data?.items || [],
     cartSummary: cartData?.data?.resumen,
     isLoadingCart,
-    isUpdating: addToCartMutation.isLoading || updateCartMutation.isLoading || removeFromCartMutation.isLoading,
+    isUpdating:
+      addToCartMutation.isLoading ||
+      updateCartMutation.isLoading ||
+      removeFromCartMutation.isLoading,
     snackbar,
     isCartOpen: (cartRecoilState as any).isOpen,
 

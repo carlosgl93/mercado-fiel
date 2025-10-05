@@ -13,7 +13,14 @@ function Pages() {
   const renderFooter = useRenderFooter();
 
   return (
-    <Box sx={{ height: 'fit-content', minHeight: '75vh', backgroundColor: '#f7f7f7' }}>
+    <Box
+      sx={{
+        height: 'fit-content',
+        minHeight: '75vh',
+        backgroundColor: '#f7f7f7',
+        paddingTop: '80px', // Add padding to account for fixed header
+      }}
+    >
       <Routes>
         {Object.values(routes).map(({ path, component: Component }) => {
           return <Route key={path} path={path} element={<Component />} />;

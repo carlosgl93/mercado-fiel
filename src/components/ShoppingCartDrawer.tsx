@@ -13,7 +13,12 @@ export const ShoppingCartDrawer: React.FC = () => {
     isUpdating,
     snackbar,
     closeSnackbar,
+    handleRemoveItemById,
   } = useShoppingCartRecoil();
+
+  console.log({
+    cartData,
+  });
 
   return (
     <>
@@ -32,7 +37,7 @@ export const ShoppingCartDrawer: React.FC = () => {
           cartData={cartData?.data}
           isLoading={loadingCart}
           onUpdateQuantity={handleUpdateCartQuantity}
-          onRemoveItem={(itemId: number) => handleUpdateCartQuantity(itemId, 0)}
+          onRemoveItem={handleRemoveItemById}
           onClose={closeCart}
           isUpdating={isUpdating}
         />

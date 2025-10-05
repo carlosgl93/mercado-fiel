@@ -16,10 +16,6 @@ export const ShoppingCartDrawer: React.FC = () => {
     handleRemoveItemById,
   } = useShoppingCartRecoil();
 
-  console.log({
-    cartData,
-  });
-
   return (
     <>
       {/* Cart Drawer */}

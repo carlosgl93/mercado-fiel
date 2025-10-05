@@ -351,6 +351,8 @@ export const useAuth = () => {
           }
           return;
         }
+        
+        console.log({ session });
 
         if (session?.user && mounted) {
           await loadUserProfile(session.user);

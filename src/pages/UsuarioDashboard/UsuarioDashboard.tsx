@@ -60,7 +60,7 @@ export const UsuarioDashboard = () => {
         >
           <DashboardTile
             goToPath="/perfil-usuario"
-            title="Mi Perfil"
+            title="Mi perfil"
             subTitle="Actualiza tu información personal"
             isMobile={isMobile}
             text="Mantén actualizada tu información de contacto, direcciones de entrega y preferencias de compra."
@@ -68,7 +68,7 @@ export const UsuarioDashboard = () => {
           />
           <DashboardTile
             goToPath="/explorar-productos"
-            title="Explorar Productos"
+            title="Explorar productos"
             subTitle="Descubre productos de proveedores locales"
             isMobile={isMobile}
             text="Navega por el catálogo completo de productos, filtra por categoría, precio y ubicación para encontrar lo que necesitas."
@@ -76,7 +76,7 @@ export const UsuarioDashboard = () => {
           />
           <DashboardTile
             goToPath="/resultados"
-            title="Buscar Proveedores"
+            title="Buscar proveedores"
             subTitle="Encuentra proveedores cerca de ti"
             isMobile={isMobile}
             text="Conecta directamente con proveedores locales, revisa sus perfiles y productos disponibles."
@@ -90,14 +90,14 @@ export const UsuarioDashboard = () => {
         text="Revisa los productos que has agregado, ajusta cantidades y procede al checkout cuando estés listo."
         ctaText="Ver carrito"
       /> */}
-          <DashboardTile
+          {/* <DashboardTile
             goToPath="/mis-pedidos"
-            title="Mis Pedidos"
+            title="Mis pedidos"
             subTitle="Rastrea tus compras"
             isMobile={isMobile}
             text="Revisa el estado de tus pedidos, historial de compras y gestiona devoluciones o reclamos."
             ctaText="Ver pedidos"
-          />
+          /> */}
           <DashboardTile
             goToPath="/compras-colectivas"
             title="Compras Colectivas"
@@ -106,14 +106,14 @@ export const UsuarioDashboard = () => {
             text="Participa en campañas de compra colectiva para obtener mejores precios al comprar en grupo."
             ctaText="Ver campañas"
           />
-          <DashboardTile
+          {/* <DashboardTile
             goToPath="/usuario-inbox"
             title="Mensajes"
             subTitle="Comunícate con proveedores"
             isMobile={isMobile}
             text="Chatea con proveedores para hacer consultas, negociar precios o coordinar entregas."
             ctaText="Ver mensajes"
-          />
+          /> */}
           {/* <DashboardTile
         goToPath="/lista-deseos"
         title="Lista de Deseos"

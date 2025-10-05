@@ -545,7 +545,7 @@ export const ProveedorPerfil = () => {
       <Container maxWidth="lg">
         {/* Header */}
         <DashboardHeader
-          title="Mi Perfil de Proveedor"
+          title="Mi perfil"
           description="Actualiza la información de tu negocio para que los clientes te encuentren fácilmente"
           icon={<BusinessIcon sx={{ fontSize: 32 }} />}
           breadcrumbs={[
@@ -554,7 +554,7 @@ export const ProveedorPerfil = () => {
               onClick: handleBackToDashboard,
             },
             {
-              label: 'Mi Perfil de Proveedor',
+              label: 'Mi perfil',
             },
           ]}
           onBack={handleBackToDashboard}

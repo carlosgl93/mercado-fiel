@@ -1,23 +1,13 @@
-import { productsApi } from '@/api';
-import { DashboardHeader } from '@/components';
+import { comprasColectivasApi } from '@/api';
+import { CollectivePurchaseCard, DashboardHeader, JoinCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
-import { Product, ProductFilters } from '@/types/products';
-import { formatCLP } from '@/utils/formatCLP';
-import {
-  AccessTime as AccessTimeIcon,
-  Group as GroupIcon,
-  LocalOffer as LocalOfferIcon,
-  TrendingUp as TrendingUpIcon
-} from '@mui/icons-material';
+import { CompraColectiva, CompraColectivaFilters } from '@/types/api/comprasColectivas';
+import { Group as GroupIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
   Button,
   Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
   CircularProgress,
   Container,
   Grid,
@@ -29,165 +19,6 @@ import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
-interface CollectivePurchaseCardProps {
-  product: Product;
-  onJoinPurchase: (product: Product) => void;
-}
-
-const CollectivePurchaseCard: React.FC<CollectivePurchaseCardProps> = ({ 
-  product, 
-  onJoinPurchase 
-}) => {
-  // Mock data for collective purchase progress
-  const mockProgress = {
-    currentParticipants: Math.floor(Math.random() * 50) + 10,
-    targetParticipants: 100,
-    timeRemaining: Math.floor(Math.random() * 7) + 1, // days
-  };
-
-  const progressPercentage = (mockProgress.currentParticipants / mockProgress.targetParticipants) * 100;
-
-  return (
-    <Card 
-      sx={{ 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column',
-        transition: 'transform 0.2s ease-in-out',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: (theme) => theme.shadows[8],
-        }
-      }}
-    >
-      {product.imagenUrl && (
-        <CardMedia
-          component="img"
-          height="200"
-          image={product.imagenUrl}
-          alt={product.nombreProducto}
-          sx={{ objectFit: 'cover' }}
-        />
-      )}
-      
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="start" mb={1}>
-          <Typography variant="h6" component="h2" gutterBottom>
-            {product.nombreProducto}
-          </Typography>
-          <Chip 
-            icon={<GroupIcon />}
-            label="Compra Colectiva" 
-            color="primary" 
-            size="small"
-          />
-        </Box>
-        
-        {product.descripcion && (
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            sx={{ 
-              mb: 2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {product.descripcion}
-          </Typography>
-        )}
-
-        <Box mb={2}>
-          <Typography variant="h5" color="primary" fontWeight="bold">
-            {formatCLP(product.precioUnitario)}
-            <Typography component="span" variant="body2" color="text.secondary" ml={1}>
-              por {product.unitType === 'kg' ? 'kilogramo' : 'unidad'}
-            </Typography>
-          </Typography>
-        </Box>
-
-        {/* Progress Information */}
-        <Box mb={2}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-            <Typography variant="body2" color="text.secondary">
-              Progreso de la compra
-            </Typography>
-            <Typography variant="body2" fontWeight="medium">
-              {mockProgress.currentParticipants}/{mockProgress.targetParticipants} participantes
-            </Typography>
-          </Box>
-          
-          <Box position="relative" mb={2}>
-            <Box
-              sx={{
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: 'grey.200',
-                overflow: 'hidden',
-              }}
-            >
-              <Box
-                sx={{
-                  width: `${progressPercentage}%`,
-                  height: '100%',
-                  backgroundColor: 'primary.main',
-                  transition: 'width 0.3s ease-in-out',
-                }}
-              />
-            </Box>
-            <Typography 
-              variant="caption" 
-              color="text.secondary"
-              sx={{ position: 'absolute', right: 0, top: -20 }}
-            >
-              {progressPercentage.toFixed(0)}%
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Time and Benefits */}
-        <Box display="flex" flexDirection="column" gap={1}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <AccessTimeIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {mockProgress.timeRemaining} días restantes
-            </Typography>
-          </Box>
-          
-          <Box display="flex" alignItems="center" gap={1}>
-            <TrendingUpIcon fontSize="small" color="success" />
-            <Typography variant="body2" color="success.main">
-              Hasta 25% de descuento al completarse
-            </Typography>
-          </Box>
-          
-          <Box display="flex" alignItems="center" gap={1}>
-            <LocalOfferIcon fontSize="small" color="secondary" />
-            <Typography variant="body2" color="text.secondary">
-              Sin costo de envío
-            </Typography>
-          </Box>
-        </Box>
-      </CardContent>
-
-      <CardActions sx={{ p: 2, pt: 0 }}>
-        <Button 
-          variant="contained" 
-          fullWidth 
-          size="large"
-          onClick={() => onJoinPurchase(product)}
-          sx={{ borderRadius: 2 }}
-        >
-          Unirse a la Compra
-        </Button>
-      </CardActions>
-    </Card>
-  );
-};
-
 export const ComprasColectivas: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -195,28 +26,34 @@ export const ComprasColectivas: React.FC = () => {
   const { user } = useAuth();
 
   // State
-  const [filters] = useState<ProductFilters>({
-    disponible: true,
+  const [filters] = useState<CompraColectivaFilters>({
     page: 1,
     limit: 12,
-    sortBy: 'created_at',
-    sortOrder: 'desc',
+    estado: 'abierta',
   });
 
-  // Query for products eligible for collective purchases
-  const { data: productsData, isLoading, error } = useQuery({
-    queryKey: ['collective-products', filters],
-    queryFn: () => productsApi.getProducts({
-      ...filters,
-      // Note: We'll need to add filtering by elegibleCompraColectiva in the backend
-    }),
+  const [selectedCampaign, setSelectedCampaign] = useState<CompraColectiva | null>(null);
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+
+  // Query for active collective purchase campaigns
+  const {
+    data: campaignsData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['collective-campaigns', filters],
+    queryFn: () => comprasColectivasApi.getComprasColectivas(filters),
     keepPreviousData: true,
   });
 
-  const handleJoinPurchase = (product: Product) => {
-    // TODO: Implement join collective purchase logic
-    console.log('Joining collective purchase for:', product.nombreProducto);
-    // This will open a modal or navigate to a join purchase page
+  const handleJoinPurchase = (campaign: CompraColectiva) => {
+    setSelectedCampaign(campaign);
+    setJoinModalOpen(true);
+  };
+
+  const handleJoinModalClose = () => {
+    setJoinModalOpen(false);
+    setSelectedCampaign(null);
   };
 
   if (error) {
@@ -231,27 +68,24 @@ export const ComprasColectivas: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      <DashboardHeader 
+      <DashboardHeader
         title="Compras Colectivas"
         description="Únete a compras grupales y obtén los mejores precios"
-        breadcrumbs={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Compras Colectivas' }
-        ]}
+        breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Compras Colectivas' }]}
         onBack={() => navigate('/')}
         icon={<GroupIcon />}
       />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Hero Section */}
-        <Box 
-          sx={{ 
-            mb: 4, 
-            p: 4, 
+        <Box
+          sx={{
+            mb: 4,
+            p: 4,
             borderRadius: 3,
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            textAlign: 'center'
+            textAlign: 'center',
           }}
         >
           <GroupIcon sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
@@ -276,7 +110,7 @@ export const ComprasColectivas: React.FC = () => {
               </Typography>
             </Card>
           </Grid>
-       
+
           <Grid item xs={12} md={4}>
             <Card sx={{ textAlign: 'center', p: 3 }}>
               <GroupIcon color="secondary" sx={{ fontSize: 40, mb: 2 }} />
@@ -300,14 +134,22 @@ export const ComprasColectivas: React.FC = () => {
             {Array.from({ length: 6 }).map((_, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card sx={{ height: 400 }}>
-                  <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100%',
+                    }}
+                  >
                     <CircularProgress />
                   </Box>
                 </Card>
               </Grid>
             ))}
           </Grid>
-        ) : productsData?.data?.productos?.length === 0 ? (
+        ) : campaignsData?.data?.campaigns?.length === 0 ? (
           <Card sx={{ textAlign: 'center', p: 6 }}>
             <GroupIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
@@ -322,36 +164,31 @@ export const ComprasColectivas: React.FC = () => {
           </Card>
         ) : (
           <Grid container spacing={3}>
-            {productsData?.data?.productos
-              ?.filter(product => product.elegibleCompraColectiva) // Filter on frontend for now
-              ?.map((product) => (
-                <Grid item xs={12} sm={6} md={4} key={product.idProducto}>
-                  <CollectivePurchaseCard 
-                    product={product} 
-                    onJoinPurchase={handleJoinPurchase}
-                  />
-                </Grid>
-              ))}
+            {campaignsData?.data?.campaigns?.map((campaign) => (
+              <Grid item xs={12} sm={6} md={4} key={campaign.id_campana}>
+                <CollectivePurchaseCard
+                  campaign={campaign}
+                  onJoinPurchase={handleJoinPurchase}
+                  // currentUserId={user?.uid}
+                />
+              </Grid>
+            ))}
           </Grid>
         )}
-
-        {/* Empty State if no collective purchase products */}
-        {productsData?.data?.productos && 
-         productsData.data.productos.filter(p => p.elegibleCompraColectiva).length === 0 && (
-          <Card sx={{ textAlign: 'center', p: 6, mt: 3 }}>
-            <GroupIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              No hay productos elegibles para compras colectivas
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Los proveedores aún no han habilitado productos para compras colectivas
-            </Typography>
-            <Button variant="contained" href="/explorar-productos">
-              Explorar Todos los Productos
-            </Button>
-          </Card>
-        )}
       </Container>
+
+      {/* Join Campaign Modal */}
+      {selectedCampaign && (
+        <JoinCampaignModal
+          open={joinModalOpen}
+          onClose={handleJoinModalClose}
+          campaign={selectedCampaign}
+          onSuccess={() => {
+            // Refresh campaigns data
+            // queryClient.invalidateQueries(['collective-campaigns']);
+          }}
+        />
+      )}
     </Box>
   );
 };

@@ -7,6 +7,7 @@ import {
   campaignsRouter,
   carritoRouter,
   categoriesRouter,
+  comprasColectivasRouter,
   customersRouter,
   productosRouter,
   statusRouter,
@@ -25,25 +26,25 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://mercado-fiel.web.app', 
+    'https://mercado-fiel.web.app',
     'https://mercado-fiel.firebaseapp.com',
-    'https://mercadofiel.cl'
+    'https://mercadofiel.cl',
   ];
-  
+
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin || '')) {
     res.setHeader('Access-Control-Allow-Origin', origin || '');
   }
-  
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
-  
+
   next();
 });
 
@@ -69,6 +70,7 @@ app.use('/categories', categoriesRouter);
 app.use('/comunas', comunasRouter);
 app.use('/carrito', carritoRouter);
 app.use('/campaigns', campaignsRouter);
+app.use('/compras-colectivas', comprasColectivasRouter);
 
 // Error handler should be last
 app.use(errorHandler);

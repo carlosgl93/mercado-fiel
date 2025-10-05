@@ -2,6 +2,7 @@ import { Product } from '@/types/products';
 import { formatCurrency } from '@/utils/formatters';
 import {
   Add as AddIcon,
+  Group as GroupIcon,
   LocalOffer as LocalOfferIcon,
   Remove as RemoveIcon,
   ShoppingCart as ShoppingCartIcon,
@@ -18,6 +19,7 @@ import {
   useTheme,
 } from '@mui/material';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
@@ -35,6 +37,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   disabled = false,
 }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
 
   // Calculate if there are quantity discounts
   const hasDiscounts = product.descuentosCantidad && product.descuentosCantidad.length > 0;
@@ -69,13 +72,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    navigate(`/producto/${product.idProducto}`);
+  };
+
   return (
     <Card
+      onClick={handleCardClick}
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer',
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: theme.shadows[8],
@@ -104,6 +117,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             sx={{
               position: 'absolute',
               top: 8,
+              left: 8,
+              fontWeight: 'bold',
+            }}
+          />
+        )}
+
+        {/* Collective Purchase Eligible Badge */}
+        {product.elegibleCompraColectiva && (
+          <Chip
+            icon={<GroupIcon />}
+            label="Compra Colectiva"
+            color="primary"
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: hasDiscounts ? 48 : 8,
               left: 8,
               fontWeight: 'bold',
             }}

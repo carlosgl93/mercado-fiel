@@ -1,6 +1,7 @@
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { esES } from '@mui/x-date-pickers/locales';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// Temporarily removing date picker imports due to date-fns compatibility issues
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import { esES } from '@mui/x-date-pickers/locales';
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Fragment, lazy, Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import './styles.css';
@@ -31,25 +32,20 @@ export const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LocalizationProvider
-        dateAdapter={AdapterDayjs}
-        adapterLocale="es-cl"
-        localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}
-      >
-        <Fragment>
-          <CssBaseline />
-          <Suspense fallback={<Loading />}>
-            <SW />
-            <BrowserRouter>
-              <Header />
-              <Sidebar />
-              <Pages />
-              <NotificationSnackbar />
-              <ShoppingCartDrawer />
-            </BrowserRouter>
-          </Suspense>
-        </Fragment>
-      </LocalizationProvider>
+      {/* Temporarily removing LocalizationProvider due to date-fns compatibility issues */}
+      <Fragment>
+        <CssBaseline />
+        <Suspense fallback={<Loading />}>
+          <SW />
+          <BrowserRouter>
+            <Header />
+            <Sidebar />
+            <Pages />
+            <NotificationSnackbar />
+            <ShoppingCartDrawer />
+          </BrowserRouter>
+        </Suspense>
+      </Fragment>
     </QueryClientProvider>
   );
 }

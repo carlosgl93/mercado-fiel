@@ -220,7 +220,7 @@ const routes: Routes = {
   [Pages.PerfilUsuario]: {
     component: asyncComponentLoader(() => import('@/pages/UsuarioProfile')),
     path: '/perfil-usuario',
-    title: 'Mi Perfil',
+    title: 'Mi perfil',
   },
 
   [Pages.NotFound]: {

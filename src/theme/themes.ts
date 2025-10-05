@@ -1,6 +1,5 @@
 import { ThemeOptions } from '@mui/material/styles';
 import { deepmerge } from '@mui/utils';
-import { esES } from '@mui/x-date-pickers/locales';
 
 import { Themes } from './types';
 
@@ -23,7 +22,6 @@ const sharedTheme = {
       grey: '#F6F6F4',
     },
   },
-  esES,
   components: {
     MuiListItem: {
       styleOverrides: {

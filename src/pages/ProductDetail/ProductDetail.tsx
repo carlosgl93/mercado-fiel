@@ -1,5 +1,7 @@
+import { comprasColectivasApi } from '@/api';
 import { campaignsApi } from '@/api/campaigns';
 import { productsApi } from '@/api/products';
+import { CreateCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import {
   Add as AddIcon,
@@ -61,6 +63,7 @@ export const ProductDetail: React.FC = () => {
 
   const [quantity, setQuantity] = useState(1);
   const [campaignQuantity, setCampaignQuantity] = useState(1);
+  const [createCampaignModalOpen, setCreateCampaignModalOpen] = useState(false);
 
   // Query for product details
   const {
@@ -74,12 +77,20 @@ export const ProductDetail: React.FC = () => {
   });
 
   // Query for collective campaigns for this product
-  const {
-    data: campaignsResponse,
-    isLoading: isLoadingCampaigns,
-  } = useQuery({
+  const { data: campaignsResponse, isLoading: isLoadingCampaigns } = useQuery({
     queryKey: ['campaigns', 'product', id],
     queryFn: () => campaignsApi.getCampaignsByProduct(parseInt(id || '0')),
+    enabled: !!id,
+  });
+
+  // Query for collective purchase campaigns for this product
+  const { data: collectiveCampaignsResponse, isLoading: isLoadingCollectiveCampaigns } = useQuery({
+    queryKey: ['collective-campaigns', 'product', id],
+    queryFn: () =>
+      comprasColectivasApi.getComprasColectivas({
+        id_producto: parseInt(id || '0'),
+        estado: 'abierta',
+      }),
     enabled: !!id,
   });
 
@@ -98,9 +109,10 @@ export const ProductDetail: React.FC = () => {
 
   const product = productResponse?.data;
   const campaigns = campaignsResponse?.data || [];
+  const collectiveCampaigns = collectiveCampaignsResponse?.data?.campaigns || [];
 
   const handleQuantityChange = (delta: number) => {
-    console.log({quantity, product})
+    console.log({ quantity, product });
     setQuantity(Math.max(1, quantity + delta));
   };
 
@@ -127,11 +139,11 @@ export const ProductDetail: React.FC = () => {
 
     // Find the applicable discount based on quantity
     const applicableDiscount = discounts
-      .filter(d => quantity >= d.cantidadMinima)
+      .filter((d) => quantity >= d.cantidadMinima)
       .sort((a, b) => b.cantidadMinima - a.cantidadMinima)[0];
 
     if (!applicableDiscount) return basePrice;
-    console.log({applicableDiscount, basePrice, quantity})
+    console.log({ applicableDiscount, basePrice, quantity });
 
     return basePrice * (1 - applicableDiscount.porcentajeDescuento / 100);
   };
@@ -166,10 +178,14 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
-  const currentPrice = calculateCurrentPrice(product.precioUnitario, quantity, product.descuentosCantidad || []);
+  const currentPrice = calculateCurrentPrice(
+    product.precioUnitario,
+    quantity,
+    product.descuentosCantidad || [],
+  );
   const totalPrice = currentPrice * quantity;
-  
-  console.log({currentPrice, totalPrice, quantity, product})
+
+  console.log({ currentPrice, totalPrice, quantity, product });
 
   return (
     <Box
@@ -227,7 +243,7 @@ export const ProductDetail: React.FC = () => {
                   <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
                     {product.nombreProducto}
                   </Typography>
-                  
+
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
                     {product.descripcion || 'Sin descripción disponible'}
                   </Typography>
@@ -259,7 +275,7 @@ export const ProductDetail: React.FC = () => {
                     <LocalOfferIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Descuentos por Volumen
                   </Typography>
-                  
+
                   <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                       <TableHead>
@@ -273,7 +289,8 @@ export const ProductDetail: React.FC = () => {
                         {product.descuentosCantidad.map((discount, index: number) => (
                           <TableRow key={index}>
                             <TableCell>
-                              {discount.cantidadMinima} {product.unitType === 'kg' ? 'kg' : 'unidades'}
+                              {discount.cantidadMinima}{' '}
+                              {product.unitType === 'kg' ? 'kg' : 'unidades'}
                             </TableCell>
                             <TableCell>
                               <Chip
@@ -285,7 +302,8 @@ export const ProductDetail: React.FC = () => {
                             <TableCell>
                               <Typography color="primary" fontWeight="600">
                                 {formatCurrency(
-                                  product.precioUnitario * (1 - (discount.descuentoPorcentaje || 0) / 100)
+                                  product.precioUnitario *
+                                    (1 - (discount.descuentoPorcentaje || 0) / 100),
                                 )}
                               </Typography>
                             </TableCell>
@@ -297,25 +315,157 @@ export const ProductDetail: React.FC = () => {
                 </Box>
               )}
 
-              {/* Collective Campaigns */}
+              {/* Collective Purchase Campaigns */}
+              {product.elegibleCompraColectiva && (
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ mb: 3 }}
+                  >
+                    <Typography variant="h6" fontWeight="600">
+                      <GroupIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                      Compras Colectivas
+                    </Typography>
+
+                    {user && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<GroupIcon />}
+                        onClick={() => setCreateCampaignModalOpen(true)}
+                      >
+                        Crear Campaña
+                      </Button>
+                    )}
+                  </Box>
+
+                  {collectiveCampaigns.length > 0 ? (
+                    collectiveCampaigns.map((campaign) => (
+                      <Card
+                        key={campaign.id_campana}
+                        sx={{ mb: 2, border: `2px solid ${theme.palette.primary.main}` }}
+                      >
+                        <CardContent>
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
+                            sx={{ mb: 2 }}
+                          >
+                            <Box>
+                              <Typography variant="h6" fontWeight="600">
+                                {campaign.nombre}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {campaign.descripcion}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Precio objetivo:{' '}
+                                <strong>{formatCurrency(Number(campaign.precio_objetivo))}</strong>{' '}
+                                (ahorra{' '}
+                                {formatCurrency(
+                                  product.precioUnitario - Number(campaign.precio_objetivo),
+                                )}
+                                )
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={campaign.estado === 'abierta' ? 'Activa' : 'Cerrada'}
+                              color={campaign.estado === 'abierta' ? 'success' : 'default'}
+                              size="small"
+                            />
+                          </Box>
+
+                          {/* Progress */}
+                          <Box sx={{ mb: 2 }}>
+                            <Box
+                              display="flex"
+                              justifyContent="space-between"
+                              alignItems="center"
+                              sx={{ mb: 1 }}
+                            >
+                              <Typography variant="body2">
+                                Progreso: {campaign.progreso?.cantidad_actual || 0} /{' '}
+                                {campaign.cantidad_objetivo}
+                              </Typography>
+                              <Typography variant="body2" color="primary">
+                                {Math.round(
+                                  ((campaign.progreso?.cantidad_actual || 0) /
+                                    campaign.cantidad_objetivo) *
+                                    100,
+                                )}
+                                %
+                              </Typography>
+                            </Box>
+                            <LinearProgress
+                              variant="determinate"
+                              value={
+                                ((campaign.progreso?.cantidad_actual || 0) /
+                                  campaign.cantidad_objetivo) *
+                                100
+                              }
+                              sx={{ height: 8, borderRadius: 4 }}
+                            />
+                          </Box>
+
+                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Box display="flex" alignItems="center" gap={2}>
+                              <Typography variant="body2">
+                                <GroupIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                                {campaign.progreso?.participantes_actuales || 0} participantes
+                              </Typography>
+                              {campaign.fecha_fin && (
+                                <Typography variant="body2">
+                                  <ScheduleIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                                  Termina: {new Date(campaign.fecha_fin).toLocaleDateString()}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      <Typography variant="body2">
+                        No hay campañas colectivas activas para este producto.
+                        {user && ' ¡Sé el primero en crear una!'}
+                      </Typography>
+                    </Alert>
+                  )}
+                </Box>
+              )}
+
+              {/* Old Collective Campaigns (keeping for compatibility) */}
               {campaigns.length > 0 && (
-                <Box>
+                <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" fontWeight="600" sx={{ mb: 3 }}>
-                    <GroupIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Campañas Colectivas Activas
+                    <TrendingUpIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Otras Campañas Activas
                   </Typography>
 
                   {campaigns.map((campaign: CollectiveCampaign) => (
-                    <Card key={campaign.id} sx={{ mb: 2, border: `2px solid ${theme.palette.primary.main}` }}>
+                    <Card
+                      key={campaign.id}
+                      sx={{ mb: 2, border: `2px solid ${theme.palette.secondary.main}` }}
+                    >
                       <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          sx={{ mb: 2 }}
+                        >
                           <Box>
                             <Typography variant="h6" fontWeight="600">
                               {campaign.name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                              Precio objetivo: <strong>{formatCurrency(campaign.targetPrice)}</strong>
-                              {' '}(ahorra {formatCurrency(product.precioUnitario - campaign.targetPrice)})
+                              Precio objetivo:{' '}
+                              <strong>{formatCurrency(campaign.targetPrice)}</strong> (ahorra{' '}
+                              {formatCurrency(product.precioUnitario - campaign.targetPrice)})
                             </Typography>
                           </Box>
                           <Chip
@@ -327,12 +477,20 @@ export const ProductDetail: React.FC = () => {
 
                         {/* Progress */}
                         <Box sx={{ mb: 2 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ mb: 1 }}
+                          >
                             <Typography variant="body2">
                               Progreso: {campaign.currentQuantity} / {campaign.targetQuantity}
                             </Typography>
                             <Typography variant="body2" color="primary">
-                              {Math.round((campaign.currentQuantity / campaign.targetQuantity) * 100)}%
+                              {Math.round(
+                                (campaign.currentQuantity / campaign.targetQuantity) * 100,
+                              )}
+                              %
                             </Typography>
                           </Box>
                           <LinearProgress
@@ -365,7 +523,9 @@ export const ProductDetail: React.FC = () => {
                               <TextField
                                 size="small"
                                 value={campaignQuantity}
-                                onChange={(e) => setCampaignQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                onChange={(e) =>
+                                  setCampaignQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                                }
                                 sx={{ width: 60 }}
                                 inputProps={{ min: 1, style: { textAlign: 'center' } }}
                               />
@@ -430,11 +590,9 @@ export const ProductDetail: React.FC = () => {
               <Box sx={{ mb: 3 }}>
                 <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
                   <Typography variant="body2">Precio unitario:</Typography>
-                  <Typography variant="body2">
-                    {formatCurrency(product.precioUnitario)}
-                  </Typography>
+                  <Typography variant="body2">{formatCurrency(product.precioUnitario)}</Typography>
                 </Box>
-                
+
                 {currentPrice < product.precioUnitario && (
                   <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography variant="body2" color="primary">
@@ -447,7 +605,7 @@ export const ProductDetail: React.FC = () => {
                 )}
 
                 <Divider sx={{ my: 1 }} />
-                
+
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="h6" fontWeight="600">
                     Total:
@@ -460,20 +618,11 @@ export const ProductDetail: React.FC = () => {
 
               {/* Action Buttons */}
               <Box display="flex" flexDirection="column" gap={2}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  startIcon={<ShoppingCartIcon />}
-                  size="large"
-                >
+                <Button variant="contained" fullWidth startIcon={<ShoppingCartIcon />} size="large">
                   Agregar al Carrito
                 </Button>
-                
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  size="large"
-                >
+
+                <Button variant="outlined" fullWidth size="large">
                   Comprar Ahora
                 </Button>
               </Box>
@@ -489,6 +638,20 @@ export const ProductDetail: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Create Campaign Modal */}
+      {product && product.elegibleCompraColectiva && (
+        <CreateCampaignModal
+          open={createCampaignModalOpen}
+          onClose={() => setCreateCampaignModalOpen(false)}
+          product={product}
+          onSuccess={() => {
+            // Refresh collective campaigns
+            queryClient.invalidateQueries(['collective-campaigns', 'product', id]);
+            queryClient.invalidateQueries(['collective-campaigns']);
+          }}
+        />
+      )}
     </Box>
   );
 };

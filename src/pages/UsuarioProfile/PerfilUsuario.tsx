@@ -295,10 +295,10 @@ export const PerfilUsuario = () => {
   return (
     <>
       <DashboardHeader
-        title="Mi Perfil"
+        title="Mi perfil"
         description="Gestiona tu información personal"
         icon={<PersonIcon />}
-        breadcrumbs={[{ label: 'Dashboard', href: '/usuario-dashboard' }, { label: 'Mi Perfil' }]}
+        breadcrumbs={[{ label: 'Dashboard', href: '/usuario-dashboard' }, { label: 'Mi perfil' }]}
         onBack={() => navigate('/usuario-dashboard')}
         actions={
           <Button

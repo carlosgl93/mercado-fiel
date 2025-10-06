@@ -1,55 +1,12 @@
-import Loading from '@/components/Loading';
 import { Title } from '@/components/StyledComponents';
-import { useAppointments } from '@/hooks/useAppointments';
-import { Box, Card, CardContent, Container, styled, useTheme } from '@mui/material';
-import { useSearchParams } from 'react-router-dom';
+import { Box, Card, CardContent, styled } from '@mui/material';
 
 export const Payment = () => {
-  const [params] = useSearchParams();
-  const theme = useTheme();
-  const {
-    multipleAppointments,
-    isLoadingMultipleAppointments: isLoadingAppointment,
-    multipleAppointmentsError: appointmentError,
-  } = useAppointments(params.get('appointmentsIds') || '');
-
-  if (
-    isLoadingAppointment
-    // || isLoadingPaykuPayment
-  )
-    return <Loading />;
-
-  if (
-    appointmentError
-    // || paykuPaymentError
-  )
-    return (
-      <StyledBox>
-        <StyledCard variant="outlined">
-          <CardContent>
-            <Title>Hubo un error al cargar esta informacion, por favor intentalo nuevamente</Title>
-          </CardContent>
-        </StyledCard>
-      </StyledBox>
-    );
-
-  if (!multipleAppointments || multipleAppointments.length === 0)
-    return (
-      <Container>
-        <Title>No se encontró ninguna sesión con estos detalles</Title>
-      </Container>
-    );
-
-  console.log({ multipleAppointments });
   return (
     <StyledBox>
       <StyledCard variant="outlined">
         <CardContent>
-          {/* {multipleAppointments.some((appointment) => appointment.isPaid === 'Pagado') ? (
-            <SuccessPayment appointments={multipleAppointments} theme={theme} />
-          ) : (
-            <FailedPayment appointments={multipleAppointments} theme={theme} />
-          )} */}
+          <Title>Hubo un error al cargar esta informacion, por favor intentalo nuevamente</Title>
         </CardContent>
       </StyledCard>
     </StyledBox>

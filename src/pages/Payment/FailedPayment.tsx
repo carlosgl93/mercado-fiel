@@ -1,14 +1,12 @@
-import { Appointment } from '@/api/appointments';
 import { Text, Title } from '@/components/StyledComponents';
 import { email as customerSupportEmail, customerSupportPhone } from '@/config';
 import { getOS } from '@/utils';
-import { formatDate } from '@/utils/formatDate';
 import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined';
 import { Box, styled, Theme } from '@mui/material';
 import { ButtonCTA } from '../UsuarioDashboard/StyledComponents';
 
 type FailedPaymentProps = {
-  appointments: Appointment[];
+  appointments: { appointmentid: string }[];
   theme: Theme;
 };
 
@@ -50,30 +48,19 @@ export const FailedPayment = ({ appointments, theme }: FailedPaymentProps) => {
       <StyledTitle>Pago fallido</StyledTitle>
       <Text>Lamentablemente algo salió mal con el pago, por favor intentalo nuevamente.</Text>
       <Text>
-        <b>
-          {appointment.customer.firstname}, tranquilo/a no se descontó ningún monto de tu cuenta.
-        </b>
+        <b>Carlos, tranquilo/a no se descontó ningún monto de tu cuenta.</b>
       </Text>
-      <Text>
-        Aún puedes realizar el pago para asegurar tu sesión con {appointment.provider.firstname}.
-      </Text>
+      <Text>Aún puedes realizar el pago para asegurar tu sesión con el proveedor.</Text>
       <Text>{/* Servicio: <b>{appointment.servicio.name}</b> */}</Text>
       <Text>
-        Proveedor:{' '}
-        <b>
-          {appointment.provider.firstname} {appointment.provider.lastname}
-        </b>
+        Proveedor: <b>Esteban Paredes</b>
       </Text>
       <Text>Fechas:</Text>
       <Text
         sx={{
           textJustify: 'left',
         }}
-      >
-        {appointments
-          .map((app) => formatDate(app.scheduledDate, true) + ' a las ' + app.scheduledTime)
-          .join(' - ')}
-      </Text>
+      ></Text>
       <Text>
         Por favor, revisa tu correo electrónico para más detalles e instrucciones adicionales.
       </Text>

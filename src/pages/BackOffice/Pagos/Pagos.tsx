@@ -9,69 +9,63 @@ import { PaymentsGridController } from './PaymentsGridController';
 export const Pagos = () => {
   const {
     columns,
-    isLoadingPaymentVerificationFailed,
-    isLoadingVerifyPayment,
     paginationModel,
-    duePayments,
-    duePaymentsIsLoading,
     showPaymentsDetails,
     paymentDetailsParams,
     setPaginationModel,
     handleOpenPaymentDetails,
   } = PaymentsGridController();
 
-  const isLoading =
-    isLoadingPaymentVerificationFailed || isLoadingVerifyPayment || duePaymentsIsLoading;
+  const isLoading = false;
 
-  if (duePayments)
-    return (
-      <Wrapper>
-        {isLoading ? (
-          <Loading />
-        ) : (
-          <>
-            <StyledOutlinedInput
-              id="searchPago"
-              type={'text'}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton aria-label="buscar por comuna" edge="end">
-                    <IconButtonBox>
-                      <Search
-                        sx={{
-                          color: 'primary.main',
-                        }}
-                      />
-                    </IconButtonBox>
-                  </IconButton>
-                </InputAdornment>
-              }
-              placeholder="Buscar pago por ID"
-              // onChange={onChangeHandler}
-            />
-            <DataGrid
-              slots={{
-                toolbar: GridToolbar,
-              }}
-              columns={columns}
-              rows={duePayments}
-              getRowId={(row) => row.appointmentId}
-              paginationMode="server"
-              paginationModel={paginationModel}
-              onPaginationModelChange={setPaginationModel}
-              pageSizeOptions={[10, 25]}
-              loading={isLoading}
-              onRowClick={(params) => {
-                handleOpenPaymentDetails(params.row);
-              }}
-            />
-          </>
-        )}
-        <PaymentDialog
-          open={showPaymentsDetails}
-          paymentDetails={paymentDetailsParams}
-          onClose={handleOpenPaymentDetails}
-        />
-      </Wrapper>
-    );
+  return (
+    <Wrapper>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          <StyledOutlinedInput
+            id="searchPago"
+            type={'text'}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton aria-label="buscar por comuna" edge="end">
+                  <IconButtonBox>
+                    <Search
+                      sx={{
+                        color: 'primary.main',
+                      }}
+                    />
+                  </IconButtonBox>
+                </IconButton>
+              </InputAdornment>
+            }
+            placeholder="Buscar pago por ID"
+            // onChange={onChangeHandler}
+          />
+          <DataGrid
+            slots={{
+              toolbar: GridToolbar,
+            }}
+            columns={columns}
+            rows={[]}
+            getRowId={(row) => row.appointmentId}
+            paginationMode="server"
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 25]}
+            loading={isLoading}
+            onRowClick={(params) => {
+              handleOpenPaymentDetails(params.row);
+            }}
+          />
+        </>
+      )}
+      <PaymentDialog
+        open={showPaymentsDetails}
+        paymentDetails={paymentDetailsParams}
+        onClose={handleOpenPaymentDetails}
+      />
+    </Wrapper>
+  );
 };

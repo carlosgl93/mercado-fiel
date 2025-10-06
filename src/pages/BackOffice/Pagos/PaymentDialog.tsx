@@ -1,4 +1,3 @@
-import { ButtonCTA } from '@/pages/UsuarioDashboard/StyledComponents';
 import { Box, Dialog } from '@mui/material';
 import dayjs from 'dayjs';
 import { PaymentsGridController } from './PaymentsGridController';
@@ -10,12 +9,8 @@ type PaymentDialogProps = {
 };
 
 export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogProps) => {
-  const {
-    providerBankDetails,
-    markAsPaidIsLoading,
-    handleMarkAsPaid,
-    notifyMissingBankDetailsMutation,
-  } = PaymentsGridController();
+  const { markAsPaidIsLoading, handleMarkAsPaid, notifyMissingBankDetailsMutation } =
+    PaymentsGridController();
 
   const today = dayjs();
 
@@ -40,7 +35,7 @@ export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogPr
           textAlign: 'center',
         }}
       >
-        {providerBankDetails ? (
+        {/* {true ? (
           <>
             <ButtonCTA
               variant="contained"
@@ -65,7 +60,7 @@ export const PaymentDialog = ({ open, paymentDetails, onClose }: PaymentDialogPr
           >
             Notificar falta detalles bancarios
           </ButtonCTA>
-        )}
+        )} */}
       </Box>
     </Dialog>
   );

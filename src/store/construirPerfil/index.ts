@@ -1,10 +1,6 @@
 import api from '@/api/api';
 import { getPrestadorComunas } from '@/api/comunas/getPrestadorComunas';
-import {
-  DisponibilidadFromFront,
-  getDisponibilidadByPrestadorId,
-} from '@/api/disponibilidad/getDisponibilidadByPrestadorId';
-import { postDisponibilidad } from '@/api/disponibilidad/postDisponibilidad';
+
 import { getPrestadorById } from '@/api/prestadores/getPrestadorById';
 import { Comuna, Prestador, TarifaFront } from '@/types';
 import { CuentaBancaria } from '@/types/CuentaBancaria';
@@ -16,6 +12,14 @@ import useRecibeApoyo from '../recibeApoyo';
 import { notificationState } from '../snackbar';
 import { ExperienceState } from './experiencia';
 import { Actions } from './types';
+
+type DisponibilidadFromFront = {
+  id: string;
+  isAvailable: boolean;
+  dayName: string;
+  startTime: string;
+  endTime: string;
+};
 
 type ConstruirPerfilState = {
   prestador: Prestador;
@@ -128,9 +132,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
   async function getDisponibilidad(id: string) {
     try {
       setConstruirPerfil((prev) => ({ ...prev, loading: true }));
-      const disponibilidadResponse = await getDisponibilidadByPrestadorId(id);
-      const disponibilidad = disponibilidadResponse;
-      setConstruirPerfil((prev) => ({ ...prev, disponibilidad, loading: false }));
     } catch (error) {
       setConstruirPerfil((prev) => ({
         ...prev,
@@ -208,7 +209,6 @@ const useConstruirPerfil = (): [ConstruirPerfilState, Actions] => {
   const handleSaveDisponibilidad = async () => {
     setConstruirPerfil((prev) => ({ ...prev, loading: true }));
     try {
-      await postDisponibilidad(construirPerfil.disponibilidad);
       setNotification({
         open: true,
         message: 'Disponibilidad guardada exitosamente',

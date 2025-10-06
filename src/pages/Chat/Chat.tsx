@@ -41,7 +41,7 @@ export const UserChat = () => {
     handleSaveMessage,
     sendWithEnter,
   } = useChat(
-    userIdFromLocation ? userIdFromLocation : user?.id ?? '',
+    userIdFromLocation ? userIdFromLocation : user?.data.idUsuario ?? '',
     providerIdFromLocation ? providerIdFromLocation : prestador?.id ?? '',
   );
 
@@ -124,11 +124,15 @@ export const UserChat = () => {
                   message,
                   sentBy: 'user',
                   providerId: prestador?.id ?? '',
-                  userId: user?.id ?? '',
-                  username: user?.firstname ? user.firstname : user?.email ? user.email : '',
+                  userId: user?.data.idUsuario.toString() ?? '',
+                  username: user?.data.nombre
+                    ? user.data.nombre
+                    : user?.data.email
+                    ? user.data.email
+                    : '',
                   providerName: prestador?.firstname,
                   providerEmail: prestador?.email || '',
-                  userEmail: user?.email || '',
+                  userEmail: user?.data.email || '',
                 })
               }
             />
@@ -142,7 +146,7 @@ export const UserChat = () => {
                   username: conversation.username,
                   providerName: conversation.providerName,
                   providerEmail: prestador?.email || '',
-                  userEmail: user?.email || '',
+                  userEmail: user?.data.email || '',
                 })
               }
               disabled={message.length === 0}

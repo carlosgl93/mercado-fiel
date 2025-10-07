@@ -17,7 +17,7 @@ function Pages() {
         height: 'fit-content',
         minHeight: '75vh',
         backgroundColor: '#f7f7f7',
-        paddingTop: '80px', // Add padding to account for fixed header
+        paddingTop: '6rem', // Add padding to account for fixed header
       }}
     >
       <Routes>

@@ -23,8 +23,8 @@ const Sidebar = lazy(() => import('@/sections/Sidebar'));
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
     },
   },
 });

@@ -38,6 +38,7 @@ export const ExplorarProductos: React.FC = () => {
     cartItems,
     snackbar,
     closeSnackbar,
+    isUpdating,
   } = useShoppingCartService();
 
   // State for filters
@@ -72,7 +73,6 @@ export const ExplorarProductos: React.FC = () => {
     keepPreviousData: true,
   });
 
-  console.log({ productsData });
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setFilters((prev) => ({ ...prev, page: value }));
@@ -173,13 +173,7 @@ export const ExplorarProductos: React.FC = () => {
             <Grid container spacing={3}>
               {productsData.data.productos.map((product) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.idProducto}>
-                  <ProductCard
-                    product={product}
-                    cartQuantity={getProductQuantityInCart(product.idProducto)}
-                    onAddToCart={handleAddToCartProduct}
-                    onRemoveFromCart={handleRemoveFromCartProduct}
-                    disabled={false}
-                  />
+                  <ProductCard product={product} disabled={false} />
                 </Grid>
               ))}
             </Grid>

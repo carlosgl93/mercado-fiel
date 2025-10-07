@@ -1,12 +1,12 @@
 import { useAuth } from '@/hooks/useAuthSupabase';
-import { useShoppingCartService } from '@/services/shoppingCartService';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { Badge, IconButton } from '@mui/material';
 import React from 'react';
+import { useShoppingCartRecoil } from '../hooks/useShoppingCartRecoil';
 
 export const ShoppingCartButton: React.FC = () => {
   const { user } = useAuth();
-  const { openCart, cartItems } = useShoppingCartService();
+  const { openCart, totalItems } = useShoppingCartRecoil();
 
   // Only show cart for customers (not suppliers)
   if (!user?.data?.cliente?.idCliente) {
@@ -20,10 +20,7 @@ export const ShoppingCartButton: React.FC = () => {
 
   return (
     <IconButton onClick={handleClick} sx={{ color: 'primary.main' }}>
-      <Badge
-        badgeContent={cartItems?.reduce((total, item) => total + item.cantidad, 0) || 0}
-        color="secondary"
-      >
+      <Badge badgeContent={totalItems || 0} color="secondary">
         <ShoppingCartIcon />
       </Badge>
     </IconButton>

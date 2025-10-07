@@ -20,24 +20,24 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SmallCenteredLoading } from '../../../components/Loading';
+import { useShoppingCartRecoil } from '../../../hooks/useShoppingCartRecoil';
 
 interface ProductCardProps {
   product: Product;
-  cartQuantity: number;
-  onAddToCart: (product: Product, cantidad: number) => void;
-  onRemoveFromCart?: (product: Product, cantidad: number) => void;
   disabled?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
-  product,
-  cartQuantity,
-  onAddToCart,
-  onRemoveFromCart,
-  disabled = false,
-}) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, disabled = false }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+
+  // Use useShoppingCartRecoil for all cart operations
+  const { handleAddToCart, handleRemoveFromCart, getCartItemQuantity, isUpdating } =
+    useShoppingCartRecoil();
+
+  // Get current cart quantity for this product
+  const cartQuantity = getCartItemQuantity(product.idProducto);
 
   // Calculate if there are quantity discounts
   const hasDiscounts = product.descuentosCantidad && product.descuentosCantidad.length > 0;
@@ -57,20 +57,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     : product.precioUnitario;
 
   const savings = applicableDiscount ? product.precioUnitario - finalPrice : 0;
-
-  const handleAddToCart = () => {
-    onAddToCart(product, 1);
-  };
-
-  const handleIncreaseQuantity = () => {
-    onAddToCart(product, 1);
-  };
-
-  const handleDecreaseQuantity = () => {
-    if (onRemoveFromCart) {
-      onRemoveFromCart(product, 1);
-    }
-  };
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't navigate if clicking on buttons
@@ -240,13 +226,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Add to Cart Section */}
       <Box sx={{ p: 2, pt: 0 }}>
-        {cartQuantity > 0 ? (
+        {isUpdating ? (
+          <SmallCenteredLoading />
+        ) : cartQuantity > 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton
                 size="small"
-                onClick={handleDecreaseQuantity}
-                disabled={disabled}
+                onClick={() => handleRemoveFromCart(product.idProducto, 1)}
+                disabled={disabled || isUpdating}
                 sx={{
                   border: 1,
                   borderColor: 'primary.main',
@@ -269,8 +257,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
               <IconButton
                 size="small"
-                onClick={handleIncreaseQuantity}
-                disabled={disabled}
+                onClick={() => handleAddToCart(product.idProducto, 1)}
+                disabled={disabled || isUpdating}
                 sx={{
                   border: 1,
                   borderColor: 'primary.main',
@@ -289,8 +277,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <Button
             variant="contained"
             fullWidth
-            onClick={handleAddToCart}
-            disabled={disabled || !product.disponible}
+            onClick={() => handleAddToCart(product.idProducto, 1)}
+            disabled={disabled || !product.disponible || isUpdating}
             startIcon={<ShoppingCartIcon />}
             sx={{
               borderRadius: '20px',

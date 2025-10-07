@@ -299,13 +299,7 @@ export const PublicSupplierProfile: React.FC = () => {
                     <Grid container spacing={2}>
                       {products.slice(0, 8).map((product) => (
                         <Grid item xs={12} sm={6} md={4} key={product.idProducto}>
-                          <ProductCard
-                            product={product}
-                            cartQuantity={getProductQuantityInCart(product.idProducto)}
-                            onAddToCart={handleAddToCartProduct}
-                            onRemoveFromCart={handleRemoveFromCartProduct}
-                            disabled={false}
-                          />
+                          <ProductCard product={product} disabled={false} />
                         </Grid>
                       ))}
                     </Grid>

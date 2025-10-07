@@ -68,18 +68,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           console.log({product, cartQuantities});
           return (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.idProducto}>
-              <ProductCard
-                product={product}
-                cartQuantity={cartQuantities[product.idProducto] || 0}
-                onAddToCart={
-                  onAddToCart ||
-                  (() => {
-                    return;
-                  })
-                }
-                onRemoveFromCart={onRemoveFromCart}
-                disabled={loading}
-              />
+              <ProductCard product={product} disabled={loading} />
             </Grid>
           );})}
       </Grid>

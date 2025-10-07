@@ -4,12 +4,10 @@ import { Dashboard as DashboardIcon } from '@mui/icons-material';
 import { Box, Container, useMediaQuery } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Wrapper } from './StyledPrestadorDashboardComponents';
-import { useProveedorDashboard } from './usePrestadorDashboard';
 
 export const ProveedorDashboard = () => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const navigate = useNavigate();
-  const { shouldDisablePublicarProductos, shouldDisableVentas } = useProveedorDashboard();
 
   const handleBackToHome = () => {
     navigate('/');
@@ -59,15 +57,15 @@ export const ProveedorDashboard = () => {
             // ctaDisabled={shouldDisablePublicarProductos}
             // disabledText="Completa tu perfil primero"
           />
-          <DashboardTile
+          {/* <DashboardTile
             goToPath="/compras-colectivas"
             title="Campañas colectivas"
             subTitle="Crea campañas de compra grupal"
             isMobile={isMobile}
             text="Ofrece descuentos por volumen creando campañas donde los usuarios se unen para alcanzar mejores precios."
             ctaText="Crear campaña"
-          />
-          <DashboardTile
+          /> */}
+          {/* <DashboardTile
             goToPath="/pedidos-ventas"
             title="Pedidos y ventas"
             subTitle="Administra tus ventas y pedidos"
@@ -76,15 +74,15 @@ export const ProveedorDashboard = () => {
             ctaText="Ver pedidos"
             ctaDisabled={shouldDisableVentas}
             disabledText="No tienes productos activos"
-          />
-          <DashboardTile
+          /> */}
+          {/* <DashboardTile
             goToPath="/proveedor-inbox"
             title="Mensajes"
             subTitle="Comunícate con tus clientes"
             isMobile={isMobile}
             text="Responde consultas de clientes, negocia precios y mantén una comunicación fluida para cerrar más ventas."
             ctaText="Ver mensajes"
-          />
+          /> */}
           <DashboardTile
             goToPath="/estadisticas-ventas"
             title="Estadísticas"

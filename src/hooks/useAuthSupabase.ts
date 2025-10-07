@@ -1,7 +1,7 @@
 import { navigateToUserDashboard } from '@/utils/navigationUtils';
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { supabase } from '../lib/supabase';
 import { isSigningInState, isSigningOutState, isSigningUpState } from '../store/auth';
@@ -21,6 +21,15 @@ interface SignInCredentials {
   email: string;
   password: string;
 }
+
+const authPaths = [
+  'usuario-dashboard',
+  'proveedor-dashboard',
+  'perfil-usuario',
+  'proveedor-perfil',
+  'mis-productos',
+  'estadisticas-ventas',
+];
 
 interface SignUpData {
   email: string;
@@ -72,6 +81,7 @@ interface DatabaseUser {
 export const useAuth = () => {
   const navigate = useNavigate();
   const { setUserLookingFor } = useUserLookingFor();
+  const location = useLocation();
 
   // Recoil state
   const [auth, setAuth] = useRecoilState(authState);
@@ -137,22 +147,13 @@ export const useAuth = () => {
           if (error.details === 'The result contains 0 rows') {
             return;
           }
-          console.error('❌ Error loading user profile:', error);
-
-          // If user doesn't exist in database, create them
-          // if (error.code === 'PGRST116') {
-          //   console.log('👤 User not found in database, creating...');
-          //   await createUserInDatabase(supabaseUser);
-          //   return;
-          // }
-
           throw error;
         }
 
         if (!userData) {
-          console.log('👤 No user data found, creating user in database...');
-
-          return;
+          if (authPaths.includes(location.pathname)) {
+            navigate('/ingresar');
+          }
         }
 
         const clienteData = userData.cliente?.[0];
@@ -269,47 +270,9 @@ export const useAuth = () => {
   );
 
   /**
-   * Create user in database when they don't exist
-   */
-  const createUserInDatabase = async (supabaseUser: User): Promise<void> => {
-    try {
-      console.log('📝 Creating user in database:', supabaseUser.email);
-
-      const { data, error } = await supabase
-        .from('usuarios')
-        .insert({
-          nombre:
-            supabaseUser.user_metadata?.nombre ||
-            supabaseUser.user_metadata?.name ||
-            supabaseUser.email?.split('@')[0] ||
-            'Usuario',
-          email: supabaseUser.email!,
-          contrasena_hash: '',
-          activo: true,
-          auth_uid: supabaseUser.id,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Error creating user in database:', error);
-        throw error;
-      }
-
-      console.log('✅ User created in database, reloading profile...');
-      await loadUserProfile(supabaseUser);
-    } catch (error) {
-      console.error('❌ Failed to create user in database:', error);
-      throw error;
-    }
-  };
-
-  /**
    * Clear all auth state and navigate to home
    */
   const clearAuthState = useCallback(() => {
-    console.log('🧹 Clearing auth state');
-
     setUser(null);
     setCustomer(null);
     setSupplier(null);
@@ -321,11 +284,7 @@ export const useAuth = () => {
       isLoading: false,
     });
     setIsSigningOut(false);
-
-    setTimeout(() => {
-      console.log('🏠 Navigating to home');
-      navigate('/', { replace: true });
-    }, 100);
+    navigate('/', { replace: true });
   }, [setUser, setCustomer, setSupplier, setAuth, setIsSigningOut, navigate]);
 
   /**
@@ -351,8 +310,6 @@ export const useAuth = () => {
           }
           return;
         }
-        
-        console.log({ session });
 
         if (session?.user && mounted) {
           await loadUserProfile(session.user);
@@ -390,25 +347,21 @@ export const useAuth = () => {
 
         case 'SIGNED_IN':
           if (session?.user) {
-            console.log('👋 User signed in:', session.user.email);
             await loadUserProfile(session.user);
           }
           break;
 
         case 'SIGNED_OUT':
-          console.log('👋 User signed out');
           clearAuthState();
           break;
 
         case 'TOKEN_REFRESHED':
-          console.log('🔄 Token refreshed');
           if (session?.user) {
             await loadUserProfile(session.user);
           }
           break;
 
         case 'USER_UPDATED':
-          console.log('👤 User updated');
           if (session?.user) {
             await loadUserProfile(session.user);
           }
@@ -428,7 +381,6 @@ export const useAuth = () => {
    * Sign in with email and password
    */
   const signIn = async ({ email, password }: SignInCredentials): Promise<void> => {
-    console.log('🔐 Signing in:', email);
     setIsSigningIn(true);
 
     try {
@@ -462,7 +414,6 @@ export const useAuth = () => {
         navigate,
       });
 
-      console.log('✅ Sign in successful:', data.user?.email);
       setNotification({
         open: true,
         message: '¡Iniciaste sesión exitosamente!',
@@ -479,7 +430,6 @@ export const useAuth = () => {
    * Sign up new user
    */
   const signUp = async (signUpData: SignUpData): Promise<void> => {
-    console.log('📝 Signing up:', signUpData.email, signUpData.type);
     setIsSigningUp(true);
 
     try {
@@ -570,8 +520,6 @@ export const useAuth = () => {
           console.error('❌ Customer creation error:', customerError);
           throw customerError;
         }
-
-        console.log('✅ Customer profile created');
       } else if (signUpData.type === 'supplier') {
         const { error: supplierError } = await supabase.from('proveedores').insert({
           id_usuario: userData.id_usuario,
@@ -587,8 +535,6 @@ export const useAuth = () => {
           console.error('❌ Supplier creation error:', supplierError);
           throw supplierError;
         }
-
-        console.log('✅ Supplier profile created');
       }
 
       setNotification({
@@ -617,7 +563,6 @@ export const useAuth = () => {
    */
   const signOut = async (): Promise<void> => {
     try {
-      console.log('🚪 Signing out...');
       setIsSigningOut(true);
 
       const { error } = await supabase.auth.signOut();
@@ -633,7 +578,6 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Sign out successful');
       // Auth state change listener will handle cleanup
     } catch (error) {
       console.error('❌ Sign out failed:', error);

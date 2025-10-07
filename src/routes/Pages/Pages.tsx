@@ -3,13 +3,12 @@ import { Route, Routes } from 'react-router-dom';
 import Box from '@mui/material/Box';
 
 import Footer from '@/components/Footer';
-import { useNavigationHistory, useRenderFooter } from '@/hooks';
+import { useNavigationHistory, useRenderFooter, useRequireLogin } from '@/hooks';
 import routes from '..';
 
 function Pages() {
   useNavigationHistory();
-
-  // useRequireLogin();
+  useRequireLogin();
   const renderFooter = useRenderFooter();
 
   return (

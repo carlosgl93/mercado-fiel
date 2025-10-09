@@ -199,15 +199,16 @@ model productos {
 }
 
 model descuentos_cantidad {
-  id_descuento         Int       @id @default(autoincrement())
+  id_descuento         Int                   @id @default(autoincrement())
   id_producto          Int
   cantidad_minima      Int
-  descuento_porcentaje Decimal   @db.Decimal(5, 2)
-  precio_descuento     Decimal?  @db.Decimal(10, 2)
-  activo               Boolean   @default(true)
-  created_at           DateTime  @default(now())
-  updated_at           DateTime? @default(now()) @updatedAt
-  producto             productos @relation(fields: [id_producto], references: [id_producto])
+  descuento_porcentaje Decimal               @db.Decimal(5, 2)
+  precio_descuento     Decimal?              @db.Decimal(10, 2)
+  activo               Boolean               @default(true)
+  created_at           DateTime              @default(now())
+  updated_at           DateTime?             @default(now()) @updatedAt
+  producto             productos             @relation(fields: [id_producto], references: [id_producto])
+  campanas_colectivas  compras_colectivas[]  // 🆕 Reverse relation
 
   @@unique([id_producto, cantidad_minima])
   @@map("descuentos_cantidad")
@@ -303,30 +304,32 @@ model publicidad {
 }
 
 model compras_colectivas {
-  id_campana           Int                     @id @default(autoincrement())
-  nombre               String                  @db.VarChar(100)
-  descripcion          String?
-  id_proveedor         Int
-  id_producto          Int
-  precio_objetivo      Decimal                 @db.Decimal(10, 2)
-  cantidad_objetivo    Int
-  min_participantes    Int?
-  max_participantes    Int?
-  cantidad_min_usuario Int                     @default(1)
-  cantidad_max_usuario Int?
-  requiere_aprobacion  Boolean                 @default(false)
-  fecha_inicio         DateTime                @default(now())
-  fecha_fin            DateTime?
-  estado               String                  @default("abierta")
-  created_at           DateTime                @default(now())
-  updated_at           DateTime?               @updatedAt
-  producto             productos               @relation(fields: [id_producto], references: [id_producto])
-  proveedor            proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
-  escalas_precios      escalas_precios[]
-  notificaciones       notificaciones[]
-  participantes        ParticipanteColectivo[]
-  pedidos              pedidos[]
-  progreso             progreso_campana?
+  id_campana            Int                     @id @default(autoincrement())
+  nombre                String                  @db.VarChar(100)
+  descripcion           String?
+  id_proveedor          Int
+  id_producto           Int
+  id_descuento_aplicado Int?                    // 🆕 Reference to the discount used
+  precio_objetivo       Decimal                 @db.Decimal(10, 2)
+  cantidad_objetivo     Int
+  min_participantes     Int?
+  max_participantes     Int?                    @default(5) // 🔄 Set default to 5 as per business rules
+  cantidad_min_usuario  Int                     @default(1)
+  cantidad_max_usuario  Int?
+  requiere_aprobacion   Boolean                 @default(false)
+  fecha_inicio          DateTime                @default(now())
+  fecha_fin             DateTime?
+  estado                String                  @default("abierta")
+  created_at            DateTime                @default(now())
+  updated_at            DateTime?               @updatedAt
+  producto              productos               @relation(fields: [id_producto], references: [id_producto])
+  proveedor             proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
+  descuento_aplicado    descuentos_cantidad?    @relation(fields: [id_descuento_aplicado], references: [id_descuento]) // 🆕 Relation to discount
+  escalas_precios       escalas_precios[]
+  notificaciones        notificaciones[]
+  participantes         ParticipanteColectivo[]
+  pedidos               pedidos[]
+  progreso              progreso_campana?
 
   @@map("compras_colectivas")
 }

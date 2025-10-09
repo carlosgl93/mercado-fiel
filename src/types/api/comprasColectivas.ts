@@ -6,6 +6,7 @@ export interface CompraColectiva {
   descripcion?: string;
   id_proveedor: number;
   id_producto: number;
+  id_descuento_aplicado?: number; // 🆕 Reference to applied discount
   precio_objetivo: number;
   cantidad_objetivo: number;
   min_participantes?: number;
@@ -87,15 +88,41 @@ export interface EscalaPrecio {
   updated_at?: Date;
 }
 
+// 🆕 Quantity discount types
+export interface DescuentoCantidad {
+  id_descuento: number;
+  id_producto: number;
+  cantidad_minima: number;
+  descuento_porcentaje: number;
+  precio_descuento?: number;
+  activo: boolean;
+  created_at: Date;
+  updated_at?: Date;
+  ahorro_por_unidad?: number; // Calculated field
+  minimo_creador?: number; // Calculated field (20% of cantidad_minima)
+}
+
+export interface ProductDiscountsResponse {
+  success: boolean;
+  data: {
+    producto: {
+      id_producto: number;
+      nombre_producto: string;
+      precio_unitario: number;
+      elegible_compra_colectiva: boolean;
+    };
+    descuentos_disponibles: DescuentoCantidad[];
+  };
+}
+
 // Request types
 export interface CreateCompraColectivaRequest {
   nombre: string;
   descripcion?: string;
   id_producto: number;
-  cantidad_objetivo: number;
-  precio_objetivo: number;
+  id_descuento_aplicado: number; // 🆕 ID of the selected quantity discount
   fecha_fin?: string;
-  cantidad_inicial: number; // Amount creator wants to purchase
+  cantidad_inicial: number; // Amount creator wants to purchase (must be >= 20% of discount minimum)
 }
 
 export interface UpdateCompraColectivaRequest {

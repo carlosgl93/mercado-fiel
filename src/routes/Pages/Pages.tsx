@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 
@@ -10,6 +10,8 @@ function Pages() {
   useNavigationHistory();
   useRequireLogin();
   const renderFooter = useRenderFooter();
+  const location = useLocation();
+  const shouldAddPaddingTop = location.pathname !== '/' && location.pathname !== '/';
 
   return (
     <Box
@@ -17,7 +19,7 @@ function Pages() {
         height: 'fit-content',
         minHeight: '75vh',
         backgroundColor: '#f7f7f7',
-        paddingTop: '6rem', // Add padding to account for fixed header
+        paddingTop: shouldAddPaddingTop ? '6rem' : '0',
       }}
     >
       <Routes>

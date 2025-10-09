@@ -22,6 +22,7 @@ export const authMiddleware = async (
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ Auth middleware: No authorization header found');
       return res.status(401).json({
         success: false,
         message: 'Token de autorización requerido',
@@ -29,11 +30,16 @@ export const authMiddleware = async (
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+    console.log('🔍 Auth middleware: Verifying token for', req.method, req.url);
+
     // Verify Supabase token
-    const { data: { user: supabaseUser }, error } = await supabaseAdmin.auth.getUser(token);
-    
+    const {
+      data: { user: supabaseUser },
+      error,
+    } = await supabaseAdmin.auth.getUser(token);
+
     if (error || !supabaseUser) {
+      console.log('❌ Auth middleware: Token verification failed:', error?.message);
       return res.status(401).json({
         success: false,
         message: 'Token inválido',
@@ -55,6 +61,7 @@ export const authMiddleware = async (
     });
 
     if (!user) {
+      console.log('❌ Auth middleware: User not found in database for UID:', supabaseUser.id);
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado',
@@ -62,6 +69,7 @@ export const authMiddleware = async (
     }
 
     if (!user.activo) {
+      console.log('❌ Auth middleware: User is inactive:', user.id_usuario);
       return res.status(403).json({
         success: false,
         message: 'Usuario inactivo',
@@ -76,6 +84,7 @@ export const authMiddleware = async (
       nombre: user.nombre,
     };
 
+    console.log('✅ Auth middleware: User authenticated:', user.id_usuario, user.email);
     return next();
   } catch (error) {
     console.error('Auth middleware error:', error);

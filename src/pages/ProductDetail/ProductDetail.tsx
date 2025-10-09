@@ -60,7 +60,7 @@ export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, supplier } = useAuth();
   const queryClient = useQueryClient();
 
   // Use standardized shopping cart service
@@ -120,6 +120,11 @@ export const ProductDetail: React.FC = () => {
   const product = productResponse?.data;
   const campaigns = campaignsResponse?.data || [];
   const collectiveCampaigns = collectiveCampaignsResponse?.data?.campaigns || [];
+
+  // Check if current user is the product supplier (anti-exploit validation)
+  const isUserProductSupplier = Boolean(
+    product && supplier && product.idProveedor === supplier.idProveedor,
+  );
 
   // Get current cart quantity for this product
   const cartQuantity = product ? getProductQuantityInCart(product.idProducto) : 0;
@@ -351,7 +356,7 @@ export const ProductDetail: React.FC = () => {
                       Compras Colectivas
                     </Typography>
 
-                    {user && (
+                    {user && !isUserProductSupplier && (
                       <Button
                         variant="outlined"
                         size="small"

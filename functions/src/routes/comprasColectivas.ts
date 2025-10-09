@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { Router } from 'express';
-import { AuthenticatedRequest, optionalAuthMiddleware } from '../middlewares/auth';
+import { AuthenticatedRequest, authMiddleware, optionalAuthMiddleware } from '../middlewares/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -11,10 +11,9 @@ export interface CreateCompraColectivaRequest {
   nombre: string;
   descripcion?: string;
   id_producto: number;
-  cantidad_objetivo: number;
-  precio_objetivo: number;
+  id_descuento_aplicado: number; // ID of the selected quantity discount
   fecha_fin?: string;
-  cantidad_inicial: number; // Amount creator wants to purchase (must be >= 20% of total)
+  cantidad_inicial: number; // Amount creator wants to purchase (must be >= 20% of discount minimum)
 }
 
 export interface UpdateCompraColectivaRequest {
@@ -34,9 +33,20 @@ const calculateMinimumPurchase = (cantidadObjetivo: number, cantidadActual: numb
   return Math.ceil(remaining * 0.2); // 20% of remaining amount
 };
 
-const validateCreatorMinimum = (cantidadObjetivo: number, cantidadInicial: number): boolean => {
-  const minimumRequired = Math.ceil(cantidadObjetivo * 0.2); // 20% of total
+const validateCreatorMinimum = (cantidadMinima: number, cantidadInicial: number): boolean => {
+  const minimumRequired = Math.ceil(cantidadMinima * 0.2); // 20% of discount minimum quantity
   return cantidadInicial >= minimumRequired;
+};
+
+// Helper function to check if user is the campaign creator
+// The creator is identified as the first participant (earliest fecha_aporte)
+const isCampaignCreator = async (campaignId: number, userId: number): Promise<boolean> => {
+  const firstParticipant = await prisma.participanteColectivo.findFirst({
+    where: { id_campana: campaignId },
+    orderBy: { fecha_aporte: 'asc' },
+  });
+
+  return firstParticipant?.id_usuario === userId;
 };
 
 // GET /compras-colectivas - List all active campaigns
@@ -189,7 +199,7 @@ router.get('/:id', optionalAuthMiddleware, async (req: AuthenticatedRequest, res
 
     // Calculate current minimum purchase for new participants
     const currentProgress = campaign.progreso;
-    const minimumPurchase = currentProgress 
+    const minimumPurchase = currentProgress
       ? calculateMinimumPurchase(campaign.cantidad_objetivo, currentProgress.cantidad_actual)
       : calculateMinimumPurchase(campaign.cantidad_objetivo, 0);
 
@@ -209,15 +219,91 @@ router.get('/:id', optionalAuthMiddleware, async (req: AuthenticatedRequest, res
   }
 });
 
+// GET /compras-colectivas/product/:productId/discounts - Get available quantity discounts for a product
+router.get(
+  '/product/:productId/discounts',
+  optionalAuthMiddleware,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { productId } = req.params;
+      const productIdNum = parseInt(productId, 10);
+
+      if (isNaN(productIdNum)) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID de producto inválido',
+        });
+      }
+
+      // Get product with available quantity discounts
+      const product = await prisma.productos.findUnique({
+        where: { id_producto: productIdNum },
+        include: {
+          descuentos_cantidad: {
+            where: { activo: true },
+            orderBy: { cantidad_minima: 'asc' },
+          },
+        },
+      });
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: 'Producto no encontrado',
+        });
+      }
+
+      if (!product.elegible_compra_colectiva) {
+        return res.status(400).json({
+          success: false,
+          message: 'Este producto no es elegible para compras colectivas',
+        });
+      }
+
+      // Calculate prices for each discount
+      const basePrice = product.precio_unitario;
+      const discountsWithPrices = product.descuentos_cantidad.map((discount) => ({
+        ...discount,
+        precio_descuento:
+          discount.precio_descuento ||
+          basePrice.mul(new Decimal(1).sub(discount.descuento_porcentaje.div(100))),
+        ahorro_por_unidad: basePrice.sub(
+          discount.precio_descuento ||
+            basePrice.mul(new Decimal(1).sub(discount.descuento_porcentaje.div(100))),
+        ),
+        minimo_creador: Math.ceil(discount.cantidad_minima * 0.2), // 20% minimum for creator
+      }));
+
+      return res.json({
+        success: true,
+        data: {
+          producto: {
+            id_producto: product.id_producto,
+            nombre_producto: product.nombre_producto,
+            precio_unitario: product.precio_unitario,
+            elegible_compra_colectiva: product.elegible_compra_colectiva,
+          },
+          descuentos_disponibles: discountsWithPrices,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching product discounts:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al obtener los descuentos del producto',
+      });
+    }
+  },
+);
+
 // POST /compras-colectivas - Create new campaign
-router.post('/', async (req: AuthenticatedRequest, res) => {
+router.post('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const {
       nombre,
       descripcion,
       id_producto,
-      cantidad_objetivo,
-      precio_objetivo,
+      id_descuento_aplicado,
       fecha_fin,
       cantidad_inicial,
     }: CreateCompraColectivaRequest = req.body;
@@ -232,36 +318,41 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     }
 
     // Validate required fields
-    if (!nombre || !id_producto || !cantidad_objetivo || !precio_objetivo || !cantidad_inicial) {
+    if (!nombre || !id_producto || !id_descuento_aplicado || !cantidad_inicial) {
       return res.status(400).json({
         success: false,
         message: 'Todos los campos requeridos deben ser proporcionados',
       });
     }
 
-    // Validate creator minimum (20% of total)
-    if (!validateCreatorMinimum(cantidad_objetivo, cantidad_inicial)) {
-      const minimumRequired = Math.ceil(cantidad_objetivo * 0.2);
-      return res.status(400).json({
-        success: false,
-        message: `El creador debe comprometerse a comprar al menos el 20% del objetivo (${minimumRequired} unidades)`,
-      });
-    }
-
-    // Check if product exists and is eligible for collective purchases
-    const product = await prisma.productos.findUnique({
-      where: { id_producto },
+    // Get the selected quantity discount
+    const selectedDiscount = await prisma.descuentos_cantidad.findUnique({
+      where: { id_descuento: id_descuento_aplicado },
       include: {
-        proveedor: true,
+        producto: {
+          include: {
+            proveedor: true,
+          },
+        },
       },
     });
 
-    if (!product) {
+    if (!selectedDiscount || !selectedDiscount.activo) {
       return res.status(404).json({
         success: false,
-        message: 'Producto no encontrado',
+        message: 'Descuento por cantidad no encontrado o inactivo',
       });
     }
+
+    // Verify the discount belongs to the specified product
+    if (selectedDiscount.id_producto !== id_producto) {
+      return res.status(400).json({
+        success: false,
+        message: 'El descuento seleccionado no pertenece al producto especificado',
+      });
+    }
+
+    const product = selectedDiscount.producto;
 
     if (!product.elegible_compra_colectiva) {
       return res.status(400).json({
@@ -270,17 +361,38 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Check if user is the provider of the product
+    // Allow any user to create campaigns for eligible products
+    // We'll use the product's original provider for the campaign's proveedor field
+    // But track the actual creator through the first participant
+
+    // ⚠️ CRITICAL BUSINESS RULE: Suppliers cannot create campaigns for their own products
+    // Check if the authenticated user is the supplier of this product
     const userProvider = await prisma.proveedores.findFirst({
       where: { id_usuario: userId },
     });
 
-    if (!userProvider || userProvider.id_proveedor !== product.id_proveedor) {
+    if (userProvider && userProvider.id_proveedor === product.id_proveedor) {
       return res.status(403).json({
         success: false,
-        message: 'Solo el proveedor del producto puede crear campañas para sus productos',
+        message: 'Los proveedores no pueden crear campañas colectivas para sus propios productos',
       });
     }
+
+    // Validate creator minimum (20% of discount minimum quantity)
+    if (!validateCreatorMinimum(selectedDiscount.cantidad_minima, cantidad_inicial)) {
+      const minimumRequired = Math.ceil(selectedDiscount.cantidad_minima * 0.2);
+      return res.status(400).json({
+        success: false,
+        message: `El creador debe comprometerse a comprar al menos el 20% de la cantidad mínima del descuento (${minimumRequired} unidades)`,
+      });
+    }
+
+    // Calculate campaign pricing based on selected discount
+    const basePrice = product.precio_unitario;
+    const discountPercentage = selectedDiscount.descuento_porcentaje;
+    const discountedPrice =
+      selectedDiscount.precio_descuento ||
+      basePrice.mul(new Decimal(1).sub(discountPercentage.div(100)));
 
     // Create campaign with transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -289,13 +401,17 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
         data: {
           nombre,
           descripcion,
-          id_proveedor: userProvider.id_proveedor,
+          id_proveedor: product.id_proveedor, // Use original product's provider
           id_producto,
-          precio_objetivo,
-          cantidad_objetivo,
+          id_descuento_aplicado, // 🆕 Link to selected discount
+          precio_objetivo: discountedPrice,
+          cantidad_objetivo: selectedDiscount.cantidad_minima,
           min_participantes: 1,
           max_participantes: 5, // Business rule: max 5 participants
-          cantidad_min_usuario: calculateMinimumPurchase(cantidad_objetivo, cantidad_inicial),
+          cantidad_min_usuario: calculateMinimumPurchase(
+            selectedDiscount.cantidad_minima,
+            cantidad_inicial,
+          ),
           fecha_fin: fecha_fin ? new Date(fecha_fin) : null,
           estado: 'abierta',
         },
@@ -307,7 +423,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
           id_campana: campaign.id_campana,
           id_usuario: userId,
           cantidad: cantidad_inicial,
-          monto_aportado: new Decimal(cantidad_inicial).mul(precio_objetivo),
+          monto_aportado: new Decimal(cantidad_inicial).mul(discountedPrice),
           estado: 'activo',
         },
       });
@@ -318,9 +434,11 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
           id_campana: campaign.id_campana,
           participantes_actuales: 1,
           cantidad_actual: cantidad_inicial,
-          monto_recaudado: new Decimal(cantidad_inicial).mul(precio_objetivo),
-          porcentaje_completado: new Decimal(cantidad_inicial).div(cantidad_objetivo).mul(100),
-          precio_actual: new Decimal(precio_objetivo),
+          monto_recaudado: new Decimal(cantidad_inicial).mul(discountedPrice),
+          porcentaje_completado: new Decimal(cantidad_inicial)
+            .div(selectedDiscount.cantidad_minima)
+            .mul(100),
+          precio_actual: discountedPrice,
         },
       });
 
@@ -342,7 +460,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // POST /compras-colectivas/:id/join - Join a campaign
-router.post('/:id/join', async (req: AuthenticatedRequest, res) => {
+router.post('/:id/join', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const { cantidad }: JoinCompraColectivaRequest = req.body;
@@ -388,7 +506,7 @@ router.post('/:id/join', async (req: AuthenticatedRequest, res) => {
     }
 
     // Check if user is already a participant
-    const existingParticipant = campaign.participantes.find(p => p.id_usuario === userId);
+    const existingParticipant = campaign.participantes.find((p) => p.id_usuario === userId);
     if (existingParticipant) {
       return res.status(400).json({
         success: false,
@@ -406,7 +524,7 @@ router.post('/:id/join', async (req: AuthenticatedRequest, res) => {
 
     // Validate minimum purchase requirement
     const currentProgress = campaign.progreso;
-    const minimumRequired = currentProgress 
+    const minimumRequired = currentProgress
       ? calculateMinimumPurchase(campaign.cantidad_objetivo, currentProgress.cantidad_actual)
       : calculateMinimumPurchase(campaign.cantidad_objetivo, 0);
 
@@ -450,8 +568,10 @@ router.post('/:id/join', async (req: AuthenticatedRequest, res) => {
         data: {
           participantes_actuales: newParticipants,
           cantidad_actual: newTotal,
-          monto_recaudado: currentProgress 
-            ? currentProgress.monto_recaudado.add(new Decimal(cantidad).mul(campaign.precio_objetivo))
+          monto_recaudado: currentProgress
+            ? currentProgress.monto_recaudado.add(
+                new Decimal(cantidad).mul(campaign.precio_objetivo),
+              )
             : new Decimal(cantidad).mul(campaign.precio_objetivo),
           porcentaje_completado: new Decimal(newPercentage),
         },
@@ -483,7 +603,7 @@ router.post('/:id/join', async (req: AuthenticatedRequest, res) => {
 });
 
 // PUT /compras-colectivas/:id - Update campaign (only by creator/provider)
-router.put('/:id', async (req: AuthenticatedRequest, res) => {
+router.put('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const updates: UpdateCompraColectivaRequest = req.body;
@@ -500,6 +620,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
     const campaign = await prisma.compras_colectivas.findUnique({
       where: { id_campana: parseInt(id) },
       include: {
+        producto: true, // Include product for supplier validation
         proveedor: {
           include: {
             usuario: true,
@@ -515,10 +636,24 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    if (campaign.proveedor.usuario.id_usuario !== userId) {
+    // Check if user is the campaign creator (first participant)
+    const isCreator = await isCampaignCreator(parseInt(id), userId);
+    if (!isCreator) {
       return res.status(403).json({
         success: false,
         message: 'Solo el creador puede modificar la campaña',
+      });
+    }
+
+    // ⚠️ BUSINESS RULE: Verify user is not the product supplier (anti-exploit check)
+    const userProvider = await prisma.proveedores.findFirst({
+      where: { id_usuario: userId },
+    });
+
+    if (userProvider && userProvider.id_proveedor === campaign.producto.id_proveedor) {
+      return res.status(403).json({
+        success: false,
+        message: 'Los proveedores no pueden modificar campañas para sus propios productos',
       });
     }
 
@@ -547,7 +682,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
 });
 
 // DELETE /compras-colectivas/:id - Cancel campaign (only by creator/provider)
-router.delete('/:id', async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
 
@@ -563,6 +698,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res) => {
     const campaign = await prisma.compras_colectivas.findUnique({
       where: { id_campana: parseInt(id) },
       include: {
+        producto: true, // Include product for supplier validation
         proveedor: {
           include: {
             usuario: true,
@@ -579,10 +715,24 @@ router.delete('/:id', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    if (campaign.proveedor.usuario.id_usuario !== userId) {
+    // Check if user is the campaign creator (first participant)
+    const isCreator = await isCampaignCreator(parseInt(id), userId);
+    if (!isCreator) {
       return res.status(403).json({
         success: false,
         message: 'Solo el creador puede cancelar la campaña',
+      });
+    }
+
+    // ⚠️ BUSINESS RULE: Verify user is not the product supplier (anti-exploit check)
+    const userProvider = await prisma.proveedores.findFirst({
+      where: { id_usuario: userId },
+    });
+
+    if (userProvider && userProvider.id_proveedor === campaign.producto.id_proveedor) {
+      return res.status(403).json({
+        success: false,
+        message: 'Los proveedores no pueden cancelar campañas para sus propios productos',
       });
     }
 
@@ -616,8 +766,245 @@ router.delete('/:id', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// GET /compras-colectivas/my-participated - Get campaigns where user is a participant (not creator)
+router.get('/my-participated', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const userId = req.user?.id_usuario;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado',
+      });
+    }
+
+    // Find campaigns where user is a participant but not the creator
+    const participatedCampaigns = await prisma.compras_colectivas.findMany({
+      where: {
+        participantes: {
+          some: {
+            id_usuario: userId,
+          },
+        },
+      },
+      include: {
+        producto: {
+          include: {
+            proveedor: {
+              select: {
+                id_proveedor: true,
+                nombre_negocio: true,
+              },
+            },
+            categoria: {
+              select: {
+                id_categoria: true,
+                nombre: true,
+              },
+            },
+          },
+        },
+        proveedor: {
+          select: {
+            id_proveedor: true,
+            nombre_negocio: true,
+          },
+        },
+        progreso: true,
+        participantes: {
+          include: {
+            usuario: {
+              select: {
+                id_usuario: true,
+                nombre: true,
+              },
+            },
+          },
+          orderBy: {
+            fecha_aporte: 'asc',
+          },
+        },
+      },
+      skip,
+      take: Number(limit),
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
+    // Filter to only campaigns where user is NOT the creator (not first participant)
+    const userParticipatedCampaigns = participatedCampaigns.filter((campaign) => {
+      const firstParticipant = campaign.participantes[0];
+      return firstParticipant?.id_usuario !== userId;
+    });
+
+    // Get total count
+    const allUserCampaigns = await prisma.compras_colectivas.findMany({
+      where: {
+        participantes: {
+          some: {
+            id_usuario: userId,
+          },
+        },
+      },
+      include: {
+        participantes: {
+          orderBy: {
+            fecha_aporte: 'asc',
+          },
+        },
+      },
+    });
+
+    const totalParticipated = allUserCampaigns.filter((campaign) => {
+      const firstParticipant = campaign.participantes[0];
+      return firstParticipant?.id_usuario !== userId;
+    }).length;
+
+    return res.json({
+      success: true,
+      data: {
+        campaigns: userParticipatedCampaigns,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total: totalParticipated,
+          pages: Math.ceil(totalParticipated / Number(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user participated campaigns:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error al obtener las campañas donde participas',
+    });
+  }
+});
+
+// GET /compras-colectivas/my-created - Get campaigns created by the authenticated user
+router.get('/my-created', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const userId = req.user?.id_usuario;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado',
+      });
+    }
+
+    // Find campaigns where user is the first participant (creator)
+    const createdCampaigns = await prisma.compras_colectivas.findMany({
+      where: {
+        participantes: {
+          some: {
+            id_usuario: userId,
+            // Get campaigns where this user is among participants
+          },
+        },
+      },
+      include: {
+        producto: {
+          include: {
+            proveedor: {
+              select: {
+                id_proveedor: true,
+                nombre_negocio: true,
+              },
+            },
+            categoria: {
+              select: {
+                id_categoria: true,
+                nombre: true,
+              },
+            },
+          },
+        },
+        proveedor: {
+          select: {
+            id_proveedor: true,
+            nombre_negocio: true,
+          },
+        },
+        progreso: true,
+        participantes: {
+          include: {
+            usuario: {
+              select: {
+                id_usuario: true,
+                nombre: true,
+              },
+            },
+          },
+          orderBy: {
+            fecha_aporte: 'asc',
+          },
+        },
+      },
+      skip,
+      take: Number(limit),
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
+    // Filter to only campaigns where user is the creator (first participant)
+    const userCreatedCampaigns = createdCampaigns.filter((campaign) => {
+      const firstParticipant = campaign.participantes[0];
+      return firstParticipant?.id_usuario === userId;
+    });
+
+    // Get total count of user's created campaigns
+    const allUserCampaigns = await prisma.compras_colectivas.findMany({
+      where: {
+        participantes: {
+          some: {
+            id_usuario: userId,
+          },
+        },
+      },
+      include: {
+        participantes: {
+          orderBy: {
+            fecha_aporte: 'asc',
+          },
+        },
+      },
+    });
+
+    const totalCreated = allUserCampaigns.filter((campaign) => {
+      const firstParticipant = campaign.participantes[0];
+      return firstParticipant?.id_usuario === userId;
+    }).length;
+
+    return res.json({
+      success: true,
+      data: {
+        campaigns: userCreatedCampaigns,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total: totalCreated,
+          pages: Math.ceil(totalCreated / Number(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user created campaigns:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error al obtener las campañas creadas',
+    });
+  }
+});
+
 // DELETE /compras-colectivas/:id/leave - Leave a campaign
-router.delete('/:id/leave', async (req: AuthenticatedRequest, res) => {
+router.delete('/:id/leave', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
 

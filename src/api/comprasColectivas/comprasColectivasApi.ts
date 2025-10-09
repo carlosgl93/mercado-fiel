@@ -1,11 +1,12 @@
 import {
-    CompraColectivaActionResponse,
-    CompraColectivaFilters,
-    CompraColectivaResponse,
-    ComprasColectivasListResponse,
-    CreateCompraColectivaRequest,
-    JoinCompraColectivaRequest,
-    UpdateCompraColectivaRequest
+  CompraColectivaActionResponse,
+  CompraColectivaFilters,
+  CompraColectivaResponse,
+  ComprasColectivasListResponse,
+  CreateCompraColectivaRequest,
+  JoinCompraColectivaRequest,
+  ProductDiscountsResponse,
+  UpdateCompraColectivaRequest,
 } from '@/types/api/comprasColectivas';
 import api from '../api';
 
@@ -13,9 +14,11 @@ const COMPRAS_COLECTIVAS_ENDPOINT = '/compras-colectivas';
 
 export const comprasColectivasApi = {
   // Get all campaigns
-  getComprasColectivas: async (filters?: CompraColectivaFilters): Promise<ComprasColectivasListResponse> => {
+  getComprasColectivas: async (
+    filters?: CompraColectivaFilters,
+  ): Promise<ComprasColectivasListResponse> => {
     const params = new URLSearchParams();
-    
+
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.estado) params.append('estado', filters.estado);
@@ -33,13 +36,18 @@ export const comprasColectivasApi = {
   },
 
   // Create new campaign
-  createCompraColectiva: async (data: CreateCompraColectivaRequest): Promise<CompraColectivaResponse> => {
+  createCompraColectiva: async (
+    data: CreateCompraColectivaRequest,
+  ): Promise<CompraColectivaResponse> => {
     const response = await api.post(COMPRAS_COLECTIVAS_ENDPOINT, data);
     return response.data;
   },
 
   // Update campaign
-  updateCompraColectiva: async (id: number, data: UpdateCompraColectivaRequest): Promise<CompraColectivaResponse> => {
+  updateCompraColectiva: async (
+    id: number,
+    data: UpdateCompraColectivaRequest,
+  ): Promise<CompraColectivaResponse> => {
     const response = await api.put(`${COMPRAS_COLECTIVAS_ENDPOINT}/${id}`, data);
     return response.data;
   },
@@ -51,7 +59,10 @@ export const comprasColectivasApi = {
   },
 
   // Join campaign
-  joinCompraColectiva: async (id: number, data: JoinCompraColectivaRequest): Promise<CompraColectivaActionResponse> => {
+  joinCompraColectiva: async (
+    id: number,
+    data: JoinCompraColectivaRequest,
+  ): Promise<CompraColectivaActionResponse> => {
     const response = await api.post(`${COMPRAS_COLECTIVAS_ENDPOINT}/${id}/join`, data);
     return response.data;
   },
@@ -62,17 +73,41 @@ export const comprasColectivasApi = {
     return response.data;
   },
 
-  // Get campaigns where user is creator (provider)
-  getMyCreatedCampaigns: async (filters?: Omit<CompraColectivaFilters, 'id_proveedor'>): Promise<ComprasColectivasListResponse> => {
-    // This would typically include provider ID from auth context
-    // For now, we'll get all campaigns and filter on the backend later
-    return comprasColectivasApi.getComprasColectivas(filters);
+  // Get campaigns where user is creator
+  getMyCreatedCampaigns: async (filters?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ComprasColectivasListResponse> => {
+    const params = new URLSearchParams();
+
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const response = await api.get(
+      `${COMPRAS_COLECTIVAS_ENDPOINT}/my-created?${params.toString()}`,
+    );
+    return response.data;
   },
 
-  // Get campaigns where user is participant
-  getMyParticipatedCampaigns: async (filters?: CompraColectivaFilters): Promise<ComprasColectivasListResponse> => {
-    // This would need a separate endpoint to filter by participant user ID
-    // For now, we'll get all campaigns and filter on frontend
-    return comprasColectivasApi.getComprasColectivas(filters);
+  // Get campaigns where user is participant (but not creator)
+  getMyParticipatedCampaigns: async (filters?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ComprasColectivasListResponse> => {
+    const params = new URLSearchParams();
+
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const response = await api.get(
+      `${COMPRAS_COLECTIVAS_ENDPOINT}/my-participated?${params.toString()}`,
+    );
+    return response.data;
+  },
+
+  // 🆕 Get available quantity discounts for a product
+  getProductDiscounts: async (productId: number): Promise<ProductDiscountsResponse> => {
+    const response = await api.get(`${COMPRAS_COLECTIVAS_ENDPOINT}/product/${productId}/discounts`);
+    return response.data;
   },
 };

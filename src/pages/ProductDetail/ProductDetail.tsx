@@ -1,48 +1,30 @@
-import { comprasColectivasApi } from '@/api';
-import { campaignsApi } from '@/api/campaigns';
-import { productsApi } from '@/api/products';
 import { CreateCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { useShoppingCartService } from '@/services/shoppingCartService';
-import {
-  Add as AddIcon,
-  ArrowBack as ArrowBackIcon,
-  Group as GroupIcon,
-  LocalOffer as LocalOfferIcon,
-  Remove as RemoveIcon,
-  Schedule as ScheduleIcon,
-  ShoppingCart as ShoppingCartIcon,
-  TrendingUp as TrendingUpIcon,
-} from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import {
   Alert,
-  alpha,
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
   CircularProgress,
   Container,
-  Divider,
   Grid,
-  IconButton,
-  LinearProgress,
-  Paper,
-  Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { useNavigate, useParams } from 'react-router-dom';
+import React from 'react';
+
+// Custom hooks
+import { useProductDetail, useProductPricing, useUserCampaignParticipation } from './hooks';
+
+// Components
+import {
+  CartNotifications,
+  CollectiveCampaignsSection,
+  OtherCreatedCampaignsSection,
+  ProductInfo,
+  PurchasePanel,
+} from './components';
 
 interface CollectiveCampaign {
   id: number;
@@ -57,13 +39,8 @@ interface CollectiveCampaign {
 }
 
 export const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const theme = useTheme();
   const { user, supplier } = useAuth();
-  const queryClient = useQueryClient();
-
-  // Use standardized shopping cart service
   const {
     addProductToCart,
     removeProductFromCart,
@@ -72,114 +49,53 @@ export const ProductDetail: React.FC = () => {
     closeSnackbar,
   } = useShoppingCartService();
 
-  const [campaignQuantity, setCampaignQuantity] = useState(1);
-  const [createCampaignModalOpen, setCreateCampaignModalOpen] = useState(false);
-
-  // Query for product details
   const {
-    data: productResponse,
-    isLoading: isLoadingProduct,
-    error: productError,
-  } = useQuery({
-    queryKey: ['product', id],
-    queryFn: () => productsApi.getProduct(parseInt(id || '0')),
-    enabled: !!id,
-  });
+    id,
+    navigate,
+    queryClient,
+    product,
+    campaigns,
+    collectiveCampaigns,
+    isLoadingProduct,
+    productError,
+    createCampaignModalOpen,
+    setCreateCampaignModalOpen,
+    campaignQuantity,
+    handleCampaignQuantityChange,
+    handleJoinCampaign,
+    setCampaignQuantity,
+    joinCampaignMutation,
+  } = useProductDetail();
 
-  // Query for collective campaigns for this product
-  const { data: campaignsResponse, isLoading: isLoadingCampaigns } = useQuery({
-    queryKey: ['campaigns', 'product', id],
-    queryFn: () => campaignsApi.getCampaignsByProduct(parseInt(id || '0')),
-    enabled: !!id,
-  });
-
-  // Query for collective purchase campaigns for this product
-  const { data: collectiveCampaignsResponse, isLoading: isLoadingCollectiveCampaigns } = useQuery({
-    queryKey: ['collective-campaigns', 'product', id],
-    queryFn: () =>
-      comprasColectivasApi.getComprasColectivas({
-        id_producto: parseInt(id || '0'),
-        estado: 'abierta',
-      }),
-    enabled: !!id,
-  });
-
-  // Mutation for joining a campaign
-  const joinCampaignMutation = useMutation({
-    mutationFn: (data: { campaignId: number; quantity: number; amount: number }) =>
-      campaignsApi.joinCampaign(data.campaignId, data.quantity, data.amount),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['campaigns', 'product', id]);
-      // Show success message
-    },
-    onError: (error: any) => {
-      // Show error message
-    },
-  });
-
-  const product = productResponse?.data;
-  const campaigns = campaignsResponse?.data || [];
-  const collectiveCampaigns = collectiveCampaignsResponse?.data?.campaigns || [];
+  const cartQuantity = product ? getProductQuantityInCart(product.idProducto) : 0;
+  const { currentPrice, totalPrice, formatCurrency } = useProductPricing(product, cartQuantity);
 
   // Check if current user is the product supplier (anti-exploit validation)
   const isUserProductSupplier = Boolean(
     product && supplier && product.idProveedor === supplier.idProveedor,
   );
 
-  // Get current cart quantity for this product
-  const cartQuantity = product ? getProductQuantityInCart(product.idProducto) : 0;
+  // Get user participation status in campaigns
+  const { hasParticipations, getParticipatedCampaigns } =
+    useUserCampaignParticipation(collectiveCampaigns);
 
   const handleAddToCart = () => {
-    if (product) {
-      addProductToCart(product, 1);
-    }
+    if (product) addProductToCart(product, 1);
   };
 
   const handleRemoveFromCart = () => {
+    if (product) removeProductFromCart(product, 1);
+  };
+
+  const handleNavigateToSupplier = () => {
     if (product) {
-      removeProductFromCart(product, 1);
+      navigate(`/proveedor/${product.idProveedor}`);
     }
   };
 
-  const handleCampaignQuantityChange = (delta: number) => {
-    setCampaignQuantity(Math.max(1, campaignQuantity + delta));
-  };
-
-  const handleJoinCampaign = (campaign: CollectiveCampaign) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    const amount = campaign.targetPrice * campaignQuantity;
-    joinCampaignMutation.mutate({
-      campaignId: campaign.id,
-      quantity: campaignQuantity,
-      amount,
-    });
-  };
-
-  const calculateCurrentPrice = (basePrice: number, quantity: number, discounts: any[]) => {
-    if (!discounts || discounts.length === 0) return basePrice;
-
-    // Find the applicable discount based on quantity
-    const applicableDiscount = discounts
-      .filter((d) => quantity >= d.cantidadMinima)
-      .sort((a, b) => b.cantidadMinima - a.cantidadMinima)[0];
-
-    if (!applicableDiscount) return basePrice;
-
-    // Use the correct property name and ensure it's a valid number
-    const discountPercentage =
-      applicableDiscount.descuentoPorcentaje || applicableDiscount.porcentajeDescuento || 0;
-    return basePrice * (1 - discountPercentage / 100);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-    }).format(amount);
+  const handleCreateCampaignSuccess = () => {
+    queryClient.invalidateQueries(['collective-campaigns', 'product', id]);
+    queryClient.invalidateQueries(['collective-campaigns']);
   };
 
   if (isLoadingProduct) {
@@ -205,23 +121,8 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
-  // Use cart quantity for price calculations (default to 1 if not in cart)
-  const effectiveQuantity = cartQuantity || 1;
-  const currentPrice = calculateCurrentPrice(
-    product.precioUnitario,
-    effectiveQuantity,
-    product.descuentosCantidad || [],
-  );
-  const totalPrice = currentPrice * effectiveQuantity;
-
   return (
-    <Box
-      sx={{
-        bgcolor: '#F6F6F4',
-        minHeight: '100vh',
-        py: 3,
-      }}
-    >
+    <Box sx={{ bgcolor: '#F6F6F4', minHeight: '100vh', py: 3 }}>
       <Container maxWidth="lg">
         {/* Back Button */}
         <Box sx={{ mb: 3 }}>
@@ -230,506 +131,97 @@ export const ProductDetail: React.FC = () => {
             onClick={() => navigate(-1)}
             sx={{
               color: theme.palette.text.secondary,
-              '&:hover': {
-                color: '#4CAF4F',
-              },
+              '&:hover': { color: '#4CAF4F' },
             }}
           >
             Volver
           </Button>
         </Box>
 
+        {/* User Participation Banner */}
+        {user && hasParticipations && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box>
+                <Typography variant="subtitle1" fontWeight="600">
+                  ¡Estás participando en compras colectivas de este producto!
+                </Typography>
+                <Typography variant="body2">
+                  Participas en {getParticipatedCampaigns().length} campaña(s) activa(s).
+                  {(() => {
+                    const totalCommitment = getParticipatedCampaigns().reduce((sum, campaign) => {
+                      const userParticipation = campaign.participantes?.find(
+                        (p: any) => p.id_usuario === user.data?.idUsuario,
+                      );
+                      return sum + (userParticipation?.monto_aporte || 0);
+                    }, 0);
+
+                    if (totalCommitment > 0) {
+                      return ` Tu compromiso total: ${formatCurrency(totalCommitment)}.`;
+                    }
+                    return '';
+                  })()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  Revisa el progreso en la sección de Compras Colectivas más abajo.
+                </Typography>
+              </Box>
+            </Box>
+          </Alert>
+        )}
+
         <Grid container spacing={4}>
           {/* Product Information */}
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 4, mb: 3 }}>
-              {/* Product Header */}
-              <Box display="flex" alignItems="flex-start" gap={3} sx={{ mb: 4 }}>
-                <Box
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    bgcolor: product.imagenUrl ? 'transparent' : alpha('#4CAF4F', 0.1),
-                    borderRadius: 2,
-                    backgroundImage: product.imagenUrl ? `url(${product.imagenUrl})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {!product.imagenUrl && (
-                    <Typography variant="h3" color="primary">
-                      {product.nombreProducto.charAt(0)}
-                    </Typography>
-                  )}
-                </Box>
+            <ProductInfo
+              product={product}
+              onNavigateToSupplier={handleNavigateToSupplier}
+              formatCurrency={formatCurrency}
+            />
 
-                <Box flex={1}>
-                  <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
-                    {product.nombreProducto}
-                  </Typography>
+            <CollectiveCampaignsSection
+              product={product}
+              campaigns={collectiveCampaigns}
+              isUserProductSupplier={isUserProductSupplier}
+              user={user}
+              onCreateCampaign={() => setCreateCampaignModalOpen(true)}
+              formatCurrency={formatCurrency}
+            />
 
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                    {product.descripcion || 'Sin descripción disponible'}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" gap={2} sx={{ mb: 2 }}>
-                    <Typography variant="h5" color="primary" fontWeight="bold">
-                      {formatCurrency(product.precioUnitario)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      por {product.unitType === 'kg' ? 'kilogramo' : 'unidad'}
-                    </Typography>
-                  </Box>
-
-                  {/* Supplier Link */}
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => navigate(`/proveedor/${product.idProveedor}`)}
-                  >
-                    Ver proveedor
-                  </Button>
-                </Box>
-              </Box>
-
-              {/* Volume Discounts */}
-              {product.descuentosCantidad && product.descuentosCantidad.length > 0 && (
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
-                    <LocalOfferIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Descuentos por Volumen
-                  </Typography>
-
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Cantidad Mínima</TableCell>
-                          <TableCell>Descuento</TableCell>
-                          <TableCell>Precio Final</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {product.descuentosCantidad.map((discount, index: number) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              {discount.cantidadMinima}{' '}
-                              {product.unitType === 'kg' ? 'kg' : 'unidades'}
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={`${discount.descuentoPorcentaje}% OFF`}
-                                color="primary"
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Typography color="primary" fontWeight="600">
-                                {formatCurrency(
-                                  product.precioUnitario *
-                                    (1 - (discount.descuentoPorcentaje || 0) / 100),
-                                )}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-              )}
-
-              {/* Collective Purchase Campaigns */}
-              {product.elegibleCompraColectiva && (
-                <Box sx={{ mb: 4 }}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{ mb: 3 }}
-                  >
-                    <Typography variant="h6" fontWeight="600">
-                      <GroupIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                      Compras Colectivas
-                    </Typography>
-
-                    {user && !isUserProductSupplier && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<GroupIcon />}
-                        onClick={() => setCreateCampaignModalOpen(true)}
-                      >
-                        Crear Campaña
-                      </Button>
-                    )}
-                  </Box>
-
-                  {collectiveCampaigns.length > 0 ? (
-                    collectiveCampaigns.map((campaign) => (
-                      <Card
-                        key={campaign.id_campana}
-                        sx={{ mb: 2, border: `2px solid ${theme.palette.primary.main}` }}
-                      >
-                        <CardContent>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="flex-start"
-                            sx={{ mb: 2 }}
-                          >
-                            <Box>
-                              <Typography variant="h6" fontWeight="600">
-                                {campaign.nombre}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {campaign.descripcion}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Precio objetivo:{' '}
-                                <strong>{formatCurrency(Number(campaign.precio_objetivo))}</strong>{' '}
-                                (ahorra{' '}
-                                {formatCurrency(
-                                  product.precioUnitario - Number(campaign.precio_objetivo),
-                                )}
-                                )
-                              </Typography>
-                            </Box>
-                            <Chip
-                              label={campaign.estado === 'abierta' ? 'Activa' : 'Cerrada'}
-                              color={campaign.estado === 'abierta' ? 'success' : 'default'}
-                              size="small"
-                            />
-                          </Box>
-
-                          {/* Progress */}
-                          <Box sx={{ mb: 2 }}>
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                              sx={{ mb: 1 }}
-                            >
-                              <Typography variant="body2">
-                                Progreso: {campaign.progreso?.cantidad_actual || 0} /{' '}
-                                {campaign.cantidad_objetivo}
-                              </Typography>
-                              <Typography variant="body2" color="primary">
-                                {Math.round(
-                                  ((campaign.progreso?.cantidad_actual || 0) /
-                                    campaign.cantidad_objetivo) *
-                                    100,
-                                )}
-                                %
-                              </Typography>
-                            </Box>
-                            <LinearProgress
-                              variant="determinate"
-                              value={
-                                ((campaign.progreso?.cantidad_actual || 0) /
-                                  campaign.cantidad_objetivo) *
-                                100
-                              }
-                              sx={{ height: 8, borderRadius: 4 }}
-                            />
-                          </Box>
-
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Box display="flex" alignItems="center" gap={2}>
-                              <Typography variant="body2">
-                                <GroupIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                                {campaign.progreso?.participantes_actuales || 0} participantes
-                              </Typography>
-                              {campaign.fecha_fin && (
-                                <Typography variant="body2">
-                                  <ScheduleIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                                  Termina: {new Date(campaign.fecha_fin).toLocaleDateString()}
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      <Typography variant="body2">
-                        No hay campañas colectivas activas para este producto.
-                        {user && ' ¡Sé el primero en crear una!'}
-                      </Typography>
-                    </Alert>
-                  )}
-                </Box>
-              )}
-
-              {/* Old Collective Campaigns (keeping for compatibility) */}
-              {campaigns.length > 0 && (
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" fontWeight="600" sx={{ mb: 3 }}>
-                    <TrendingUpIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Otras Campañas Activas
-                  </Typography>
-
-                  {campaigns.map((campaign: CollectiveCampaign) => (
-                    <Card
-                      key={campaign.id}
-                      sx={{ mb: 2, border: `2px solid ${theme.palette.secondary.main}` }}
-                    >
-                      <CardContent>
-                        <Box
-                          display="flex"
-                          justifyContent="space-between"
-                          alignItems="flex-start"
-                          sx={{ mb: 2 }}
-                        >
-                          <Box>
-                            <Typography variant="h6" fontWeight="600">
-                              {campaign.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Precio objetivo:{' '}
-                              <strong>{formatCurrency(campaign.targetPrice)}</strong> (ahorra{' '}
-                              {formatCurrency(product.precioUnitario - campaign.targetPrice)})
-                            </Typography>
-                          </Box>
-                          <Chip
-                            label={campaign.status === 'active' ? 'Activa' : 'Finalizada'}
-                            color={campaign.status === 'active' ? 'success' : 'default'}
-                            size="small"
-                          />
-                        </Box>
-
-                        {/* Progress */}
-                        <Box sx={{ mb: 2 }}>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            sx={{ mb: 1 }}
-                          >
-                            <Typography variant="body2">
-                              Progreso: {campaign.currentQuantity} / {campaign.targetQuantity}
-                            </Typography>
-                            <Typography variant="body2" color="primary">
-                              {Math.round(
-                                (campaign.currentQuantity / campaign.targetQuantity) * 100,
-                              )}
-                              %
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={(campaign.currentQuantity / campaign.targetQuantity) * 100}
-                            sx={{ height: 8, borderRadius: 4 }}
-                          />
-                        </Box>
-
-                        <Box display="flex" justify-content="space-between" alignItems="center">
-                          <Box display="flex" alignItems="center" gap={2}>
-                            <Typography variant="body2">
-                              <GroupIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                              {campaign.participants} participantes
-                            </Typography>
-                            <Typography variant="body2">
-                              <ScheduleIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                              Termina: {new Date(campaign.endDate).toLocaleDateString()}
-                            </Typography>
-                          </Box>
-
-                          {campaign.status === 'active' && user && (
-                            <Box display="flex" alignItems="center" gap={1}>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleCampaignQuantityChange(-1)}
-                              >
-                                <RemoveIcon />
-                              </IconButton>
-                              <TextField
-                                size="small"
-                                value={campaignQuantity}
-                                onChange={(e) =>
-                                  setCampaignQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                                }
-                                sx={{ width: 60 }}
-                                inputProps={{ min: 1, style: { textAlign: 'center' } }}
-                              />
-                              <IconButton
-                                size="small"
-                                onClick={() => handleCampaignQuantityChange(1)}
-                              >
-                                <AddIcon />
-                              </IconButton>
-                              <Button
-                                variant="contained"
-                                size="small"
-                                onClick={() => handleJoinCampaign(campaign)}
-                                disabled={joinCampaignMutation.isLoading}
-                              >
-                                Unirse ({formatCurrency(campaign.targetPrice * campaignQuantity)})
-                              </Button>
-                            </Box>
-                          )}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-              )}
-            </Paper>
+            <OtherCreatedCampaignsSection
+              product={product}
+              user={user}
+              onCreateCampaign={() => setCreateCampaignModalOpen(true)}
+              formatCurrency={formatCurrency}
+            />
           </Grid>
 
           {/* Purchase Panel */}
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
-              <Typography variant="h6" fontWeight="600" sx={{ mb: 3 }}>
-                Agregar al Carrito
-              </Typography>
-
-              {/* Cart Integration - Standardized */}
-              <Box sx={{ mb: 3 }}>
-                {cartQuantity > 0 ? (
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      En tu carrito: {cartQuantity} {product.unitType === 'kg' ? 'kg' : 'unidades'}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <IconButton
-                        size="small"
-                        onClick={handleRemoveFromCart}
-                        sx={{
-                          border: 1,
-                          borderColor: 'primary.main',
-                          '&:hover': { bgcolor: 'primary.light' },
-                        }}
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          minWidth: 40,
-                          textAlign: 'center',
-                          fontWeight: 'bold',
-                          mx: 2,
-                        }}
-                      >
-                        {cartQuantity}
-                      </Typography>
-
-                      <IconButton
-                        size="small"
-                        onClick={handleAddToCart}
-                        sx={{
-                          border: 1,
-                          borderColor: 'primary.main',
-                          '&:hover': { bgcolor: 'primary.light' },
-                        }}
-                      >
-                        <AddIcon />
-                      </IconButton>
-
-                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                        {product.unitType === 'kg' ? 'kg' : 'unidades'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ) : (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleAddToCart}
-                    disabled={!product.disponible}
-                    startIcon={<ShoppingCartIcon />}
-                    sx={{
-                      borderRadius: '20px',
-                      py: 1.5,
-                      mb: 2,
-                    }}
-                  >
-                    Agregar al carrito
-                  </Button>
-                )}
-              </Box>
-
-              {/* Price Information */}
-              <Box sx={{ mb: 3 }}>
-                <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
-                  <Typography variant="body2">Precio unitario:</Typography>
-                  <Typography variant="body2">{formatCurrency(product.precioUnitario)}</Typography>
-                </Box>
-
-                {currentPrice < product.precioUnitario && cartQuantity > 0 && (
-                  <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography variant="body2" color="primary">
-                      Precio con descuento:
-                    </Typography>
-                    <Typography variant="body2" color="primary" fontWeight="600">
-                      {formatCurrency(currentPrice)}
-                    </Typography>
-                  </Box>
-                )}
-
-                {cartQuantity > 0 && (
-                  <>
-                    <Divider sx={{ my: 1 }} />
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography variant="h6" fontWeight="600">
-                        Subtotal ({cartQuantity} {product.unitType === 'kg' ? 'kg' : 'unidades'}):
-                      </Typography>
-                      <Typography variant="h6" fontWeight="600" color="primary">
-                        {formatCurrency(totalPrice)}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </Box>
-
-              {/* Quick Purchase Action */}
-              {cartQuantity > 0 && (
-                <Box display="flex" flexDirection="column" gap={2}>
-                  <Button variant="outlined" fullWidth size="large">
-                    Proceder al Pago
-                  </Button>
-                </Box>
-              )}
-
-              {/* Discount Notice */}
-              {product.descuentosCantidad && product.descuentosCantidad.length > 0 && (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  <TrendingUpIcon sx={{ fontSize: 16, mr: 1 }} />
-                  ¡Compra más y ahorra! Ver descuentos por volumen arriba.
-                </Alert>
-              )}
-            </Paper>
+            <PurchasePanel
+              product={product}
+              cartQuantity={cartQuantity}
+              currentPrice={currentPrice}
+              totalPrice={totalPrice}
+              onAddToCart={handleAddToCart}
+              onRemoveFromCart={handleRemoveFromCart}
+              formatCurrency={formatCurrency}
+            />
           </Grid>
         </Grid>
       </Container>
 
       {/* Create Campaign Modal */}
-      {product && product.elegibleCompraColectiva && (
+      {product?.elegibleCompraColectiva && (
         <CreateCampaignModal
           open={createCampaignModalOpen}
           onClose={() => setCreateCampaignModalOpen(false)}
           product={product}
-          onSuccess={() => {
-            // Refresh collective campaigns
-            queryClient.invalidateQueries(['collective-campaigns', 'product', id]);
-            queryClient.invalidateQueries(['collective-campaigns']);
-          }}
+          onSuccess={handleCreateCampaignSuccess}
         />
       )}
 
-      {/* Snackbar for cart notifications */}
-      <Snackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        autoHideDuration={3000}
-        onClose={closeSnackbar}
-      />
+      <CartNotifications snackbar={snackbar} onClose={closeSnackbar} />
     </Box>
   );
 };

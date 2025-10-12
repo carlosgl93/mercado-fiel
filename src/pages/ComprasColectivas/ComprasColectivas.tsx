@@ -158,7 +158,7 @@ export const ComprasColectivas: React.FC = () => {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Las compras colectivas aparecerán aquí cuando los proveedores las publiquen
             </Typography>
-            <Button variant="contained" href="/explorar-productos">
+            <Button variant="contained" onClick={() => navigate('/explorar-productos')}>
               Explorar Productos
             </Button>
           </Card>
@@ -169,7 +169,7 @@ export const ComprasColectivas: React.FC = () => {
                 <CollectivePurchaseCard
                   campaign={campaign}
                   onJoinPurchase={handleJoinPurchase}
-                  // currentUserId={user?.uid}
+                  currentUserId={user?.data?.idUsuario}
                 />
               </Grid>
             ))}

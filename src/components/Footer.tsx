@@ -148,10 +148,24 @@ function Footer() {
           Desarrollado por Benjamín Sepúlveda - Universidad de O'Higgins
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Link href="/terms-conditions" color="grey.300" underline="hover" variant="body2">
+          <Link
+            component="button"
+            onClick={() => navigate('/terms-conditions')}
+            color="grey.300"
+            underline="hover"
+            variant="body2"
+            sx={{ border: 'none', background: 'none', cursor: 'pointer' }}
+          >
             Términos y Condiciones
           </Link>
-          <Link href="/preguntas-frecuentes" color="grey.300" underline="hover" variant="body2">
+          <Link
+            component="button"
+            onClick={() => navigate('/preguntas-frecuentes')}
+            color="grey.300"
+            underline="hover"
+            variant="body2"
+            sx={{ border: 'none', background: 'none', cursor: 'pointer' }}
+          >
             FAQ
           </Link>
         </Box>

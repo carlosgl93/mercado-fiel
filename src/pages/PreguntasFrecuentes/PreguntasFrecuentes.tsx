@@ -23,6 +23,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const FAQSection = styled(Box)(({ theme }) => ({
   padding: theme.spacing(8, 0),
@@ -55,6 +56,7 @@ interface FAQ {
 
 function PreguntasFrecuentes() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>('todos');
 
   const categories = [
@@ -256,8 +258,8 @@ function PreguntasFrecuentes() {
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Typography
-                component="a"
-                href="/contacto"
+                component="button"
+                onClick={() => navigate('/contacto')}
                 sx={{
                   display: 'inline-block',
                   px: 3,
@@ -267,6 +269,8 @@ function PreguntasFrecuentes() {
                   textDecoration: 'none',
                   borderRadius: 1,
                   fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer',
                   '&:hover': {
                     bgcolor: 'primary.dark',
                   },

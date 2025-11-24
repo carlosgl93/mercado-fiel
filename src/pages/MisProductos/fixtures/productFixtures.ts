@@ -13,11 +13,13 @@ export const DEV_PRODUCT_FIXTURES: CreateProductRequest = {
   idProveedor: 0, // Will be set from supplier
   idCategoria: 1, // Frutas
   nombreProducto: 'Manzanas Rojas Premium',
-  descripcion: 'Manzanas rojas frescas y jugosas, cultivadas localmente sin pesticidas. Perfectas para consumo directo o preparación de postres.',
+  descripcion:
+    'Manzanas rojas frescas y jugosas, cultivadas localmente sin pesticidas. Perfectas para consumo directo o preparación de postres.',
   precioUnitario: 2500,
   unitType: 'kg',
   imagenUrl: '',
   disponible: true,
+  elegibleCompraColectiva: true, // Always default to true
   descuentosCantidad: [],
 };
 
@@ -81,5 +83,6 @@ export const getRandomProductFixture = (): CreateProductRequest => {
 
 // Check if we're in development mode
 export const isDevelopmentMode = (): boolean => {
-  return import.meta.env.MODE === 'development' || import.meta.env.DEV;
+  const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+  return isDev;
 };

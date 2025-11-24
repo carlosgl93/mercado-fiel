@@ -165,6 +165,8 @@ productosRouter.get('/', async (req: Request, res: Response, next: NextFunction)
   }
 });
 
+// PUT para recibir el update de stock a traves del bot de whatsapp
+
 // GET /productos/:id - Get product by ID
 productosRouter.get(
   '/:id',

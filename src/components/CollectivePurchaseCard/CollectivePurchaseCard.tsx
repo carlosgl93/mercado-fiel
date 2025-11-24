@@ -86,8 +86,16 @@ export const CollectivePurchaseCard: React.FC<CollectivePurchaseCardProps> = ({
           component="img"
           height="200"
           image={campaign.producto.imagen_url}
-          alt={campaign.producto.nombre_producto}
+          alt={campaign.producto?.nombre_producto || campaign.nombre}
           sx={{ objectFit: 'cover' }}
+          onError={(e) => {
+            console.error('❌ Image failed to load:', campaign.producto?.imagen_url);
+            // Hide the image on error instead of showing broken image
+            e.currentTarget.style.display = 'none';
+          }}
+          onLoad={() => {
+            console.log('✅ Image loaded successfully:', campaign.producto?.imagen_url);
+          }}
         />
       )}
       <Box

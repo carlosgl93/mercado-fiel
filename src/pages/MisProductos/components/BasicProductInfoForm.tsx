@@ -2,15 +2,15 @@ import { CLPCurrencyInput } from '@/components/NumberInput';
 import { Category } from '@/types/api/categories';
 import { CreateProductRequest } from '@/types/products';
 import {
-    FormControl,
-    FormControlLabel,
-    Grid,
-    InputLabel,
-    MenuItem,
-    Select,
-    Switch,
-    TextField,
-    Typography,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Switch,
+  TextField,
+  Typography,
 } from '@mui/material';
 import React from 'react';
 
@@ -18,9 +18,13 @@ interface BasicProductInfoFormProps {
   formData: CreateProductRequest;
   categories: Category[];
   errors: Record<string, string>;
-  onInputChange: (field: keyof CreateProductRequest) => (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => void;
+  onInputChange: (
+    field: keyof CreateProductRequest,
+  ) => (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => void;
   onSelectChange: (field: keyof CreateProductRequest) => (event: any) => void;
-  onSwitchChange: (field: keyof CreateProductRequest) => (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSwitchChange: (
+    field: keyof CreateProductRequest,
+  ) => (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPriceChange: (value: number | undefined) => void;
 }
 
@@ -38,7 +42,7 @@ export const BasicProductInfoForm: React.FC<BasicProductInfoFormProps> = ({
       {/* Section Header */}
       <Grid item xs={12}>
         <Typography variant="h6" gutterBottom>
-          Información Básica
+          Información básica
         </Typography>
       </Grid>
 
@@ -46,7 +50,7 @@ export const BasicProductInfoForm: React.FC<BasicProductInfoFormProps> = ({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Nombre del Producto"
+          label="Nombre del producto"
           value={formData.nombreProducto}
           onChange={onInputChange('nombreProducto')}
           error={!!errors.nombreProducto}

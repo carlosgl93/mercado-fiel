@@ -80,6 +80,11 @@ model usuarios {
   solicitudescontacto solicitudescontacto[]
   roles               UsuarioRol[]
   plan                planes?                 @relation(fields: [id_plan], references: [id_plan])
+  
+  // Stock management relations
+  movimientos_stock_registro movimientos_stock[] @relation("UsuarioMovimientoStock")
+  alertas_resueltas         alertas_stock[]     @relation("UsuarioAlertaResuelta")
+  reservas_stock            reservas_stock[]
 
   @@map("usuarios")
 }
@@ -173,42 +178,59 @@ model categorias {
 }
 
 model productos {
-  id_producto         Int                   @id @default(autoincrement())
-  id_proveedor        Int
-  id_categoria        Int
-  nombre_producto     String                @db.VarChar(100)
-  descripcion         String?
-  precio_unitario     Decimal               @db.Decimal(10, 2)
-  imagen_url          String?
-  disponible          Boolean               @default(true)
-  elegible_compra_colectiva Boolean         @default(false)
-  fecha_publicacion   DateTime              @default(now()) @db.Timestamp(6)
-  created_at          DateTime              @default(now())
-  updated_at          DateTime?             @default(now()) @updatedAt
-  unit_type           String?               @default("unit") @db.VarChar(10)
-  carrito             carrito[]
-  comentarios         comentarios[]
-  campanas_colectivas compras_colectivas[]
-  descuentos_cantidad descuentos_cantidad[]
-  items_pedido        ItemPedido[]
-  lista_deseos        lista_deseos[]
-  categoria           categorias            @relation(fields: [id_categoria], references: [id_categoria])
-  proveedor           proveedores           @relation(fields: [id_proveedor], references: [id_proveedor])
+  id_producto               Int                   @id @default(autoincrement())
+  id_proveedor              Int
+  id_categoria              Int
+  nombre_producto           String                @db.VarChar(100)
+  descripcion               String?
+  precio_unitario           Decimal               @db.Decimal(10, 2)
+  imagen_url                String?
+  disponible                Boolean               @default(true)
+  elegible_compra_colectiva Boolean               @default(true)
+  fecha_publicacion         DateTime              @default(now()) @db.Timestamp(6)
+  created_at                DateTime              @default(now())
+  updated_at                DateTime?             @default(now()) @updatedAt
+  unit_type                 String?               @default("unit") @db.VarChar(10)
+  
+  // Stock management fields
+  stock_actual              Int                   @default(0)
+  stock_minimo              Int                   @default(0)
+  stock_maximo              Int?                  @default(999999)
+  alerta_stock_bajo         Boolean               @default(true)
+  permite_venta_sin_stock   Boolean               @default(false)
+  dias_reabastecimiento     Int?                  @default(7)
+  ultimo_reabastecimiento   DateTime?
+  
+  // Existing relations
+  carrito                   carrito[]
+  comentarios               comentarios[]
+  campanas_colectivas       compras_colectivas[]
+  descuentos_cantidad       descuentos_cantidad[]
+  items_pedido              ItemPedido[]
+  lista_deseos              lista_deseos[]
+  categoria                 categorias            @relation(fields: [id_categoria], references: [id_categoria])
+  proveedor                 proveedores           @relation(fields: [id_proveedor], references: [id_proveedor])
+  
+  // Stock management relations
+  movimientos_stock         movimientos_stock[]
+  alertas_stock             alertas_stock[]
+  reservas_stock            reservas_stock[]
 
+  @@index([id_proveedor, disponible])
+  @@index([stock_actual])
   @@map("productos")
 }
 
 model descuentos_cantidad {
-  id_descuento         Int                   @id @default(autoincrement())
+  id_descuento         Int       @id @default(autoincrement())
   id_producto          Int
   cantidad_minima      Int
-  descuento_porcentaje Decimal               @db.Decimal(5, 2)
-  precio_descuento     Decimal?              @db.Decimal(10, 2)
-  activo               Boolean               @default(true)
-  created_at           DateTime              @default(now())
-  updated_at           DateTime?             @default(now()) @updatedAt
-  producto             productos             @relation(fields: [id_producto], references: [id_producto])
-  campanas_colectivas  compras_colectivas[]  // 🆕 Reverse relation
+  descuento_porcentaje Decimal   @db.Decimal(5, 2)
+  precio_descuento     Decimal?  @db.Decimal(10, 2)
+  activo               Boolean   @default(true)
+  created_at           DateTime  @default(now())
+  updated_at           DateTime? @default(now()) @updatedAt
+  producto             productos @relation(fields: [id_producto], references: [id_producto])
 
   @@unique([id_producto, cantidad_minima])
   @@map("descuentos_cantidad")
@@ -304,32 +326,35 @@ model publicidad {
 }
 
 model compras_colectivas {
-  id_campana            Int                     @id @default(autoincrement())
-  nombre                String                  @db.VarChar(100)
-  descripcion           String?
-  id_proveedor          Int
-  id_producto           Int
-  id_descuento_aplicado Int?                    // 🆕 Reference to the discount used
-  precio_objetivo       Decimal                 @db.Decimal(10, 2)
-  cantidad_objetivo     Int
-  min_participantes     Int?
-  max_participantes     Int?                    @default(5) // 🔄 Set default to 5 as per business rules
-  cantidad_min_usuario  Int                     @default(1)
-  cantidad_max_usuario  Int?
-  requiere_aprobacion   Boolean                 @default(false)
-  fecha_inicio          DateTime                @default(now())
-  fecha_fin             DateTime?
-  estado                String                  @default("abierta")
-  created_at            DateTime                @default(now())
-  updated_at            DateTime?               @updatedAt
-  producto              productos               @relation(fields: [id_producto], references: [id_producto])
-  proveedor             proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
-  descuento_aplicado    descuentos_cantidad?    @relation(fields: [id_descuento_aplicado], references: [id_descuento]) // 🆕 Relation to discount
-  escalas_precios       escalas_precios[]
-  notificaciones        notificaciones[]
-  participantes         ParticipanteColectivo[]
-  pedidos               pedidos[]
-  progreso              progreso_campana?
+  id_campana              Int                     @id @default(autoincrement())
+  nombre                  String                  @db.VarChar(100)
+  descripcion             String?
+  id_proveedor            Int
+  id_producto             Int
+  precio_objetivo         Decimal                 @db.Decimal(10, 2)
+  cantidad_objetivo       Int
+  min_participantes       Int?
+  max_participantes       Int?
+  cantidad_min_usuario    Int                     @default(1)
+  cantidad_max_usuario    Int?
+  requiere_aprobacion     Boolean                 @default(false)
+  id_descuento_aplicado   Int?
+  fecha_inicio            DateTime                @default(now())
+  fecha_fin               DateTime?
+  estado                  String                  @default("abierta")
+  created_at              DateTime                @default(now())
+  updated_at              DateTime?               @updatedAt
+  producto                productos               @relation(fields: [id_producto], references: [id_producto])
+  proveedor               proveedores             @relation(fields: [id_proveedor], references: [id_proveedor])
+  escalas_precios         escalas_precios[]
+  notificaciones          notificaciones[]
+  participantes           ParticipanteColectivo[]
+  pedidos                 pedidos[]
+  progreso                progreso_campana?
+  
+  // Stock management relations
+  movimientos_stock       movimientos_stock[]
+  reservas_stock          reservas_stock[]
 
   @@map("compras_colectivas")
 }
@@ -400,6 +425,10 @@ model pedidos {
   campana              compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
   direccion_entrega    direcciones?        @relation(fields: [id_direccion_entrega], references: [id_direccion])
   usuario              usuarios            @relation(fields: [id_usuario], references: [id_usuario])
+  
+  // Stock management relations
+  movimientos_stock    movimientos_stock[]
+  reservas_stock       reservas_stock[]
 
   @@map("pedidos")
 }
@@ -465,4 +494,147 @@ model carrito {
 
   @@unique([id_usuario, id_producto])
   @@map("carrito")
+}
+
+// ============================================
+// STOCK MANAGEMENT ENUMS
+// ============================================
+
+enum TipoMovimiento {
+  ENTRADA_COMPRA          // Stock added from purchase
+  ENTRADA_DEVOLUCION      // Stock returned by customer
+  ENTRADA_AJUSTE          // Manual adjustment (increase)
+  SALIDA_VENTA            // Stock sold
+  SALIDA_DEVOLUCION       // Stock returned to supplier
+  SALIDA_MERMA            // Stock loss/waste
+  SALIDA_AJUSTE           // Manual adjustment (decrease)
+  RESERVA                 // Stock reserved for pending order
+  LIBERACION_RESERVA      // Reserved stock released
+  ENTRADA_REABASTECIMIENTO // Stock replenishment
+}
+
+enum MetodoRegistro {
+  MANUAL                  // Registered manually by user
+  AUTOMATICO              // Auto-registered by system
+  WHATSAPP                // Registered via WhatsApp bot
+  API                     // Registered via API call
+  IMPORTACION             // Imported from file/batch
+}
+
+enum TipoAlerta {
+  STOCK_BAJO              // Stock below minimum
+  STOCK_CRITICO           // Stock at critical level
+  STOCK_AGOTADO           // Stock depleted
+  REABASTECIMIENTO_PENDIENTE // Restock needed
+  RESERVA_EXPIRADA        // Reserved stock expired
+}
+
+enum TipoReserva {
+  PEDIDO                  // Reserved for order
+  CAMPANA                 // Reserved for campaign
+  APARTADO                // Reserved/held by customer
+}
+
+enum EstadoReserva {
+  ACTIVA                  // Currently reserved
+  COMPLETADA              // Reservation fulfilled
+  CANCELADA               // Reservation cancelled
+  EXPIRADA                // Reservation expired
+}
+
+enum AccionWhatsApp {
+  CONSULTA_STOCK          // Check stock level
+  ENTRADA_STOCK           // Add stock
+  SALIDA_STOCK            // Remove stock
+  AJUSTE_STOCK            // Adjust stock
+  ALERTA_CONFIG           // Configure alerts
+  REPORTE                 // Generate report
+  AYUDA                   // Help command
+}
+
+// ============================================
+// STOCK MANAGEMENT MODELS
+// ============================================
+
+model movimientos_stock {
+  id_movimiento        Int              @id @default(autoincrement())
+  id_producto          Int
+  tipo_movimiento      TipoMovimiento
+  cantidad             Int
+  stock_previo         Int
+  stock_resultante     Int
+  metodo_registro      MetodoRegistro   @default(AUTOMATICO)
+  id_usuario_registro  Int?
+  id_pedido            Int?
+  id_campana           Int?
+  id_reserva           Int?
+  observaciones        String?
+  costo_unitario       Decimal?         @db.Decimal(10, 2)
+  costo_total          Decimal?         @db.Decimal(10, 2)
+  numero_factura       String?          @db.VarChar(100)
+  fecha_movimiento     DateTime         @default(now())
+  created_at           DateTime         @default(now())
+  
+  // Relations
+  producto             productos        @relation(fields: [id_producto], references: [id_producto])
+  usuario              usuarios?        @relation("UsuarioMovimientoStock", fields: [id_usuario_registro], references: [id_usuario])
+  pedido               pedidos?         @relation(fields: [id_pedido], references: [id_pedido])
+  campana              compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  reserva              reservas_stock?  @relation(fields: [id_reserva], references: [id_reserva])
+
+  @@index([id_producto, fecha_movimiento])
+  @@index([tipo_movimiento])
+  @@index([metodo_registro])
+  @@map("movimientos_stock")
+}
+
+model alertas_stock {
+  id_alerta            Int              @id @default(autoincrement())
+  id_producto          Int
+  tipo_alerta          TipoAlerta
+  stock_actual         Int
+  stock_minimo         Int?
+  mensaje              String
+  resuelta             Boolean          @default(false)
+  fecha_resolucion     DateTime?
+  id_usuario_resolvio  Int?
+  notas_resolucion     String?
+  fecha_alerta         DateTime         @default(now())
+  created_at           DateTime         @default(now())
+  
+  // Relations
+  producto             productos        @relation(fields: [id_producto], references: [id_producto])
+  usuario_resolvio     usuarios?        @relation("UsuarioAlertaResuelta", fields: [id_usuario_resolvio], references: [id_usuario])
+
+  @@index([id_producto, resuelta])
+  @@index([tipo_alerta, resuelta])
+  @@map("alertas_stock")
+}
+
+model reservas_stock {
+  id_reserva           Int              @id @default(autoincrement())
+  id_producto          Int
+  tipo_reserva         TipoReserva
+  cantidad_reservada   Int
+  estado               EstadoReserva    @default(ACTIVA)
+  id_usuario           Int?
+  id_pedido            Int? 
+  id_campana           Int?
+  fecha_reserva        DateTime         @default(now())
+  fecha_expiracion     DateTime?
+  fecha_liberacion     DateTime?
+  observaciones        String?
+  created_at           DateTime         @default(now())
+  updated_at           DateTime?        @updatedAt
+  
+  // Relations
+  producto             productos        @relation(fields: [id_producto], references: [id_producto])
+  usuario              usuarios?        @relation(fields: [id_usuario], references: [id_usuario])
+  pedido               pedidos?         @relation(fields: [id_pedido], references: [id_pedido])
+  campana              compras_colectivas? @relation(fields: [id_campana], references: [id_campana])
+  movimientos          movimientos_stock[]
+
+  @@index([id_producto, estado])
+  @@index([estado, fecha_expiracion])
+  @@map("reservas_stock")
 }

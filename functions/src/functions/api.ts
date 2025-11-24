@@ -11,6 +11,7 @@ import {
   customersRouter,
   productosRouter,
   statusRouter,
+  stockRouter,
   suppliersRouter,
   usersRouter,
 } from '../routes';
@@ -71,6 +72,7 @@ app.use('/comunas', comunasRouter);
 app.use('/carrito', carritoRouter);
 app.use('/campaigns', campaignsRouter);
 app.use('/compras-colectivas', comprasColectivasRouter);
+app.use('/stock', stockRouter);
 
 // Error handler should be last
 app.use(errorHandler);
@@ -86,7 +88,7 @@ export const api = onRequest(
       'https://mercadofiel.cl',
     ],
     timeoutSeconds: 15,
-    memory: '512MiB',
+    memory: '256MiB',
     region: 'southamerica-west1',
     invoker: 'public',
   },

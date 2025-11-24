@@ -6,6 +6,7 @@ export * from './comprasColectivas';
 export * from './customers';
 export * from './health';
 export * from './productos';
+export * from './stock';
 export * from './suppliers';
 export * from './users';
 

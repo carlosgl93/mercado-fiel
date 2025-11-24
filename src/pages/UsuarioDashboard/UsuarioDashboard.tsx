@@ -75,7 +75,7 @@ export const UsuarioDashboard = () => {
             ctaText="Ver productos"
           />
           <DashboardTile
-            goToPath="/resultados"
+            goToPath="/buscar"
             title="Buscar proveedores"
             subTitle="Encuentra proveedores cerca de ti"
             isMobile={isMobile}

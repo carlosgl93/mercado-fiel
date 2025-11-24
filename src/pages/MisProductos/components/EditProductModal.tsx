@@ -212,7 +212,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ open, onClos
         throw new Error(result.error || 'Error al subir la imagen');
       }
 
-      // Return the key instead of URL - this should be stored in the database
+      // Return the full URL - this gets stored directly in the database
       return result.key || result.url!;
     } finally {
       setImageUploading(false);

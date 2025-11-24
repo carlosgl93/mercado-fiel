@@ -3,7 +3,6 @@ import { categoriesApi } from '@/api/categories';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { Category } from '@/types/api/categories';
 import { CreateProductRequest } from '@/types/products';
-import { useImageUpload } from '@/utils/supabaseStorage';
 import { Close as CloseIcon } from '@mui/icons-material';
 import {
   Box,
@@ -16,28 +15,19 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useSetRecoilState } from 'recoil';
+import { notificationState } from '../../../store/snackbar';
 
-// Import new components
+// Import components
 import { BasicProductInfoForm } from './BasicProductInfoForm';
 import { ProductImageUpload } from './ProductImageUpload';
 import { QuantityDiscountForm } from './QuantityDiscountForm';
 
-// Import fixtures and utilities
-import {
-  DEV_DISCOUNT_FIXTURES,
-  DEV_PRODUCT_FIXTURES,
-  isDevelopmentMode,
-  QuantityDiscountForm as QuantityDiscountFormType,
-} from '../fixtures/productFixtures';
-import {
-  calculateDiscountedPrice,
-  calculateDiscountPercentage,
-  IMAGE_MAX_SIZE,
-  SUPPORTED_IMAGE_TYPES,
-  validateProductForm,
-} from '../utils/productFormUtils';
+// Import hooks and utilities
+import { DEV_DISCOUNT_FIXTURES, isDevelopmentMode } from '../fixtures/productFixtures';
+import { useProductForm, useProductImageUpload } from '../hooks';
 
 interface CreateProductModalProps {
   open: boolean;
@@ -46,49 +36,72 @@ interface CreateProductModalProps {
 
 export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, onClose }) => {
   const { supplier } = useAuth();
-  const { uploadImage } = useImageUpload();
   const queryClient = useQueryClient();
+  const setNotification = useSetRecoilState(notificationState);
 
-  // Initialize form with fixtures in development mode
+  // Initialize form data
   const getInitialFormData = (): CreateProductRequest => {
-    const baseData = {
+    return {
       idProveedor: supplier?.idProveedor || 0,
       idCategoria: 0,
       nombreProducto: '',
       descripcion: '',
       precioUnitario: 0,
-      unitType: 'unit' as 'kg' | 'unit',
+      unitType: 'kg' as 'kg' | 'unit',
       imagenUrl: '',
       disponible: true,
-      elegibleCompraColectiva: false,
+      elegibleCompraColectiva: true,
       descuentosCantidad: [],
     };
-
-    if (isDevelopmentMode()) {
-      return {
-        ...DEV_PRODUCT_FIXTURES,
-        idProveedor: supplier?.idProveedor || 0,
-      };
-    }
-
-    return baseData;
   };
 
-  const [formData, setFormData] = useState<CreateProductRequest>(getInitialFormData());
-  const [discounts, setDiscounts] = useState<QuantityDiscountFormType[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
+  // Use custom hooks for form management
+  const {
+    formData,
+    discounts,
+    errors,
+    selectedImage,
+    imagePreview,
+    handleInputChange,
+    handleSelectChange,
+    handleSwitchChange,
+    handlePriceChange,
+    handleImageChange,
+    handleRemoveImage,
+    handleAddDiscount,
+    handleRemoveDiscount,
+    updateDiscount,
+    validateForm,
+    resetForm,
+    setDiscounts,
+    setErrors,
+  } = useProductForm({
+    initialData: getInitialFormData(),
+    onValidationError: (errorSummary) => {
+      setNotification({
+        open: true,
+        message: errorSummary,
+        severity: 'error',
+      });
+    },
+  });
 
-  // Auto-fill discounts in development mode
-  useEffect(() => {
-    if (isDevelopmentMode() && open && discounts.length === 0) {
-      setDiscounts(DEV_DISCOUNT_FIXTURES);
-    }
-  }, [open, discounts.length]);
+  // Use custom hook for image upload
+  const { uploadProductImage, imageUploading } = useProductImageUpload({
+    onError: (errorMessage) => {
+      setErrors((prev) => ({
+        ...prev,
+        imagen: errorMessage,
+      }));
+      setNotification({
+        open: true,
+        message: `❌ ${errorMessage}. Por favor intenta nuevamente.`,
+        severity: 'error',
+      });
+    },
+  });
 
-  // Query for categories using axios api
+  // Query for categories
   const { data: categoriesResponse } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getCategories(),
@@ -100,195 +113,37 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     mutationFn: (productData: CreateProductRequest) => productsApi.createProduct(productData),
     onSuccess: () => {
       queryClient.invalidateQueries(['products']);
+      setNotification({
+        open: true,
+        message: '✅ Producto creado exitosamente',
+        severity: 'success',
+      });
       handleClose();
     },
     onError: (error: any) => {
       console.error('Error creating product:', error);
+      const errorMessage =
+        error?.response?.data?.message || error?.message || 'Error al crear el producto';
+      setNotification({
+        open: true,
+        message: `❌ ${errorMessage}. Por favor intenta nuevamente.`,
+        severity: 'error',
+      });
     },
   });
 
+  // Handle modal close
   const handleClose = () => {
-    setFormData(getInitialFormData());
+    resetForm(getInitialFormData());
     setDiscounts(isDevelopmentMode() ? DEV_DISCOUNT_FIXTURES : []);
-    setErrors({});
-    setSelectedImage(null);
-    setImagePreview(null);
-    setImageUploading(false);
     onClose();
   };
 
-  // Event handlers
-  const handleInputChange =
-    (field: keyof CreateProductRequest) =>
-    (event: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
-      const value = event.target.value;
-      setFormData((prev) => ({
-        ...prev,
-        [field]:
-          field === 'precioUnitario'
-            ? value === ''
-              ? 0
-              : Number(value) || prev.precioUnitario
-            : value,
-      }));
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: '' }));
-      }
-    };
-
-  const handleSelectChange = (field: keyof CreateProductRequest) => (event: any) => {
-    const value = event.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      [field]: field === 'idCategoria' ? Number(value) : value,
-    }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const handleSwitchChange =
-    (field: keyof CreateProductRequest) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: event.target.checked }));
-    };
-
-  const handlePriceChange = (value: number | undefined) => {
-    setFormData((prev) => ({ ...prev, precioUnitario: value || 0 }));
-    if (errors.precioUnitario) {
-      setErrors((prev) => ({ ...prev, precioUnitario: '' }));
-    }
-  };
-
-  // Image handling
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file
-    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-      setErrors((prev) => ({ ...prev, imagen: 'Por favor selecciona una imagen válida' }));
-      return;
-    }
-
-    if (file.size > IMAGE_MAX_SIZE) {
-      setErrors((prev) => ({ ...prev, imagen: 'La imagen debe ser menor a 5MB' }));
-      return;
-    }
-
-    setSelectedImage(file);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => setImagePreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-
-    // Clear errors
-    if (errors.imagen) {
-      setErrors((prev) => ({ ...prev, imagen: '' }));
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    setFormData((prev) => ({ ...prev, imagenUrl: '' }));
-  };
-
-  // Image upload
-  const uploadProductImage = async (file: File): Promise<string> => {
-    setImageUploading(true);
-    try {
-      const result = await uploadImage(file, 'product-images', 'products');
-      if (!result.success) {
-        throw new Error(result.error || 'Error al subir la imagen');
-      }
-      // Return the key instead of URL - this should be stored in the database
-      // The backend should construct the proper URL when serving the product data
-      return result.key || result.url!;
-    } finally {
-      setImageUploading(false);
-    }
-  };
-
-  // Discount handlers
-  const handleAddDiscount = () => {
-    setDiscounts((prev) => [
-      ...prev,
-      {
-        cantidadMinima: 1,
-        descuentoPorcentaje: 0,
-        precioDescuento: formData.precioUnitario,
-        isPercentageMode: true,
-      },
-    ]);
-  };
-
-  const handleRemoveDiscount = (index: number) => {
-    setDiscounts((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateDiscount = (
-    index: number,
-    field: keyof QuantityDiscountFormType,
-    value: number | boolean,
-  ) => {
-    setDiscounts((prev) =>
-      prev.map((discount, i) => {
-        if (i === index) {
-          const updatedDiscount = { ...discount, [field]: value };
-
-          // Sync percentage and fixed price based on mode
-          if (
-            field === 'descuentoPorcentaje' &&
-            discount.isPercentageMode &&
-            formData.precioUnitario > 0
-          ) {
-            updatedDiscount.precioDescuento = calculateDiscountedPrice(
-              formData.precioUnitario,
-              value as number,
-            );
-          } else if (
-            field === 'precioDescuento' &&
-            !discount.isPercentageMode &&
-            formData.precioUnitario > 0
-          ) {
-            updatedDiscount.descuentoPorcentaje = calculateDiscountPercentage(
-              formData.precioUnitario,
-              value as number,
-            );
-          } else if (field === 'isPercentageMode') {
-            // When switching modes, recalculate the inactive field
-            if (value === true) {
-              // Switching to percentage mode - calculate percentage from current fixed price
-              updatedDiscount.descuentoPorcentaje = calculateDiscountPercentage(
-                formData.precioUnitario,
-                discount.precioDescuento,
-              );
-            } else {
-              // Switching to fixed price mode - calculate fixed price from current percentage
-              updatedDiscount.precioDescuento = calculateDiscountedPrice(
-                formData.precioUnitario,
-                discount.descuentoPorcentaje,
-              );
-            }
-          }
-
-          return updatedDiscount;
-        }
-        return discount;
-      }),
-    );
-  };
-
-  // Form validation
-  const validateForm = (): boolean => {
-    const newErrors = validateProductForm(formData, discounts, selectedImage);
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
+  // Handle form submission
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       let imagenUrl = formData.imagenUrl;
@@ -312,12 +167,8 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
 
       createProductMutation.mutate(productData);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      setErrors((prev) => ({
-        ...prev,
-        imagen:
-          error instanceof Error ? error.message : 'Error al subir la imagen. Inténtalo de nuevo.',
-      }));
+      console.error('Error in form submission:', error);
+      // Error handling is already done in useProductImageUpload hook
     }
   };
 
@@ -327,7 +178,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth scroll="paper">
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Crear Nuevo Producto</Typography>
+          <Typography variant="h6">Crear nuevo producto</Typography>
           <IconButton onClick={handleClose} size="small">
             <CloseIcon />
           </IconButton>

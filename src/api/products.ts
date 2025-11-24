@@ -61,6 +61,11 @@ export const productsApi = {
   // Create new product
   createProduct: async (productData: CreateProductRequest): Promise<ProductResponse> => {
     const mappedData = mapProductToApi(productData);
+
+    // Debug logging
+    console.log('🔍 Original product data:', productData);
+    console.log('🔍 Mapped product data (to API):', mappedData);
+
     const response = await api.post(PRODUCTS_ENDPOINT, mappedData);
 
     return {

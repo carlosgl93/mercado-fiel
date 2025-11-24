@@ -33,6 +33,7 @@ export const useImageUpload = () => {
       isSupplier: !!(supplier || user?.data?.proveedor),
       email: user?.data?.email || '',
     };
+    console.log('User validation for upload:', userValidation);
 
     return uploadImageToSupabase(file, userValidation, bucket, folder);
   };
@@ -140,18 +141,16 @@ export const uploadImageToSupabase = async (
     // Generate a unique ID for consistency with backend response format
     const id = crypto.randomUUID();
 
-    // Return the key and id like backend does, instead of full URL
-    // The full path including bucket name for compatibility
-    const fullKey = `${bucket}/${data.path}`;
+    // Construct the full public URL for the uploaded image
+    const fullUrl = `https://xnehuzmpesnelhdboijy.supabase.co/storage/v1/object/public/${bucket}/${data.path}`;
 
-    console.log('✅ Upload successful:', { key: fullKey, id, path: data.path });
+    console.log('✅ Upload successful:', { url: fullUrl, id, path: data.path });
 
     return {
       success: true,
-      key: fullKey,
+      url: fullUrl,
+      key: fullUrl, // Return the full URL as the key so it gets stored in the database
       id: id,
-      // Also return URL for backward compatibility, but use the key as primary
-      url: `https://xnehuzmpesnelhdboijy.supabase.co/storage/v1/object/public/${fullKey}`,
     };
   } catch (error) {
     console.error('Error uploading image:', error);

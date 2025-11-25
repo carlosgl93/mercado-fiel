@@ -1,4 +1,5 @@
 import { productsApi } from '@/api';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuthSupabase';
 import { Product, ProductFilters } from '@/types/products';
 import { formatCurrency } from '@/utils/formatters';
@@ -42,6 +43,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Get provider ID from supplier profile
   const providerId = supplier?.idProveedor;
@@ -76,7 +78,12 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
     mutationFn: (id: number) => productsApi.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      setDeleteDialogOpen(false);
       handleCloseMenu();
+    },
+    onError: (error) => {
+      console.error('Error deleting product:', error);
+      // Error will be shown via the mutation state
     },
   });
 
@@ -100,9 +107,17 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
   };
 
   const handleDeleteProduct = () => {
-    if (selectedProduct && window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedProduct) {
       deleteProductMutation.mutate(selectedProduct.idProducto);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
   };
 
   const handleEditProduct = () => {
@@ -164,7 +179,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
       </Box>
     );
   }
-  
+
   console.log({ products });
 
   return (
@@ -333,6 +348,19 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
           Eliminar
         </MenuItem>
       </Menu>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Eliminar Producto"
+        message={`¿Estás seguro de que deseas eliminar "${selectedProduct?.nombreProducto}"? Esta acción no se puede deshacer y eliminará la imagen del producto y todos los descuentos asociados.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        confirmColor="error"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={deleteProductMutation.isLoading}
+      />
     </>
   );
 };

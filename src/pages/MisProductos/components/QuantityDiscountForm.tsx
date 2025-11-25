@@ -2,30 +2,28 @@ import { NumberInput } from '@/components/NumberInput';
 import { CreateProductRequest } from '@/types/products';
 import { Add as AddIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Alert,
-    Box,
-    Button,
-    FormControl,
-    Grid,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    Select,
-    Slider,
-    Typography,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  // Slider, // Commented out - using NumberInput instead
+  Typography,
 } from '@mui/material';
 import React from 'react';
 import { QuantityDiscountForm as QuantityDiscountFormType } from '../fixtures/productFixtures';
 import {
-    DISCOUNT_MAX_PERCENTAGE,
-    DISCOUNT_MIN_PERCENTAGE,
-    DISCOUNT_STEP,
-    formatCurrency,
-    formatCurrencyWithUnit,
-    getUnitLabel,
+  DISCOUNT_MAX_PERCENTAGE,
+  DISCOUNT_MIN_PERCENTAGE,
+  formatCurrencyWithUnit,
+  getUnitLabel,
 } from '../utils/productFormUtils';
 
 interface QuantityDiscountFormProps {
@@ -208,7 +206,26 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({
   if (discount.isPercentageMode) {
     return (
       <Box>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <NumberInput
+          fullWidth
+          label="Porcentaje de descuento (%)"
+          value={discount.descuentoPorcentaje}
+          onChange={(value) => {
+            if (value === null || value === undefined) {
+              return;
+            }
+            // Clamp value between min and max
+            const clampedValue = Math.min(
+              Math.max(value, DISCOUNT_MIN_PERCENTAGE),
+              DISCOUNT_MAX_PERCENTAGE,
+            );
+            onUpdate(index, 'descuentoPorcentaje', clampedValue);
+          }}
+          min={DISCOUNT_MIN_PERCENTAGE}
+          max={DISCOUNT_MAX_PERCENTAGE}
+          helperText={`Ingresa un valor entre ${DISCOUNT_MIN_PERCENTAGE}% y ${DISCOUNT_MAX_PERCENTAGE}%`}
+        />
+        {/* <Typography variant="body2" color="text.secondary" gutterBottom>
           Descuento: {discount.descuentoPorcentaje.toFixed(1)}%
         </Typography>
         <Slider
@@ -227,14 +244,34 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({
           valueLabelDisplay="auto"
           valueLabelFormat={(value) => `${value}%`}
           sx={{ mt: 2, mb: 1 }}
-        />
+        /> */}
       </Box>
     );
   }
 
   return (
     <Box>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
+      <NumberInput
+        fullWidth
+        label={`Precio con descuento (${getUnitLabel(formData.unitType)})`}
+        value={discount.precioDescuento}
+        onChange={(value) => {
+          if (value === null || value === undefined) {
+            return;
+          }
+          // Clamp value between 0 and 99% of original price
+          const maxPrice = formData.precioUnitario * 0.99;
+          const clampedValue = Math.min(Math.max(value, 0), maxPrice);
+          onUpdate(index, 'precioDescuento', clampedValue);
+        }}
+        min={0}
+        max={formData.precioUnitario * 0.99}
+        helperText={`Precio original: ${formatCurrencyWithUnit(
+          formData.precioUnitario,
+          formData.unitType,
+        )}`}
+      />
+      {/* <Typography variant="body2" color="text.secondary" gutterBottom>
         Precio con descuento: {formatCurrencyWithUnit(discount.precioDescuento, formData.unitType)}
       </Typography>
       <Slider
@@ -265,7 +302,7 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({
         valueLabelDisplay="auto"
         valueLabelFormat={(value) => formatCurrencyWithUnit(value, formData.unitType)}
         sx={{ mt: 2, mb: 1 }}
-      />
+      /> */}
     </Box>
   );
 };

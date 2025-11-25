@@ -575,14 +575,107 @@ productosRouter.delete(
         return;
       }
 
+      // Delete product image from Supabase storage if exists
+      if (producto.imagen_url) {
+        try {
+          const urlParts = producto.imagen_url.split('/');
+          const path = urlParts.slice(-2).join('/'); // Get folder/filename
+          
+          await supabaseAdmin.storage.from('product-images').remove([path]);
+          console.log(`Deleted image: ${path}`);
+        } catch (imageError) {
+          console.error('Error deleting product image:', imageError);
+          // Continue with deletion even if image deletion fails
+        }
+      }
+
       // Use transaction to delete related records first, then the product
       await prisma.$transaction(async (tx) => {
-        // First, delete all quantity discounts associated with this product
+        // Delete all related records in the correct order
+        // IMPORTANT: movimientos_stock has FK to reservas_stock, so delete movements first
+        
+        // 1. Delete stock movements (has FK to reservas_stock, must be deleted first)
+        await tx.movimientos_stock.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 2. Delete stock reservations (now safe after movements are deleted)
+        await tx.reservas_stock.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 3. Delete stock alerts
+        await tx.alertas_stock.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 4. Delete cart items
+        await tx.carrito.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 5. Delete wishlist items
+        await tx.lista_deseos.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 6. Delete comments
+        await tx.comentarios.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 7. Delete order items
+        await tx.itemPedido.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 8. Delete quantity discounts
         await tx.descuentos_cantidad.deleteMany({
           where: { id_producto: productId },
         });
-
-        // Then delete the product
+        
+        // 9. Delete collective buying campaign related records first
+        // Get all campaigns for this product
+        const campanas = await tx.compras_colectivas.findMany({
+          where: { id_producto: productId },
+          select: { id_campana: true },
+        });
+        
+        const campanaIds = campanas.map(c => c.id_campana);
+        
+        if (campanaIds.length > 0) {
+          // Delete campaign participants
+          await tx.participanteColectivo.deleteMany({
+            where: { id_campana: { in: campanaIds } },
+          });
+          
+          // Delete campaign price scales
+          await tx.escalas_precios.deleteMany({
+            where: { id_campana: { in: campanaIds } },
+          });
+          
+          // Delete campaign progress
+          await tx.progreso_campana.deleteMany({
+            where: { id_campana: { in: campanaIds } },
+          });
+          
+          // Delete notifications related to campaigns
+          await tx.notificaciones.deleteMany({
+            where: { id_campana: { in: campanaIds } },
+          });
+          
+          // Delete orders related to campaigns
+          await tx.pedidos.deleteMany({
+            where: { id_campana: { in: campanaIds } },
+          });
+        }
+        
+        // 10. Now safe to delete collective buying campaigns
+        await tx.compras_colectivas.deleteMany({
+          where: { id_producto: productId },
+        });
+        
+        // 11. Finally, delete the product
         await tx.productos.delete({
           where: { id_producto: productId },
         });

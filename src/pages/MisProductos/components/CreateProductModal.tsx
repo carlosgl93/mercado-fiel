@@ -144,6 +144,15 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ open, on
     if (!validateForm()) {
       return;
     }
+    if (formData.idProveedor === 0 && supplier?.idProveedor) {
+      formData.idProveedor = supplier.idProveedor;
+    } else {
+      setErrors({
+        idProveedor:
+          'Error: ID de proveedor no válido. Intenta cerrar sesión e ingresar nuevamente.',
+      });
+      return;
+    }
 
     try {
       let imagenUrl = formData.imagenUrl;

@@ -1,6 +1,7 @@
 import { productsApi } from '@/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuthSupabase';
+import useNotifications from '@/store/notifications';
 import { Product, ProductFilters } from '@/types/products';
 import { formatCurrency } from '@/utils/formatters';
 import {
@@ -40,6 +41,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { supplier } = useAuth();
   const queryClient = useQueryClient();
+  const [, notificationsActions] = useNotifications();
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -80,10 +82,24 @@ export const ProductsList: React.FC<ProductsListProps> = ({ filters, onEdit }) =
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setDeleteDialogOpen(false);
       handleCloseMenu();
+      notificationsActions.push({
+        message: 'Producto eliminado exitosamente',
+        options: {
+          variant: 'success',
+        },
+      });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error deleting product:', error);
-      // Error will be shown via the mutation state
+      setDeleteDialogOpen(false);
+      notificationsActions.push({
+        message:
+          error?.response?.data?.message ||
+          'Error al eliminar el producto. Por favor intenta nuevamente.',
+        options: {
+          variant: 'error',
+        },
+      });
     },
   });
 

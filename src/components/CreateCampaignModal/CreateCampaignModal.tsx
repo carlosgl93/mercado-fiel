@@ -97,7 +97,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     setSelectedDiscountIndex(null);
     setUserDesiredQuantity(0);
     setFormData({
-      nombre: `Compra Colectiva - ${product.nombreProducto}`,
+      nombre: `${product.nombreProducto}`,
       descripcion: '',
       fecha_fin: '',
     });

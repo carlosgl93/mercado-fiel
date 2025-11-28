@@ -15,9 +15,17 @@ export function useRequireLogin() {
   const isSupplier = !!supplier?.idProveedor;
   const isLoggedIn = isAuthenticated();
 
+  // console.log({
+  //   isCustomer,
+  //   isSupplier,
+  //   isLoggedIn,
+  //   pathname: location.pathname,
+  //   isInitialized,
+  // });
+
   useEffect(() => {
     // Don't run redirects until auth is initialized
-    if (!isInitialized) return;
+    // if (!isInitialized) return;
 
     // case where the user is logged in as a customer and tries to access the backoffice
     if (location.pathname.includes('/backoffice') && isCustomer) {

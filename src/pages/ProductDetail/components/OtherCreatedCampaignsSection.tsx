@@ -134,7 +134,7 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
   return (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" fontWeight="600" sx={{ mb: 3 }}>
-        <TrendingUpIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+        <TrendingUpIcon sx={{ mr: 1, verticalAlign: 'middle', color: theme.palette.secondary.main }} />
         Otras Oportunidades de Compra Colectiva
       </Typography>
 
@@ -142,10 +142,9 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
       {currentProductCampaigns.length > 0 && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Box display="flex" alignItems="center">
-            <CheckCircleIcon sx={{ mr: 1 }} />
             <Typography variant="body2">
-              Este producto tiene {currentProductCampaigns.length} campaña(s) colectiva(s) activa(s). 
-              ¡Revisa la sección de arriba para participar!
+              Este producto tiene {currentProductCampaigns.length} campaña(s) colectiva(s)
+              activa(s). ¡Revisa la sección de arriba para participar!
             </Typography>
           </Box>
         </Alert>
@@ -154,8 +153,8 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
       {otherCampaigns.length > 0 ? (
         otherCampaigns.map((campaign: CompraColectiva) => {
           const progress = campaign.progreso;
-          const progressPercentage = progress 
-            ? (progress.cantidad_actual / campaign.cantidad_objetivo) * 100 
+          const progressPercentage = progress
+            ? (progress.cantidad_actual / campaign.cantidad_objetivo) * 100
             : 0;
           const remaining = campaign.cantidad_objetivo - (progress?.cantidad_actual || 0);
           const isParticipant = isUserParticipant(campaign);
@@ -164,18 +163,23 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
           return (
             <Card
               key={campaign.id_campana}
-              sx={{ 
-                mb: 2, 
+              sx={{
+                mb: 2,
                 border: `2px solid ${theme.palette.secondary.main}`,
                 ...(isParticipant && {
                   border: `2px solid ${theme.palette.success.main}`,
                   bgcolor: `${theme.palette.success.main}08`,
-                })
+                }),
               }}
             >
               <CardContent>
                 {/* Product Badge */}
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                  sx={{ mb: 2 }}
+                >
                   <Box>
                     <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
                       <Typography variant="h6" fontWeight="600">
@@ -190,23 +194,30 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
                         />
                       )}
                     </Box>
-                    
+
                     <Typography variant="body2" color="primary" sx={{ mb: 1, fontWeight: 600 }}>
                       Producto: {campaign.producto?.nombre_producto}
                     </Typography>
-                    
+
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       Por: {campaign.proveedor?.nombre_negocio}
                     </Typography>
-                    
+
                     <Typography variant="body2" color="text.secondary">
                       Precio objetivo: <strong>{formatCurrency(campaign.precio_objetivo)}</strong>
                       {campaign.producto?.precio_unitario && (
-                        <span> (ahorra {formatCurrency(Number(campaign.producto.precio_unitario) - campaign.precio_objetivo)})</span>
+                        <span>
+                          {' '}
+                          (ahorra{' '}
+                          {formatCurrency(
+                            Number(campaign.producto.precio_unitario) - campaign.precio_objetivo,
+                          )}
+                          )
+                        </span>
                       )}
                     </Typography>
                   </Box>
-                  
+
                   <Chip
                     label={campaign.estado === 'abierta' ? 'Activa' : 'Cerrada'}
                     color={campaign.estado === 'abierta' ? 'success' : 'default'}
@@ -216,9 +227,15 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
 
                 {/* Progress */}
                 <Box sx={{ mb: 2 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ mb: 1 }}
+                  >
                     <Typography variant="body2">
-                      Progreso: {progress?.cantidad_actual || 0} / {campaign.cantidad_objetivo} {campaign.producto?.unit_type === 'kg' ? 'kg' : 'unidades'}
+                      Progreso: {progress?.cantidad_actual || 0} / {campaign.cantidad_objetivo}{' '}
+                      {campaign.producto?.unit_type === 'kg' ? 'kg' : 'unidades'}
                     </Typography>
                     <Typography variant="body2" color="primary">
                       {Math.round(progressPercentage)}%
@@ -259,7 +276,10 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
                         size="small"
                         value={campaignQuantity}
                         onChange={(e) =>
-                          setCampaignQuantity(campaign.id_campana, Math.max(1, parseInt(e.target.value) || 1))
+                          setCampaignQuantity(
+                            campaign.id_campana,
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
                         }
                         sx={{ width: 60 }}
                         inputProps={{ min: 1, style: { textAlign: 'center' } }}
@@ -299,12 +319,11 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
             ¡No hay otras compras colectivas activas!
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {product?.elegibleCompraColectiva 
+            {product?.elegibleCompraColectiva
               ? 'Sé el primero en crear una compra colectiva para este producto y aprovecha los descuentos por volumen.'
-              : 'Este producto no es elegible para compras colectivas, pero puedes explorar otros productos que sí lo son.'
-            }
+              : 'Este producto no es elegible para compras colectivas, pero puedes explorar otros productos que sí lo son.'}
           </Typography>
-          
+
           {product?.elegibleCompraColectiva && user && (
             <Button
               variant="contained"
@@ -315,12 +334,9 @@ export const OtherCreatedCampaignsSection: React.FC<OtherCreatedCampaignsSection
               Crear Primera Compra Colectiva
             </Button>
           )}
-          
+
           <Box>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/compras-colectivas')}
-            >
+            <Button variant="outlined" onClick={() => navigate('/compras-colectivas')}>
               Ver Todas las Compras Colectivas
             </Button>
           </Box>

@@ -20,41 +20,20 @@ type UsuarioDrawerListProps = {
   closeDrawer: () => void;
 };
 
-function stringToColor(string: string) {
-  let hash = 0;
-  let i;
-
-  /* eslint-disable no-bitwise */
-  for (i = 0; i < string.length; i += 1) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  let color = '#';
-
-  for (i = 0; i < 3; i += 1) {
-    const value = (hash >> (i * 8)) & 0xff;
-    color += `00${value.toString(16)}`.slice(-2);
-  }
-  /* eslint-enable no-bitwise */
-
-  return color;
-}
-
-function stringAvatar(name: string) {
-  return {
-    sx: {
-      bgcolor: stringToColor(name),
-    },
-    children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
-  };
-}
-
 export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
   const { user, customer, signOut } = useAuth();
 
   if (!customer) return null;
 
   const { nombre, profilePictureUrl } = customer;
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  };
 
   return (
     <List
@@ -75,7 +54,9 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
           paddingLeft: '1.5rem',
         }}
       >
-        <Avatar {...stringAvatar(nombre)} src={profilePictureUrl || undefined} />
+        <Avatar src={profilePictureUrl || undefined}>
+          {!profilePictureUrl && getInitials(nombre)}
+        </Avatar>
         <Box
           sx={{
             display: 'flex',
@@ -133,7 +114,7 @@ export const UsuarioDrawerList = ({ closeDrawer }: UsuarioDrawerListProps) => {
           justifyContent: 'space-evenly',
         }}
       >
-        {usuarioDrawerOptions.map(({ path, title, icon: Icon }) => (
+        {usuarioDrawerOptions?.map(({ path, title, icon: Icon }) => (
           <ListItem sx={{ p: '0 auto' }} key={path}>
             <ListItemButton
               component={Link}

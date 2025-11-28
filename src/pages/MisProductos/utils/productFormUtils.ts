@@ -52,10 +52,10 @@ export const validateProductForm = (
     newErrors.nombreProducto = 'El nombre no puede exceder 100 caracteres';
   }
 
-  if (!formData.idProveedor || formData.idProveedor <= 0) {
-    newErrors.idProveedor =
-      'Error: ID de proveedor no válido. Intenta cerrar sesión e ingresar nuevamente.';
-  }
+  // if (!formData.idProveedor || formData.idProveedor <= 0) {
+  //   newErrors.idProveedor =
+  //     'Error: ID de proveedor no válido. Intenta cerrar sesión e ingresar nuevamente.';
+  // }
 
   if (!formData.idCategoria || formData.idCategoria <= 0) {
     newErrors.idCategoria = 'Debes seleccionar una categoría para el producto';

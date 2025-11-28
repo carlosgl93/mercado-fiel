@@ -1,5 +1,5 @@
-import { Group as GroupIcon, Info as InfoIcon } from '@mui/icons-material';
-import { Alert, Box, Button, Typography } from '@mui/material';
+import { Group as GroupIcon } from '@mui/icons-material';
+import { Alert, Box, Button, Typography, useTheme } from '@mui/material';
 import React from 'react';
 import { useUserCampaignParticipation } from '../hooks/useUserCampaignParticipation';
 import { CampaignCard } from './CampaignCard';
@@ -21,23 +21,16 @@ export const CollectiveCampaignsSection: React.FC<CollectiveCampaignsSectionProp
   onCreateCampaign,
   formatCurrency,
 }) => {
-  const {
-    isParticipatingInCampaign,
-    getUserParticipationInCampaign,
-    hasParticipations,
-  } = useUserCampaignParticipation(campaigns);
-  if (!product.elegibleCompraColectiva) return null;
+  const { isParticipatingInCampaign, getUserParticipationInCampaign, hasParticipations } =
+    useUserCampaignParticipation(campaigns);
+    const theme = useTheme();
+    if (!product.elegibleCompraColectiva) return null;
 
   return (
     <Box sx={{ mb: 4 }}>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h6" fontWeight="600">
-          <GroupIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+          <GroupIcon sx={{ mr: 1, verticalAlign: 'middle', color: theme.palette.secondary.main }} />
           Compras Colectivas
         </Typography>
 
@@ -55,11 +48,12 @@ export const CollectiveCampaignsSection: React.FC<CollectiveCampaignsSectionProp
 
       {/* User Participation Summary */}
       {user && hasParticipations && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
           <Box display="flex" alignItems="center">
-            <InfoIcon sx={{ mr: 1 }} />
             <Typography variant="body2">
-              Estás participando en {campaigns.filter(c => isParticipatingInCampaign(c.id_campana)).length} campaña(s) de este producto.
+              Estás participando en{' '}
+              {campaigns.filter((c) => isParticipatingInCampaign(c.id_campana)).length} campaña(s)
+              de este producto.
             </Typography>
           </Box>
         </Alert>
@@ -67,9 +61,9 @@ export const CollectiveCampaignsSection: React.FC<CollectiveCampaignsSectionProp
 
       {campaigns.length > 0 ? (
         campaigns.map((campaign) => (
-          <CampaignCard 
-            key={campaign.id_campana} 
-            campaign={campaign} 
+          <CampaignCard
+            key={campaign.id_campana}
+            campaign={campaign}
             product={product}
             formatCurrency={formatCurrency}
             isUserParticipating={isParticipatingInCampaign(campaign.id_campana)}

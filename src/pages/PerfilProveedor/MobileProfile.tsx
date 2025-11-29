@@ -1,4 +1,5 @@
 import Reviews from '@/components/Reviews';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { trackSupplierProfileView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
@@ -49,6 +50,7 @@ type MobileProfileProps = {
 };
 
 export const MobileProfile = ({ proveedor }: MobileProfileProps) => {
+  const { user } = useAuth();
   const {
     addProductToCart,
     removeProductFromCart,
@@ -64,9 +66,14 @@ export const MobileProfile = ({ proveedor }: MobileProfileProps) => {
   // Track supplier profile view
   useEffect(() => {
     if (proveedor?.idProveedor && nombreNegocio) {
-      trackSupplierProfileView(proveedor.idProveedor, nombreNegocio, productos?.length || 0);
+      trackSupplierProfileView(
+        proveedor.idProveedor,
+        nombreNegocio,
+        productos?.length || 0,
+        user?.data?.idUsuario,
+      );
     }
-  }, [proveedor?.idProveedor, nombreNegocio, productos?.length]);
+  }, [proveedor?.idProveedor, nombreNegocio, productos?.length, user]);
 
   // Get cart quantities mapping
   const cartQuantities = getCartQuantitiesMap();

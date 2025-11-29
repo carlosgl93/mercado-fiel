@@ -1,14 +1,15 @@
+import { TrackEventPayload, trackEvent as trackToDatabase } from '@/api/analytics';
 import { analytics } from '@/firebase/firebase';
 import { Product } from '@/types/products';
 import { logEvent } from 'firebase/analytics';
 
 /**
- * Firebase Analytics Service
- * 
- * Centralized service for tracking user interactions and e-commerce events.
- * Uses Firebase Analytics standard e-commerce events for automatic integration
- * with Google Analytics 4 reports.
- * 
+ * Firebase Analytics Service with Database Tracking
+ *
+ * Implements dual tracking:
+ * - Firebase Analytics: For behavioral analytics and Google Analytics 4 integration
+ * - Database: For real-time queryable data and supplier KPI dashboards
+ *
  * @see https://firebase.google.com/docs/analytics/events
  * @see https://developers.google.com/analytics/devguides/collection/ga4/ecommerce
  */
@@ -16,15 +17,54 @@ import { logEvent } from 'firebase/analytics';
 // Only track events in production to avoid polluting analytics data
 const isProduction = import.meta.env.PROD;
 
+/**
+ * Get or create a session ID for tracking user sessions
+ * Session ID is stored in sessionStorage (persists for browser session)
+ */
+const getSessionId = (): string => {
+  if (typeof window === 'undefined') return '';
+
+  let sessionId = sessionStorage.getItem('analytics_session_id');
+
+  if (!sessionId) {
+    // Generate a unique session ID
+    sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    sessionStorage.setItem('analytics_session_id', sessionId);
+  }
+
+  return sessionId;
+};
+
+/**
+ * Track event to database
+ * Sends event data to backend for storage and KPI calculations
+ * Fire-and-forget: doesn't wait for response to avoid blocking user experience
+ */
+const trackToDb = (
+  payload: Omit<TrackEventPayload, 'session_id' | 'user_agent' | 'page_url' | 'referrer'>,
+) => {
+  // Fire and forget - don't await
+  trackToDatabase({
+    ...payload,
+    session_id: getSessionId(),
+    user_agent: navigator.userAgent,
+    page_url: window.location.href,
+    referrer: document.referrer || undefined,
+  }).catch((error) => {
+    // Silently log errors to avoid disrupting user experience
+    console.error('❌ Database tracking error:', error);
+  });
+};
+
 // Check if debug mode is enabled (via URL param or localStorage)
 const isDebugMode = () => {
   // Check URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const debugFromUrl = urlParams.get('debug_mode') === 'true';
-  
+
   // Check localStorage (persisted from previous session)
   const debugFromStorage = localStorage.getItem('firebase_debug_mode') === 'true';
-  
+
   return debugFromUrl || debugFromStorage;
 };
 
@@ -43,7 +83,7 @@ if (typeof window !== 'undefined') {
  */
 const trackEvent = (eventName: string, params?: Record<string, any>) => {
   const debugMode = isDebugMode();
-  
+
   if (!analytics) {
     console.warn('⚠️ Firebase Analytics not initialized');
     return;
@@ -82,7 +122,8 @@ export const trackPageView = (pagePath: string, pageTitle?: string) => {
  * Track product detail page views
  * Standard GA4 e-commerce event: view_item
  */
-export const trackProductView = (product: Product) => {
+export const trackProductView = (product: Product, userId?: number) => {
+  // Firebase Analytics
   trackEvent('view_item', {
     currency: 'CLP',
     value: Number(product.precioUnitario),
@@ -96,13 +137,27 @@ export const trackProductView = (product: Product) => {
       },
     ],
   });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'product_view',
+    id_usuario: userId,
+    id_proveedor: product.idProveedor,
+    id_producto: product.idProducto,
+    metadata: {
+      product_name: product.nombreProducto,
+      product_price: Number(product.precioUnitario),
+      category: product.categoria?.nombre,
+    },
+  });
 };
 
 /**
  * Track adding products to cart
  * Standard GA4 e-commerce event: add_to_cart
  */
-export const trackAddToCart = (product: Product, quantity: number) => {
+export const trackAddToCart = (product: Product, quantity: number, userId?: number) => {
+  // Firebase Analytics
   trackEvent('add_to_cart', {
     currency: 'CLP',
     value: Number(product.precioUnitario) * quantity,
@@ -116,13 +171,28 @@ export const trackAddToCart = (product: Product, quantity: number) => {
       },
     ],
   });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'add_to_cart',
+    id_usuario: userId,
+    id_proveedor: product.idProveedor,
+    id_producto: product.idProducto,
+    metadata: {
+      product_name: product.nombreProducto,
+      product_price: Number(product.precioUnitario),
+      quantity,
+      value: Number(product.precioUnitario) * quantity,
+    },
+  });
 };
 
 /**
  * Track removing products from cart
  * Standard GA4 e-commerce event: remove_from_cart
  */
-export const trackRemoveFromCart = (product: Product, quantity: number) => {
+export const trackRemoveFromCart = (product: Product, quantity: number, userId?: number) => {
+  // Firebase Analytics
   trackEvent('remove_from_cart', {
     currency: 'CLP',
     value: Number(product.precioUnitario) * quantity,
@@ -136,17 +206,48 @@ export const trackRemoveFromCart = (product: Product, quantity: number) => {
       },
     ],
   });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'remove_from_cart',
+    id_usuario: userId,
+    id_proveedor: product.idProveedor,
+    id_producto: product.idProducto,
+    metadata: {
+      product_name: product.nombreProducto,
+      product_price: Number(product.precioUnitario),
+      quantity,
+      value: Number(product.precioUnitario) * quantity,
+    },
+  });
 };
 
 /**
  * Track supplier/provider profile views
  * Custom event for understanding supplier popularity
  */
-export const trackSupplierProfileView = (supplierId: number, supplierName: string, productCount?: number) => {
+export const trackSupplierProfileView = (
+  supplierId: number,
+  supplierName: string,
+  productCount?: number,
+  userId?: number,
+) => {
+  // Firebase Analytics
   trackEvent('view_supplier_profile', {
     supplier_id: String(supplierId),
     supplier_name: supplierName,
     product_count: productCount || 0,
+  });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'supplier_profile_view',
+    id_usuario: userId,
+    id_proveedor: supplierId,
+    metadata: {
+      supplier_name: supplierName,
+      product_count: productCount,
+    },
   });
 };
 
@@ -154,11 +255,30 @@ export const trackSupplierProfileView = (supplierId: number, supplierName: strin
  * Track collective campaign views
  * Custom event for collective purchase engagement
  */
-export const trackCampaignView = (campaignId: number, productId: number, productName: string) => {
+export const trackCampaignView = (
+  campaignId: number,
+  productId: number,
+  productName: string,
+  userId?: number,
+  supplierId?: number,
+) => {
+  // Firebase Analytics
   trackEvent('view_campaign', {
     campaign_id: String(campaignId),
     product_id: String(productId),
     product_name: productName,
+  });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'campaign_view',
+    id_usuario: userId,
+    id_proveedor: supplierId,
+    id_producto: productId,
+    id_campana: campaignId,
+    metadata: {
+      product_name: productName,
+    },
   });
 };
 
@@ -171,8 +291,11 @@ export const trackCampaignJoin = (
   productId: number,
   productName: string,
   quantity: number,
-  targetPrice: number
+  targetPrice: number,
+  userId?: number,
+  supplierId?: number,
 ) => {
+  // Firebase Analytics
   trackEvent('join_campaign', {
     campaign_id: String(campaignId),
     product_id: String(productId),
@@ -180,6 +303,20 @@ export const trackCampaignJoin = (
     quantity,
     target_price: Number(targetPrice),
     currency: 'CLP',
+  });
+
+  // Database tracking
+  trackToDb({
+    tipo_evento: 'campaign_join',
+    id_usuario: userId,
+    id_proveedor: supplierId,
+    id_producto: productId,
+    id_campana: campaignId,
+    metadata: {
+      product_name: productName,
+      quantity,
+      target_price: Number(targetPrice),
+    },
   });
 };
 
@@ -207,7 +344,7 @@ export const trackPurchase = (
     productName: string;
     quantity: number;
     price: number;
-  }>
+  }>,
 ) => {
   trackEvent('purchase', {
     transaction_id: String(orderId),

@@ -271,7 +271,7 @@ export const useShoppingCartService = () => {
         onSuccess: () => {
           // Track analytics event if we have the full product object
           if (productObj) {
-            trackAddToCart(productObj, quantity);
+            trackAddToCart(productObj, quantity, user?.data?.idUsuario);
           }
         },
       },
@@ -311,7 +311,7 @@ export const useShoppingCartService = () => {
         onSuccess: () => {
           // Track analytics event if we have the full product object
           if (productObj) {
-            trackRemoveFromCart(productObj, currentQuantity);
+            trackRemoveFromCart(productObj, currentQuantity, user?.data?.idUsuario);
           }
         },
       });
@@ -327,7 +327,7 @@ export const useShoppingCartService = () => {
           onSuccess: () => {
             // Track analytics event if we have the full product object
             if (productObj) {
-              trackRemoveFromCart(productObj, quantity);
+              trackRemoveFromCart(productObj, quantity, user?.data?.idUsuario);
             }
           },
         },

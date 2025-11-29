@@ -13,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 // Custom hooks
 import { useProductDetail, useProductPricing, useUserCampaignParticipation } from './hooks';
@@ -99,12 +99,14 @@ export const ProductDetail: React.FC = () => {
     queryClient.invalidateQueries(['collective-campaigns']);
   };
 
-  // Track product view when product data loads
+  // Track product view when product data loads (only once per product)
+  const trackedProductId = useRef<number | null>(null);
   useEffect(() => {
-    if (product && !isLoadingProduct) {
-      trackProductView(product);
+    if (product && !isLoadingProduct && trackedProductId.current !== product.idProducto) {
+      trackedProductId.current = product.idProducto;
+      trackProductView(product, user?.data?.idUsuario);
     }
-  }, [product, isLoadingProduct]);
+  }, [product?.idProducto, isLoadingProduct]);
 
   if (isLoadingProduct) {
     return (

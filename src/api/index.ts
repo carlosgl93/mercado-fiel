@@ -1,3 +1,4 @@
+export * from './analytics';
 export * from './carrito';
 export * from './categories';
 export * from './clientes';
@@ -8,4 +9,3 @@ export * from './sendEmailApi';
 export * from './sendVerificationEmaiApi';
 export * from './suppliers';
 export * from './users';
-

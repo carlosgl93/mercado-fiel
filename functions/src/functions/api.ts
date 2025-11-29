@@ -15,6 +15,7 @@ import {
   suppliersRouter,
   usersRouter,
 } from '../routes';
+import analyticsRouter from '../routes/analytics';
 import { comunasRouter } from '../routes/comunas';
 
 const app = express();
@@ -73,6 +74,7 @@ app.use('/carrito', carritoRouter);
 app.use('/campaigns', campaignsRouter);
 app.use('/compras-colectivas', comprasColectivasRouter);
 app.use('/stock', stockRouter);
+app.use('/analytics', analyticsRouter);
 
 // Error handler should be last
 app.use(errorHandler);

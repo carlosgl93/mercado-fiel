@@ -192,6 +192,8 @@ export const ComprasColectivas: React.FC = () => {
               selectedCampaign.producto?.nombre_producto || 'Producto sin nombre',
               quantity,
               Number(selectedCampaign.precio_objetivo),
+              user?.data?.idUsuario,
+              selectedCampaign.id_proveedor,
             );
             // Refresh campaigns data
             // queryClient.invalidateQueries(['collective-campaigns']);

@@ -1,5 +1,6 @@
 import Reviews from '@/components/Reviews';
 import { Text, Title } from '@/components/StyledComponents';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { trackSupplierProfileView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
@@ -26,6 +27,7 @@ type DesktopProfileProps = {
 };
 
 export const DesktopProfile = ({ proveedor }: DesktopProfileProps) => {
+  const { user } = useAuth();
   // Shopping cart functionality
   const {
     addProductToCart,
@@ -42,9 +44,14 @@ export const DesktopProfile = ({ proveedor }: DesktopProfileProps) => {
   // Track supplier profile view
   useEffect(() => {
     if (proveedor?.idProveedor && nombreNegocio) {
-      trackSupplierProfileView(proveedor.idProveedor, nombreNegocio, productos?.length || 0);
+      trackSupplierProfileView(
+        proveedor.idProveedor,
+        nombreNegocio,
+        productos?.length || 0,
+        user?.data?.idUsuario,
+      );
     }
-  }, [proveedor?.idProveedor, nombreNegocio, productos?.length]);
+  }, [proveedor?.idProveedor, nombreNegocio, productos?.length, user]);
 
   // Get cart quantities mapping
   const cartQuantities = getCartQuantitiesMap();

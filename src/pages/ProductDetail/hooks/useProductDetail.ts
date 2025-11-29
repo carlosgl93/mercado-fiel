@@ -1,5 +1,6 @@
 import { comprasColectivasApi, productsApi } from '@/api';
 import { campaignsApi } from '@/api/campaigns';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { trackCampaignJoin } from '@/services/analyticsService';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -9,7 +10,8 @@ export const useProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+  const { user } = useAuth();
+
   const [campaignQuantity, setCampaignQuantity] = useState(1);
   const [createCampaignModalOpen, setCreateCampaignModalOpen] = useState(false);
 
@@ -58,6 +60,8 @@ export const useProductDetail = () => {
           product.nombreProducto,
           variables.quantity,
           variables.amount / variables.quantity, // Calculate target price per unit
+          user?.data?.idUsuario,
+          product.idProveedor,
         );
       }
     },

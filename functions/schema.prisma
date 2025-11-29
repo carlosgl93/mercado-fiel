@@ -85,6 +85,9 @@ model usuarios {
   movimientos_stock_registro movimientos_stock[] @relation("UsuarioMovimientoStock")
   alertas_resueltas         alertas_stock[]     @relation("UsuarioAlertaResuelta")
   reservas_stock            reservas_stock[]
+  
+  // Analytics relation
+  eventos_analytics         eventos_analytics[]
 
   @@map("usuarios")
 }
@@ -132,6 +135,12 @@ model proveedores {
   publicidad          publicidad[]
   solicitudescontacto solicitudescontacto[]
   suscripciones       suscripciones[]
+  
+  // Stock management relations
+  whatsapp_config     whatsapp_config?
+  
+  // Analytics relation
+  eventos_analytics   eventos_analytics[]
 
   @@map("proveedores")
 }
@@ -215,6 +224,8 @@ model productos {
   movimientos_stock         movimientos_stock[]
   alertas_stock             alertas_stock[]
   reservas_stock            reservas_stock[]
+  whatsapp_mensajes         whatsapp_mensajes[]
+  eventos_analytics         eventos_analytics[]
 
   @@index([id_proveedor, disponible])
   @@index([stock_actual])
@@ -355,6 +366,7 @@ model compras_colectivas {
   // Stock management relations
   movimientos_stock       movimientos_stock[]
   reservas_stock          reservas_stock[]
+  eventos_analytics       eventos_analytics[]
 
   @@map("compras_colectivas")
 }
@@ -611,6 +623,48 @@ model alertas_stock {
   @@map("alertas_stock")
 }
 
+model whatsapp_config {
+  id_config            Int              @id @default(autoincrement())
+  id_proveedor         Int              @unique
+  numero_whatsapp      String           @db.VarChar(20)
+  webhook_token        String           @unique
+  activo               Boolean          @default(true)
+  notificar_stock_bajo Boolean          @default(true)
+  notificar_ventas     Boolean          @default(true)
+  idioma               String           @default("es") @db.VarChar(5)
+  created_at           DateTime         @default(now())
+  updated_at           DateTime?        @updatedAt
+  
+  // Relations
+  proveedor            proveedores      @relation(fields: [id_proveedor], references: [id_proveedor])
+  mensajes             whatsapp_mensajes[]
+
+  @@map("whatsapp_config")
+}
+
+model whatsapp_mensajes {
+  id_mensaje           Int              @id @default(autoincrement())
+  id_config            Int
+  numero_remitente     String           @db.VarChar(20)
+  mensaje_entrante     String
+  mensaje_respuesta    String?
+  accion               AccionWhatsApp?
+  id_producto          Int?
+  datos_procesados     Json?
+  procesado_exitoso    Boolean          @default(false)
+  error                String?
+  fecha_mensaje        DateTime         @default(now())
+  created_at           DateTime         @default(now())
+  
+  // Relations
+  config               whatsapp_config  @relation(fields: [id_config], references: [id_config])
+  producto             productos?       @relation(fields: [id_producto], references: [id_producto])
+
+  @@index([id_config, fecha_mensaje])
+  @@index([accion])
+  @@map("whatsapp_mensajes")
+}
+
 model reservas_stock {
   id_reserva           Int              @id @default(autoincrement())
   id_producto          Int
@@ -618,7 +672,7 @@ model reservas_stock {
   cantidad_reservada   Int
   estado               EstadoReserva    @default(ACTIVA)
   id_usuario           Int?
-  id_pedido            Int? 
+  id_pedido            Int?
   id_campana           Int?
   fecha_reserva        DateTime         @default(now())
   fecha_expiracion     DateTime?
@@ -637,4 +691,52 @@ model reservas_stock {
   @@index([id_producto, estado])
   @@index([estado, fecha_expiracion])
   @@map("reservas_stock")
+}
+
+// ============================================
+// ANALYTICS & TRACKING
+// ============================================
+
+enum TipoEventoAnalytics {
+  product_view
+  add_to_cart
+  remove_from_cart
+  supplier_profile_view
+  campaign_view
+  campaign_join
+  begin_checkout
+  purchase
+  search
+  
+  @@map("tipo_evento_analytics")
+}
+
+model eventos_analytics {
+  id_evento     BigInt                @id @default(autoincrement())
+  id_usuario    Int?
+  id_proveedor  Int?
+  id_producto   Int?
+  id_campana    Int?
+  tipo_evento   TipoEventoAnalytics
+  metadata      Json?                 // Additional event-specific data (e.g., quantity, price, search term)
+  session_id    String?               @db.VarChar(100)
+  user_agent    String?               @db.VarChar(500)
+  ip_address    String?               @db.VarChar(45)  // Support IPv6
+  referrer      String?               @db.VarChar(500)
+  page_url      String?               @db.VarChar(1000)
+  created_at    DateTime              @default(now())
+  
+  // Relations
+  usuario       usuarios?             @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull)
+  proveedor     proveedores?          @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: SetNull)
+  producto      productos?            @relation(fields: [id_producto], references: [id_producto], onDelete: SetNull)
+  campana       compras_colectivas?   @relation(fields: [id_campana], references: [id_campana], onDelete: SetNull)
+  
+  // Indexes for efficient querying
+  @@index([id_proveedor, created_at])
+  @@index([id_producto, tipo_evento, created_at])
+  @@index([id_usuario, created_at])
+  @@index([tipo_evento, created_at])
+  @@index([session_id])
+  @@map("eventos_analytics")
 }

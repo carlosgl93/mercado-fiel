@@ -1,5 +1,6 @@
 import { CreateCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
+import { trackProductView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import {
@@ -12,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // Custom hooks
 import { useProductDetail, useProductPricing, useUserCampaignParticipation } from './hooks';
@@ -98,6 +99,13 @@ export const ProductDetail: React.FC = () => {
     queryClient.invalidateQueries(['collective-campaigns']);
   };
 
+  // Track product view when product data loads
+  useEffect(() => {
+    if (product && !isLoadingProduct) {
+      trackProductView(product);
+    }
+  }, [product, isLoadingProduct]);
+
   if (isLoadingProduct) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -179,6 +187,19 @@ export const ProductDetail: React.FC = () => {
               formatCurrency={formatCurrency}
             />
 
+            {/* Purchase Panel */}
+            <Grid item xs={12} md={4}>
+              <PurchasePanel
+                product={product}
+                cartQuantity={cartQuantity}
+                currentPrice={currentPrice}
+                totalPrice={totalPrice}
+                onAddToCart={handleAddToCart}
+                onRemoveFromCart={handleRemoveFromCart}
+                formatCurrency={formatCurrency}
+              />
+            </Grid>
+
             <CollectiveCampaignsSection
               product={product}
               campaigns={collectiveCampaigns}
@@ -192,19 +213,6 @@ export const ProductDetail: React.FC = () => {
               product={product}
               user={user}
               onCreateCampaign={() => setCreateCampaignModalOpen(true)}
-              formatCurrency={formatCurrency}
-            />
-          </Grid>
-
-          {/* Purchase Panel */}
-          <Grid item xs={12} md={4}>
-            <PurchasePanel
-              product={product}
-              cartQuantity={cartQuantity}
-              currentPrice={currentPrice}
-              totalPrice={totalPrice}
-              onAddToCart={handleAddToCart}
-              onRemoveFromCart={handleRemoveFromCart}
               formatCurrency={formatCurrency}
             />
           </Grid>

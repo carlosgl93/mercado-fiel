@@ -1,7 +1,9 @@
 import Reviews from '@/components/Reviews';
+import { trackSupplierProfileView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
 import { Alert, Box, Snackbar, styled } from '@mui/material';
+import { useEffect } from 'react';
 import { SupplierWithProducts } from '../../models';
 import {
   AboutContainer,
@@ -58,6 +60,13 @@ export const MobileProfile = ({ proveedor }: MobileProfileProps) => {
 
   const { nombreNegocio, usuario, descripcion, productos } = proveedor;
   const { nombre, profilePictureUrl } = usuario || {};
+
+  // Track supplier profile view
+  useEffect(() => {
+    if (proveedor?.idProveedor && nombreNegocio) {
+      trackSupplierProfileView(proveedor.idProveedor, nombreNegocio, productos?.length || 0);
+    }
+  }, [proveedor?.idProveedor, nombreNegocio, productos?.length]);
 
   // Get cart quantities mapping
   const cartQuantities = getCartQuantitiesMap();

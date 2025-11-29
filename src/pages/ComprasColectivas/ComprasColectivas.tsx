@@ -1,6 +1,7 @@
 import { comprasColectivasApi } from '@/api';
 import { CollectivePurchaseCard, DashboardHeader, JoinCampaignModal } from '@/components';
 import { useAuth } from '@/hooks/useAuthSupabase';
+import { trackCampaignJoin } from '@/services/analyticsService';
 import { CompraColectiva, CompraColectivaFilters } from '@/types/api/comprasColectivas';
 import { Group as GroupIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 import {
@@ -183,7 +184,15 @@ export const ComprasColectivas: React.FC = () => {
           open={joinModalOpen}
           onClose={handleJoinModalClose}
           campaign={selectedCampaign}
-          onSuccess={() => {
+          onSuccess={(quantity: number) => {
+            // Track campaign join in analytics
+            trackCampaignJoin(
+              selectedCampaign.id_campana,
+              selectedCampaign.id_producto,
+              selectedCampaign.producto?.nombre_producto || 'Producto sin nombre',
+              quantity,
+              Number(selectedCampaign.precio_objetivo),
+            );
             // Refresh campaigns data
             // queryClient.invalidateQueries(['collective-campaigns']);
           }}

@@ -27,7 +27,7 @@ interface JoinCampaignModalProps {
   open: boolean;
   onClose: () => void;
   campaign: CompraColectiva;
-  onSuccess?: () => void;
+  onSuccess?: (quantity: number) => void;
 }
 
 export const JoinCampaignModal: React.FC<JoinCampaignModalProps> = ({
@@ -59,7 +59,7 @@ export const JoinCampaignModal: React.FC<JoinCampaignModalProps> = ({
         queryClient.invalidateQueries(['collective-products']);
         queryClient.invalidateQueries(['campaigns']);
         queryClient.invalidateQueries(['campaign', campaign.id_campana]);
-        onSuccess?.();
+        onSuccess?.(cantidad);
         handleClose();
       },
       onError: (error: any) => {

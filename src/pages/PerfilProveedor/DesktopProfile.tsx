@@ -1,10 +1,12 @@
 import Reviews from '@/components/Reviews';
 import { Text, Title } from '@/components/StyledComponents';
+import { trackSupplierProfileView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import { Alert, Box, Container, Snackbar, Typography } from '@mui/material';
+import { useEffect } from 'react';
 import { SupplierWithProducts } from '../../models';
 import {
   StyledAbout,
@@ -36,6 +38,13 @@ export const DesktopProfile = ({ proveedor }: DesktopProfileProps) => {
   console.log({ proveedor });
   const { nombreNegocio, usuario, descripcion, productos } = proveedor;
   const { nombre, profilePictureUrl } = usuario || {};
+
+  // Track supplier profile view
+  useEffect(() => {
+    if (proveedor?.idProveedor && nombreNegocio) {
+      trackSupplierProfileView(proveedor.idProveedor, nombreNegocio, productos?.length || 0);
+    }
+  }, [proveedor?.idProveedor, nombreNegocio, productos?.length]);
 
   // Get cart quantities mapping
   const cartQuantities = getCartQuantitiesMap();

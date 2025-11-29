@@ -1,5 +1,6 @@
 import { comprasColectivasApi, productsApi } from '@/api';
 import { campaignsApi } from '@/api/campaigns';
+import { trackCampaignJoin } from '@/services/analyticsService';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -45,8 +46,20 @@ export const useProductDetail = () => {
   const joinCampaignMutation = useMutation({
     mutationFn: (data: { campaignId: number; quantity: number; amount: number }) =>
       campaignsApi.joinCampaign(data.campaignId, data.quantity, data.amount),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['campaigns', 'product', id]);
+
+      // Track campaign join in analytics
+      const product = productResponse?.data;
+      if (product) {
+        trackCampaignJoin(
+          variables.campaignId,
+          product.idProducto,
+          product.nombreProducto,
+          variables.quantity,
+          variables.amount / variables.quantity, // Calculate target price per unit
+        );
+      }
     },
     onError: (error: any) => {
       // Show error message

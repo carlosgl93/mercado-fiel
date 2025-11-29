@@ -6,6 +6,7 @@ import { Product } from '@/types/products';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useRecoilState } from 'recoil';
+import { trackAddToCart, trackRemoveFromCart } from './analyticsService';
 
 interface SnackbarState {
   open: boolean;
@@ -258,10 +259,23 @@ export const useShoppingCartService = () => {
 
     console.log('🛒 Adding to cart:', { id_producto: productId, cantidad: quantity });
 
-    addToCartMutation.mutate({
-      id_producto: productId,
-      cantidad: quantity,
-    });
+    // Track analytics after mutation succeeds
+    const productObj = typeof product === 'object' ? product : null;
+
+    addToCartMutation.mutate(
+      {
+        id_producto: productId,
+        cantidad: quantity,
+      },
+      {
+        onSuccess: () => {
+          // Track analytics event if we have the full product object
+          if (productObj) {
+            trackAddToCart(productObj, quantity);
+          }
+        },
+      },
+    );
   };
 
   /**
@@ -273,6 +287,7 @@ export const useShoppingCartService = () => {
     if (!ensureAuthenticated()) return;
 
     const productId = typeof product === 'number' ? product : product.idProducto;
+    const productObj = typeof product === 'object' ? product : null;
 
     // Find the cart item for this product
     const cartItem = cartData?.data?.items?.find((item) => {
@@ -292,14 +307,31 @@ export const useShoppingCartService = () => {
     if (newQuantity <= 0) {
       // Remove item completely
       const itemId = (cartItem as any).id_carrito || (cartItem as any).idCarrito;
-      removeFromCartMutation.mutate(itemId);
+      removeFromCartMutation.mutate(itemId, {
+        onSuccess: () => {
+          // Track analytics event if we have the full product object
+          if (productObj) {
+            trackRemoveFromCart(productObj, currentQuantity);
+          }
+        },
+      });
     } else {
       // Update quantity
       const itemId = (cartItem as any).id_carrito || (cartItem as any).idCarrito;
-      updateCartMutation.mutate({
-        itemId,
-        data: { cantidad: newQuantity },
-      });
+      updateCartMutation.mutate(
+        {
+          itemId,
+          data: { cantidad: newQuantity },
+        },
+        {
+          onSuccess: () => {
+            // Track analytics event if we have the full product object
+            if (productObj) {
+              trackRemoveFromCart(productObj, quantity);
+            }
+          },
+        },
+      );
     }
   };
 

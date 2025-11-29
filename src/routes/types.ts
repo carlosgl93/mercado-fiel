@@ -54,6 +54,7 @@ enum Pages {
   PublicSupplierProfile,
   ClientDetail,
   PerfilUsuario,
+  EstadisticasProveedor,
 }
 
 type PathRouteCustomProps = {

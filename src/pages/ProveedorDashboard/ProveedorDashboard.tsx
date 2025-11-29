@@ -84,7 +84,7 @@ export const ProveedorDashboard = () => {
             ctaText="Ver mensajes"
           /> */}
           <DashboardTile
-            goToPath="/estadisticas-ventas"
+            goToPath="/estadisticas-proveedor"
             title="Estadísticas"
             subTitle="Analiza el rendimiento de tu negocio"
             isMobile={isMobile}

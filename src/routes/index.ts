@@ -223,6 +223,12 @@ const routes: Routes = {
     title: 'Mi perfil',
   },
 
+  [Pages.EstadisticasProveedor]: {
+    component: asyncComponentLoader(() => import('@/pages/SupplierDashboard')),
+    path: '/estadisticas-proveedor',
+    title: 'Estadísticas',
+  },
+
   [Pages.NotFound]: {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),
     path: '*',
@@ -254,6 +260,7 @@ export const protectedRoutes = [
   '/ver-apoyo',
   '/mis-apoyos',
   '/mis-productos',
+  '/estadisticas-proveedor',
 ];
 
 export default routes;

@@ -1,6 +1,8 @@
 import { productsApi } from '@/api/products';
 import { suppliersApi } from '@/api/suppliers';
+import { useAuth } from '@/hooks/useAuthSupabase';
 import { ProductCard } from '@/pages/ExplorarProductos/components/ProductCard';
+import { trackSupplierProfileView } from '@/services/analyticsService';
 import { useShoppingCartService } from '@/services/shoppingCartService';
 import { Product } from '@/types/products';
 import {
@@ -35,6 +37,7 @@ export const PublicSupplierProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { user } = useAuth();
 
   // Shopping cart service
   const {
@@ -73,6 +76,18 @@ export const PublicSupplierProfile: React.FC = () => {
 
   const supplier = supplierResponse?.data;
   const products = productsResponse?.data?.productos || [];
+
+  // Track supplier profile view when supplier data is loaded
+  React.useEffect(() => {
+    if (supplier && !isLoadingSupplier) {
+      trackSupplierProfileView(
+        supplier.idProveedor,
+        supplier.nombreNegocio || 'Proveedor',
+        products.length,
+        user?.data?.idUsuario,
+      );
+    }
+  }, [supplier?.idProveedor, isLoadingSupplier]);
 
   const renderStars = (rating: number) => {
     const fullStars = Math.floor(rating);

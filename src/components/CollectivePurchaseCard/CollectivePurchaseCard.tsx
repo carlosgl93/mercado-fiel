@@ -1,3 +1,4 @@
+import { trackCampaignView } from '@/services/analyticsService';
 import { CompraColectiva } from '@/types/api/comprasColectivas';
 import { formatCLP } from '@/utils/formatCLP';
 import {
@@ -34,6 +35,19 @@ export const CollectivePurchaseCard: React.FC<CollectivePurchaseCardProps> = ({
 }) => {
   const theme = useTheme();
   const progress = campaign.progreso;
+
+  // Track campaign view when card is rendered
+  React.useEffect(() => {
+    if (campaign.id_campana && campaign.id_producto) {
+      trackCampaignView(
+        campaign.id_campana,
+        campaign.id_producto,
+        campaign.producto?.nombre_producto || campaign.nombre || 'Campaña',
+        currentUserId,
+        campaign.id_proveedor,
+      );
+    }
+  }, [campaign.id_campana]);
   const progressPercentage = progress
     ? (progress.cantidad_actual / campaign.cantidad_objetivo) * 100
     : 0;
